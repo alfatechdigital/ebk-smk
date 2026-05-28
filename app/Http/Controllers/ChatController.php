@@ -72,6 +72,9 @@ class ChatController extends Controller
 
         $message = TicketMessage::create($data);
 
+        // Broadcast the message via Pusher
+        broadcast(new \App\Events\MessageSent($message))->toOthers();
+
         // Update ticket status to 'diproses' if it was 'menunggu'
         if ($ticket->status === 'menunggu') {
             $ticket->update(['status' => 'diproses']);

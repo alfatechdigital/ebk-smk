@@ -43,22 +43,24 @@ class TicketController extends Controller
 
     public function store(Request $request)
     {
-        $user = Auth::user();
         $validated = $request->validate([
-            'teacher_id'   => 'nullable|exists:teachers,id',
-            'service_id'   => 'required|exists:services,id',
-            'title'        => 'required|string|max:255',
-            'description'  => 'required|string',
+            'service_id' => 'required|exists:services,id',
+            'title' => 'required|string|max:255',
+            'description' => 'required|string',
             'prior_action' => 'nullable|string',
-            'anonymous'    => 'boolean',
+            'anonymous' => 'nullable|boolean',
         ]);
 
-        $validated['student_id'] = $user->student?->id;
-        $validated['anonymous']  = $request->boolean('anonymous');
+        // Auto assign to Guru BK of the class
+        $class = auth()->user()->student->class;
+        $validated['teacher_id'] = $class->teacher_id ?? null; // Can be null if admin hasn't assigned
 
+        $validated['student_id'] = auth()->user()->student->id;
+        $validated['anonymous'] = $request->has('anonymous');
+        
         $ticket = Ticket::create($validated);
 
-        return redirect()->route('chat.show', $ticket)->with('success', 'Konsultasi berhasil diajukan!');
+        return redirect()->route('tickets.show', $ticket)->with('success', 'Tiket konseling berhasil dibuat.');
     }
 
     public function show(Ticket $ticket)

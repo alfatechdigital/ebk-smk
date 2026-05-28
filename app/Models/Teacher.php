@@ -31,6 +31,11 @@ class Teacher extends Model
         return $this->hasMany(CounselingNote::class);
     }
 
+    public function classes()
+    {
+        return $this->hasMany(SchoolClass::class, 'teacher_id');
+    }
+
     public function getNameAttribute(): string
     {
         return $this->user->name ?? '';

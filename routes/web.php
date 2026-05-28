@@ -38,15 +38,20 @@ Route::middleware('auth')->group(function () {
 
     // Catatan Konseling
     Route::get('/catatan', [NoteController::class, 'index'])->name('catatan.index');
+    Route::get('/catatan/rekap', [NoteController::class, 'exportRekapPdf'])->name('catatan.rekap');
     Route::post('/catatan', [NoteController::class, 'store'])->name('catatan.store');
     Route::put('/catatan/{note}', [NoteController::class, 'update'])->name('catatan.update');
+    Route::delete('/catatan/{note}', [NoteController::class, 'destroy'])->name('catatan.destroy');
     Route::get('/catatan/{note}/pdf', [NoteController::class, 'generatePdf'])->name('catatan.pdf');
 
     // Rekap Laporan
     Route::get('/rekap', [ReportController::class, 'index'])->name('rekap.index');
+    Route::get('/rekap/export-excel', [ReportController::class, 'exportExcel'])->name('rekap.export.excel');
+    Route::get('/rekap/export-pdf', [ReportController::class, 'exportPdf'])->name('rekap.export.pdf');
 
     // ── Admin & SuperAdmin only ──
     Route::middleware('role:admin,superadmin')->group(function () {
+        Route::post('/users/import', [UserController::class, 'import'])->name('users.import');
         Route::resource('users', UserController::class)->except(['show','create','edit']);
         Route::get('/users', [UserController::class, 'index'])->name('users.index');
 
@@ -55,6 +60,10 @@ Route::middleware('auth')->group(function () {
 
         Route::get('/pengaturan', [InstitutionController::class, 'index'])->name('pengaturan.index');
         Route::post('/pengaturan', [InstitutionController::class, 'update'])->name('pengaturan.update');
+
+        // Jurnal Kegiatan BK
+        Route::get('/jurnal', [JournalController::class, 'index'])->name('jurnal.index');
+        Route::get('/jurnal/rekap', [JournalController::class, 'exportPdf'])->name('jurnal.rekap');
     });
 
     // ── SuperAdmin only ──

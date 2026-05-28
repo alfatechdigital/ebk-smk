@@ -4,54 +4,82 @@
 
 @section('content')
 <div class="page-header">
-    <h2 id="dash-greeting">
-        @php
-            $greet = match(auth()->user()->role) {
-                'superadmin' => 'Dashboard Super Admin',
-                'admin'      => 'Dashboard Admin',
-                'guru'       => 'Dashboard Guru BK',
-                'siswa'      => 'Halo, ' . auth()->user()->name . '! 👋',
-                default      => 'Dashboard',
-            };
-        @endphp
-        {{ $greet }}
-    </h2>
-    <p>
-        @php
-            $sub = match(auth()->user()->role) {
-                'superadmin' => 'Pantau seluruh aktivitas sistem E-BK',
-                'admin'      => 'Kelola user dan tiket konsultasi',
-                'guru'       => 'Ringkasan aktivitas konseling kamu',
-                'siswa'      => 'Selamat datang di layanan konseling online',
-                default      => 'Ringkasan aktivitas sistem E-BK',
-            };
-        @endphp
-        {{ $sub }}
-    </p>
+    @if(auth()->user()->isSiswa())
+        <h2>Halo, {{ auth()->user()->name }}! 👋</h2>
+        <p>Selamat datang di layanan konseling online</p>
+    @elseif(auth()->user()->isGuru())
+        <h2>Dashboard Guru BK</h2>
+        <p>Ringkasan aktivitas konseling kamu</p>
+    @elseif(auth()->user()->isAdmin())
+        <h2>Dashboard {{ auth()->user()->isSuperAdmin() ? 'Super Admin' : 'Admin' }}</h2>
+        <p>{{ auth()->user()->isSuperAdmin() ? 'Pantau seluruh aktivitas sistem E-BK' : 'Kelola user dan tiket konsultasi' }}</p>
+    @endif
 </div>
 
-{{-- Stats Grid --}}
+<!-- Stats Grid -->
 <div class="stats-grid">
-    @foreach($stats as $s)
-    <div class="stat-card {{ $s['cls'] }}">
-        <div class="stat-icon"><i class="{{ $s['icon'] }}"></i></div>
+    @if(auth()->user()->isSiswa())
+        <div class="stat-card">
+            <div class="stat-icon"><i class="fas fa-chalkboard-teacher"></i></div>
+            <div class="stat-info">
+                <h3 style="font-size:18px">{{ $assignedGuru ?? '-' }}</h3>
+                <p>Guru BK Kelas Anda</p>
+            </div>
+        </div>
+    @elseif(auth()->user()->isAdmin() || auth()->user()->isSuperAdmin() || auth()->user()->isGuru())
+        <div class="stat-card">
+            <div class="stat-icon"><i class="fas fa-users"></i></div>
+            <div class="stat-info">
+                <h3>{{ $stats['total_siswa'] }}</h3>
+                <p>Total Siswa {{ auth()->user()->isGuru() ? 'Diampu' : '' }}</p>
+            </div>
+        </div>
+    @endif
+    <div class="stat-card slate">
+        <div class="stat-icon"><i class="fas fa-ticket-alt"></i></div>
         <div class="stat-info">
-            <h3>{{ $s['val'] }}</h3>
-            <p>{{ $s['label'] }}</p>
+            <h3>{{ $stats['total_konsultasi'] }}</h3>
+            <p>Total Konsultasi</p>
         </div>
     </div>
-    @endforeach
+    <div class="stat-card gold">
+        <div class="stat-icon"><i class="fas fa-clock"></i></div>
+        <div class="stat-info">
+            <h3>{{ $stats['menunggu'] }}</h3>
+            <p>Menunggu Respon</p>
+        </div>
+    </div>
+    <div class="stat-card danger">
+        <div class="stat-icon"><i class="fas fa-spinner"></i></div>
+        <div class="stat-info">
+            <h3>{{ $stats['diproses'] }}</h3>
+            <p>Sedang Diproses</p>
+        </div>
+    </div>
 </div>
 
+@if(auth()->user()->isGuru() && isset($classActivities) && $classActivities->count() > 0)
+<div class="card mb-20">
+    <div class="card-header"><div class="card-title">Aktivitas Tiket Per Kelas (Diampu)</div></div>
+    <div style="display:flex;gap:16px;flex-wrap:wrap">
+        @foreach($classActivities as $ca)
+        <div style="flex:1;min-width:120px;background:var(--cream);padding:16px;border-radius:var(--radius-sm);text-align:center">
+            <div style="font-size:24px;font-weight:700;color:var(--teal)">{{ $ca['count'] }}</div>
+            <div style="font-size:13px;color:var(--slate);margin-top:4px">{{ $ca['class_name'] }}</div>
+        </div>
+        @endforeach
+    </div>
+</div>
+@endif
+
 <div class="grid-2">
-    {{-- Recent Tickets --}}
+    <!-- Recent Tickets -->
     <div class="card">
         <div class="card-header">
             <div>
                 <div class="card-title">Tiket Terbaru</div>
                 <div class="card-subtitle">5 tiket terakhir masuk</div>
             </div>
-            <a href="{{ route('tickets.index') }}" class="btn btn-secondary btn-sm">Lihat Semua</a>
         </div>
         <div class="table-wrap">
             <table>
@@ -59,34 +87,35 @@
                     <tr><th>ID</th><th>Siswa</th><th>Layanan</th><th>Status</th></tr>
                 </thead>
                 <tbody>
-                    @forelse($recentTickets as $ticket)
+                    @forelse ($recentTickets as $ticket)
                     <tr>
                         <td>{{ $ticket->code }}</td>
                         <td>
-                            @if($ticket->anonymous)
-                                <span class="text-muted">Anonim</span>
+                            @if(auth()->user()->isSiswa())
+                                {{ $ticket->anonymous ? 'Kamu (Anonim)' : $ticket->student?->user?->name ?? '-' }}
                             @else
-                                {{ $ticket->student?->user?->name ?? '—' }}
+                                {{ $ticket->student?->user?->name ?? '-' }}
+                                @if($ticket->anonymous) <span class="badge badge-warning" style="font-size:9px;padding:2px 6px;margin-left:4px">Anonim</span> @endif
                             @endif
                         </td>
-                        <td>{{ $ticket->service?->name ?? '—' }}</td>
+                        <td>{{ $ticket->service?->name ?? '-' }}</td>
                         <td><span class="badge {{ $ticket->status_badge }}">{{ $ticket->status_label }}</span></td>
                     </tr>
                     @empty
-                    <tr><td colspan="4" class="empty-state" style="text-align:center;padding:24px;color:var(--muted)">Belum ada tiket</td></tr>
+                    <tr><td colspan="4" class="text-muted" style="text-align:center">Belum ada tiket</td></tr>
                     @endforelse
                 </tbody>
             </table>
         </div>
     </div>
 
-    {{-- Recent Activity --}}
+    <!-- Activity -->
     <div class="card">
         <div class="card-header">
             <div class="card-title">Aktivitas Terkini</div>
         </div>
         <div style="display:flex;flex-direction:column;gap:14px">
-            @forelse($activities as $act)
+            @forelse ($activities as $act)
             <div style="display:flex;gap:12px;align-items:flex-start">
                 <div style="width:32px;height:32px;background:rgba(13,124,102,0.1);border-radius:50%;display:flex;align-items:center;justify-content:center;color:var(--teal);font-size:13px;flex-shrink:0">
                     <i class="{{ $act['icon'] }}"></i>
@@ -97,7 +126,10 @@
                 </div>
             </div>
             @empty
-            <p class="text-muted">Belum ada aktivitas</p>
+            <div class="empty-state">
+                <i class="fas fa-bell-slash"></i>
+                <p>Belum ada aktivitas</p>
+            </div>
             @endforelse
         </div>
     </div>
