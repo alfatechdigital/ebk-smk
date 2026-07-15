@@ -1,25 +1,60 @@
 <!DOCTYPE html>
 <html lang="id">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>E-BK — @yield('title', 'Sistem Bimbingan Konseling Online')</title>
-    <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,300&display=swap" rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,300&display=swap"
+        rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
     <link href="{{ asset('css/ebk.css') }}" rel="stylesheet">
     <style>
         /* CSS Tambahan untuk Dropdown Sidebar */
-        .nav-dropdown { display: none; background: rgba(0,0,0,0.03); padding-left: 15px; }
-        .nav-item.has-dropdown { cursor: pointer; display: flex; align-items: center; justify-content: space-between; }
-        .nav-item.has-dropdown .chevron { transition: transform 0.3s; font-size: 0.8rem; }
-        .nav-item.has-dropdown.open .chevron { transform: rotate(180deg); }
-        .nav-item.has-dropdown.open + .nav-dropdown { display: block; }
-        .nav-dropdown .nav-item { font-size: 0.9rem; padding: 10px 20px; border-radius: 0; border-left: 2px solid transparent; }
-        .nav-dropdown .nav-item.active { background: transparent; color: var(--teal); border-left: 2px solid var(--teal); }
+        .nav-dropdown {
+            display: none;
+            background: rgba(0, 0, 0, 0.03);
+            padding-left: 15px;
+        }
+
+        .nav-item.has-dropdown {
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .nav-item.has-dropdown .chevron {
+            transition: transform 0.3s;
+            font-size: 0.8rem;
+        }
+
+        .nav-item.has-dropdown.open .chevron {
+            transform: rotate(180deg);
+        }
+
+        .nav-item.has-dropdown.open+.nav-dropdown {
+            display: block;
+        }
+
+        .nav-dropdown .nav-item {
+            font-size: 0.9rem;
+            padding: 10px 20px;
+            border-radius: 0;
+            border-left: 2px solid transparent;
+        }
+
+        .nav-dropdown .nav-item.active {
+            background: transparent;
+            color: var(--teal);
+            border-left: 2px solid var(--teal);
+        }
     </style>
     @stack('styles')
 </head>
+
 <body>
     @php $user = auth()->user(); @endphp
 
@@ -52,7 +87,7 @@
                         ['route' => 'tickets.index', 'icon' => 'fas fa-ticket-alt', 'label' => 'Semua Tiket'],
                         ['route' => 'kategori.index', 'icon' => 'fas fa-tags', 'label' => 'Kategori Layanan'],
                         ['section' => 'Sistem'],
-                        ['route' => 'pengaturan.index', 'icon' => 'fas fa-cog', 'label' => 'Pengaturan Lembaga'],
+                        // ['route' => 'pengaturan.index', 'icon' => 'fas fa-cog', 'label' => 'Pengaturan Lembaga'],
                         ['route' => 'rekap.index', 'icon' => 'fas fa-chart-bar', 'label' => 'Rekap Laporan'],
                     ],
                     'admin' => [
@@ -63,7 +98,7 @@
                         ['label' => 'Manajemen User', 'icon' => 'fas fa-users-cog', 'submenu' => $userSubmenu],
                         ['route' => 'kategori.index', 'icon' => 'fas fa-tags', 'label' => 'Kategori Layanan'],
                         ['section' => 'Sistem'],
-                        ['route' => 'pengaturan.index', 'icon' => 'fas fa-cog', 'label' => 'Pengaturan Lembaga'],
+                        // ['route' => 'pengaturan.index', 'icon' => 'fas fa-cog', 'label' => 'Pengaturan Lembaga'],
                         ['route' => 'rekap.index', 'icon' => 'fas fa-chart-bar', 'label' => 'Rekap Laporan'],
                     ],
                     'guru' => [
@@ -95,8 +130,8 @@
                     {{-- Dropdown Logic --}}
                     @php
                         $is_open = false;
-                        foreach($item['submenu'] as $sub) {
-                            if(request()->fullUrlIs(route($sub['route'], $sub['params'] ?? []))) {
+                        foreach ($item['submenu'] as $sub) {
+                            if (request()->fullUrlIs(route($sub['route'], $sub['params'] ?? []))) {
                                 $is_open = true;
                                 break;
                             }
@@ -111,14 +146,15 @@
                     </div>
                     <div class="nav-dropdown">
                         @foreach ($item['submenu'] as $sub)
-                            <a href="{{ route($sub['route'], $sub['params'] ?? []) }}" 
-                               class="nav-item {{ request()->fullUrlIs(route($sub['route'], $sub['params'] ?? [])) ? 'active' : '' }}">
+                            <a href="{{ route($sub['route'], $sub['params'] ?? []) }}"
+                                class="nav-item {{ request()->fullUrlIs(route($sub['route'], $sub['params'] ?? [])) ? 'active' : '' }}">
                                 <span>{{ $sub['label'] }}</span>
                             </a>
                         @endforeach
                     </div>
                 @else
-                    <a href="{{ route($item['route']) }}" class="nav-item {{ request()->routeIs($item['route'].'*') ? 'active' : '' }}">
+                    <a href="{{ route($item['route']) }}"
+                        class="nav-item {{ request()->routeIs($item['route'] . '*') ? 'active' : '' }}">
                         <i class="{{ $item['icon'] }}"></i>
                         <span>{{ $item['label'] }}</span>
                     </a>
@@ -136,10 +172,12 @@
         </div>
     </nav>
 
-    <div class="sidebar-overlay" id="sidebar-overlay" onclick="document.getElementById('sidebar').classList.remove('open');this.classList.remove('open')"></div>
+    <div class="sidebar-overlay" id="sidebar-overlay"
+        onclick="document.getElementById('sidebar').classList.remove('open');this.classList.remove('open')"></div>
 
     <header class="topbar">
-        <button class="topbar-hamburger" onclick="document.getElementById('sidebar').classList.toggle('open');document.getElementById('sidebar-overlay').classList.toggle('open')">
+        <button class="topbar-hamburger"
+            onclick="document.getElementById('sidebar').classList.toggle('open');document.getElementById('sidebar-overlay').classList.toggle('open')">
             <i class="fas fa-bars"></i>
         </button>
         <div class="topbar-title"><span>@yield('page-title', 'Dashboard')</span></div>
@@ -165,4 +203,5 @@
     @stack('modals')
     @stack('scripts')
 </body>
+
 </html>
