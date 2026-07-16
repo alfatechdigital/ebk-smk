@@ -2,6 +2,25 @@
 @section('title', 'Catatan Konseling')
 @section('page-title', 'Catatan Konseling')
 
+@push('styles')
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+<style>
+    .select2-container--default .select2-selection--single {
+        height: 38px;
+        border: 1.5px solid var(--border);
+        border-radius: var(--radius-sm);
+        padding: 4px 8px;
+        font-size: 14px;
+    }
+    .select2-container--default .select2-selection--single .select2-selection__arrow {
+        height: 36px;
+    }
+    .filter-bar .select2-container {
+        min-width: 220px;
+    }
+</style>
+@endpush
+
 @section('content')
     <div class="page-header-row">
         <div class="page-header">
@@ -12,7 +31,7 @@
 
     <form class="filter-bar" method="GET" action="{{ route('catatan.index') }}">
         <input type="month" name="month" value="{{ request('month') }}">
-        <select name="student_id" onchange="this.form.submit()">
+        <select name="student_id" id="student-filter" class="select2-student">
             <option value="">Semua Siswa</option>
             @foreach($students as $s)
                 <option value="{{ $s->id }}" {{ request('student_id') == $s->id ? 'selected' : '' }}>{{ $s->user->name }}</option>
@@ -117,6 +136,8 @@
 @endpush
 
 @push('scripts')
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
     <script>
         function openModal(id) { document.getElementById(id).classList.add('open') }
         function closeModal(id) { document.getElementById(id).classList.remove('open') }
@@ -130,5 +151,15 @@
             document.getElementById('edit-kesimpulan').value = note.kesimpulan || '';
             openModal('modal-edit-catatan');
         }
+
+        $(document).ready(function() {
+            $('#student-filter').select2({
+                placeholder: 'Cari siswa...',
+                allowClear: true,
+                width: 'resolve'
+            }).on('change', function() {
+                this.form.submit();
+            });
+        });
     </script>
 @endpush
