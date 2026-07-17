@@ -47,14 +47,7 @@
             @endif
         </div>
         
-        {{-- Right Side Actions --}}
-        @if(auth()->user()->isGuru() && $active->status !== 'selesai')
-        <div style="flex-shrink: 0;">
-            <button type="button" class="btn btn-primary" onclick="openModal('modal-selesai')" style="background: var(--teal); color: #fff; border: none; padding: 8px 15px; border-radius: var(--radius-sm); cursor: pointer; font-weight: 600; display: inline-flex; align-items: center; gap: 6px; box-shadow: var(--shadow); font-size: 0.85rem;">
-                <i class="fa-solid fa-circle-check"></i> Selesaikan Sesi
-            </button>
-        </div>
-        @endif
+
     </div>
 
     {{-- 1. Chat Messages Area --}}
@@ -344,39 +337,7 @@
 @endpush
 @endsection
 
-@push('modals')
-@if($active && auth()->user()->isGuru() && $active->status !== 'selesai')
-<div class="modal-overlay" id="modal-selesai">
-    <div class="modal">
-        <div class="modal-header"><h3>Selesaikan & Buat Catatan</h3><button class="modal-close" onclick="closeModal('modal-selesai')">✕</button></div>
-        <form method="POST" action="{{ route('catatan.store') }}">
-            @csrf
-            <input type="hidden" name="ticket_id" value="{{ $active->id }}">
-            <div class="field-group">
-                <label>Judul / Topik</label>
-                <input type="text" name="title" value="{{ $active->title }}" required>
-            </div>
-            <div class="field-group">
-                <label>Masalah / Permasalahan</label>
-                <textarea name="masalah" required>{{ $active->description }}</textarea>
-            </div>
-            <div class="field-group">
-                <label>Tindakan yang Dilakukan (Solusi)</label>
-                <textarea name="tindakan" placeholder="Tindakan, teknik, atau intervensi..." required></textarea>
-            </div>
-            <div class="field-group">
-                <label>Kesimpulan (Opsional)</label>
-                <textarea name="kesimpulan" placeholder="Kesimpulan sesi konseling..."></textarea>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" onclick="closeModal('modal-selesai')">Batal</button>
-                <button type="submit" class="btn btn-primary"><i class="fa-solid fa-floppy-disk"></i> Simpan & Selesaikan</button>
-            </div>
-        </form>
-    </div>
-</div>
-@endif
-@endpush
+
 
 @push('scripts')
 <script src="https://js.pusher.com/8.2.0/pusher.min.js"></script>

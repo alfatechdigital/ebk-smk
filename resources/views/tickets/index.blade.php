@@ -159,7 +159,12 @@
         </div>
 
         {{-- Right Side: Actions --}}
-        <div style="flex: 0 0 170px; display: flex; gap: 8px; justify-content: flex-end; align-items: center;">
+        <div style="flex: 0 0 250px; display: flex; gap: 8px; justify-content: flex-end; align-items: center;">
+            @if(auth()->user()->isGuru() && $ticket->status !== 'selesai')
+                <button type="button" class="btn btn-success btn-sm" style="padding: 6px 12px; font-size: 12px; margin: 0; background: #4f46e5; border: none; color: #fff; display: inline-flex; align-items: center; gap: 4px;" onclick="openSelesaiModal('{{ $ticket->id }}', '{{ addslashes($ticket->title) }}', '{{ addslashes($ticket->description) }}')">
+                    <i class="fas fa-check-circle"></i> Selesai
+                </button>
+            @endif
             <button type="button" 
                     class="btn btn-secondary btn-sm" 
                     title="Detail Masalah" 
@@ -276,16 +281,71 @@
                 <div style="font-size: 0.925rem; color: #334155; background: #fffbeb; border-left: 4px solid #f59e0b; padding: 15px; border-radius: 0 8px 8px 0; line-height: 1.6; white-space: pre-wrap;" id="detail-prior-action"></div>
             </div>
         </div>
-        <div class="modal-footer" style="margin-top: 30px; padding-top: 15px; border-top: 1px solid #e2e8f0; justify-content: flex-end; gap: 10px;">
-            <button type="button" class="btn btn-secondary" onclick="closeModal('modal-detail-ticket')">Tutup</button>
-            <a href="#" id="detail-chat-btn" class="btn btn-primary"><i class="fas fa-comments"></i> Buka Pesan</a>
+        <div class="modal-footer" style="margin-top: 30px; padding-top: 15px; border-top: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center;">
+            <div>
+                @if(auth()->user()->isGuru())
+                    <button type="button" id="detail-selesai-btn" class="btn" style="background: #4f46e5; border: none; color: #fff; display: inline-flex; align-items: center; gap: 4px; margin: 0;"><i class="fas fa-check-circle"></i> Selesai</button>
+                @endif
+            </div>
+            <div style="display: flex; gap: 10px;">
+                <button type="button" class="btn btn-secondary" onclick="closeModal('modal-detail-ticket')">Tutup</button>
+                <a href="#" id="detail-chat-btn" class="btn btn-primary"><i class="fas fa-comments"></i> Buka Pesan</a>
+            </div>
         </div>
     </div>
 </div>
+
+{{-- Modal Selesai & Buat Catatan --}}
+@if(auth()->user()->isGuru())
+<div class="modal-overlay" id="modal-selesai">
+    <div class="modal" style="max-width: 600px; max-height: 90vh; overflow-y: auto; padding: 24px;">
+        <div class="modal-header" style="border-bottom: 1px solid #eee; padding-bottom: 15px; margin-bottom: 20px;">
+            <h3 style="font-size: 1.15rem; font-weight: 800; color: var(--charcoal); display: flex; align-items: center; gap: 8px; margin: 0;">
+                <i class="fa-solid fa-circle-check" style="color: #059669;"></i> Selesaikan & Buat Catatan
+            </h3>
+            <button class="modal-close" onclick="closeModal('modal-selesai')">✕</button>
+        </div>
+        <form method="POST" action="{{ route('catatan.store') }}">
+            @csrf
+            <input type="hidden" name="ticket_id" id="selesai-ticket-id">
+            <div class="field-group">
+                <label>Judul / Topik</label>
+                <input type="text" name="title" id="selesai-ticket-title" required>
+            </div>
+            <div class="field-group">
+                <label>Masalah / Permasalahan</label>
+                <textarea name="masalah" id="selesai-ticket-description" required></textarea>
+            </div>
+            <div class="field-group">
+                <label>Tindakan yang Dilakukan (Solusi)</label>
+                <textarea name="tindakan" placeholder="Tindakan, teknik, atau intervensi..." required></textarea>
+            </div>
+            <div class="field-group">
+                <label>Kesimpulan (Opsional)</label>
+                <textarea name="kesimpulan" placeholder="Kesimpulan sesi konseling..."></textarea>
+            </div>
+            <div class="modal-footer" style="justify-content: flex-end; gap: 10px; border-top: none; padding-top: 20px;">
+                <button type="button" class="btn btn-secondary" onclick="closeModal('modal-selesai')">Batal</button>
+                <button type="submit" class="btn btn-primary" style="background: #059669; border: none; color: #fff;"><i class="fa-solid fa-floppy-disk"></i> Simpan & Selesaikan</button>
+            </div>
+        </form>
+    </div>
+</div>
+@endif
 @endpush
 
 @push('scripts')
 <script>
+window.openSelesaiModal = function(id, title, description) {
+    const idInput = document.getElementById('selesai-ticket-id');
+    const titleInput = document.getElementById('selesai-ticket-title');
+    const descInput = document.getElementById('selesai-ticket-description');
+    if (idInput) idInput.value = id;
+    if (titleInput) titleInput.value = title;
+    if (descInput) descInput.value = description;
+    openModal('modal-selesai');
+};
+
 function openModal(id){document.getElementById(id).classList.add('open')}
 function closeModal(id){document.getElementById(id).classList.remove('open')}
 document.querySelectorAll('.modal-overlay').forEach(m=>{m.addEventListener('click',e=>{if(e.target===m)m.classList.remove('open')})});
@@ -333,6 +393,19 @@ function openDetailModal(btn) {
         } else {
             chatBtn.className = 'btn btn-primary';
             chatBtn.innerHTML = '<i class="fas fa-comments"></i> Balas / Lanjut Pesan';
+        }
+    }
+
+    const selesaiBtn = document.getElementById('detail-selesai-btn');
+    if (selesaiBtn) {
+        if (status === 'selesai') {
+            selesaiBtn.style.display = 'none';
+        } else {
+            selesaiBtn.style.display = 'inline-flex';
+            selesaiBtn.onclick = function() {
+                closeModal('modal-detail-ticket');
+                openSelesaiModal(ticketId, title, description);
+            };
         }
     }
 
