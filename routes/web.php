@@ -10,6 +10,7 @@ use App\Http\Controllers\ServiceController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\InstitutionController;
+use App\Http\Controllers\JournalController;
 use Illuminate\Support\Facades\Route;
 
 // ─── Auth ───────────────────────────────────────────────
@@ -35,6 +36,7 @@ Route::middleware('auth')->group(function () {
     Route::resource('tickets', TicketController::class)->except(['edit']);
     Route::post('/tickets/{ticket}/status', [TicketController::class, 'updateStatus'])->name('tickets.status');
     Route::post('/tickets/{ticket}/assign', [TicketController::class, 'assignTeacher'])->name('tickets.assign');
+    Route::post('/tickets/{ticket}/toggle-favorite', [TicketController::class, 'toggleFavorite'])->name('tickets.favorite');
 
     // Catatan Konseling
     Route::get('/catatan', [NoteController::class, 'index'])->name('catatan.index');
@@ -55,8 +57,7 @@ Route::middleware('auth')->group(function () {
         Route::resource('users', UserController::class)->except(['show','create','edit']);
         Route::get('/users', [UserController::class, 'index'])->name('users.index');
 
-        Route::resource('kategori', ServiceController::class)->except(['show','create','edit']);
-        Route::get('/kategori', [ServiceController::class, 'index'])->name('kategori.index');
+
 
         Route::get('/pengaturan', [InstitutionController::class, 'index'])->name('pengaturan.index');
         Route::post('/pengaturan', [InstitutionController::class, 'update'])->name('pengaturan.update');
@@ -64,6 +65,12 @@ Route::middleware('auth')->group(function () {
         // Jurnal Kegiatan BK
         Route::get('/jurnal', [JournalController::class, 'index'])->name('jurnal.index');
         Route::get('/jurnal/rekap', [JournalController::class, 'exportPdf'])->name('jurnal.rekap');
+    });
+
+    // Kategori Layanan (Admin, SuperAdmin & Guru BK)
+    Route::middleware('role:admin,superadmin,guru')->group(function () {
+        Route::resource('kategori', ServiceController::class)->except(['show','create','edit']);
+        Route::get('/kategori', [ServiceController::class, 'index'])->name('kategori.index');
     });
 
     // ── SuperAdmin only ──
@@ -77,4 +84,7 @@ Route::middleware('auth')->group(function () {
 
     // Data Siswa (Guru)
     Route::get('/data-siswa', [App\Http\Controllers\StudentDataController::class, 'index'])->name('data-siswa.index');
+    Route::post('/data-siswa', [App\Http\Controllers\StudentDataController::class, 'store'])->name('data-siswa.store');
+    Route::put('/data-siswa/{student}', [App\Http\Controllers\StudentDataController::class, 'update'])->name('data-siswa.update');
+    Route::delete('/data-siswa/{student}', [App\Http\Controllers\StudentDataController::class, 'destroy'])->name('data-siswa.destroy');
 });

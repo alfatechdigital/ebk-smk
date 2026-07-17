@@ -18,14 +18,25 @@ class ProfileController extends Controller
     public function update(Request $request)
     {
         $user = Auth::user();
-        $validated = $request->validate([
-            'name'             => 'required|string|max:255',
+        
+        $rules = [
             'email'            => ['required','email', Rule::unique('users')->ignore($user->id)],
             'current_password' => 'nullable|string',
             'password'         => 'nullable|string|min:6|confirmed',
-            'no_whatsapp'      => 'nullable|string',
-            'spesialisasi'     => 'nullable|string',
-        ]);
+        ];
+
+        if ($user->isGuru()) {
+            $rules['name'] = 'required|string|max:255';
+            $rules['no_whatsapp'] = 'nullable|string';
+            $rules['spesialisasi'] = 'nullable|string';
+            $rules['nip'] = ['nullable', 'string', Rule::unique('teachers', 'nip')->ignore($user->teacher->id ?? 0)];
+        } elseif ($user->isSiswa()) {
+            $rules['no_hp'] = 'nullable|string|max:20';
+        } else {
+            $rules['name'] = 'required|string|max:255';
+        }
+
+        $validated = $request->validate($rules);
 
         if ($request->filled('current_password')) {
             if (!Hash::check($request->current_password, $user->password)) {
@@ -33,16 +44,29 @@ class ProfileController extends Controller
             }
         }
 
-        $user->update([
-            'name'  => $validated['name'],
+        $userData = [
             'email' => $validated['email'],
-            ...(isset($validated['password']) ? ['password' => Hash::make($validated['password'])] : []),
-        ]);
+        ];
+
+        if (!$user->isSiswa() && isset($validated['name'])) {
+            $userData['name'] = $validated['name'];
+        }
+
+        if (!empty($validated['password'])) {
+            $userData['password'] = Hash::make($validated['password']);
+        }
+
+        $user->update($userData);
 
         if ($user->isGuru() && $user->teacher) {
             $user->teacher->update([
-                'no_whatsapp' => $validated['no_whatsapp'] ?? $user->teacher->no_whatsapp,
+                'nip'          => $validated['nip'] ?? $user->teacher->nip,
+                'no_whatsapp'  => $validated['no_whatsapp'] ?? $user->teacher->no_whatsapp,
                 'spesialisasi' => $validated['spesialisasi'] ?? $user->teacher->spesialisasi,
+            ]);
+        } elseif ($user->isSiswa() && $user->student) {
+            $user->student->update([
+                'no_hp' => $validated['no_hp'] ?? null,
             ]);
         }
 

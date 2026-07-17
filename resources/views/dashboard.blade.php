@@ -36,27 +36,27 @@
                 </div>
             </div>
         @endif
-        <div class="stat-card slate">
+        <a href="{{ route('tickets.index') }}" class="stat-card slate" style="text-decoration: none; color: inherit;">
             <div class="stat-icon"><i class="fas fa-ticket-alt"></i></div>
             <div class="stat-info">
                 <h3>{{ $stats['total_konsultasi'] }}</h3>
                 <p>Total Konsultasi Aktif</p>
             </div>
-        </div>
-        <div class="stat-card gold">
+        </a>
+        <a href="{{ route('tickets.index', ['status' => 'menunggu']) }}" class="stat-card gold" style="text-decoration: none; color: inherit;">
             <div class="stat-icon"><i class="fas fa-clock"></i></div>
             <div class="stat-info">
                 <h3>{{ $stats['menunggu'] }}</h3>
                 <p>Menunggu Respon</p>
             </div>
-        </div>
-        <div class="stat-card danger">
+        </a>
+        <a href="{{ route('tickets.index', ['status' => 'diproses']) }}" class="stat-card danger" style="text-decoration: none; color: inherit;">
             <div class="stat-icon"><i class="fas fa-spinner"></i></div>
             <div class="stat-info">
                 <h3>{{ $stats['diproses'] }}</h3>
                 <p>Sedang Diproses</p>
             </div>
-        </div>
+        </a>
     </div>
 
     @if(auth()->user()->isGuru() && isset($classActivities) && $classActivities->count() > 0)

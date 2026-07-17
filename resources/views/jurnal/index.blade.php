@@ -71,7 +71,5 @@
         </table>
     </div>
 </div>
-<div style="margin-top:20px">
-    {{ $journals->links() }}
-</div>
+{{ $journals->links('vendor.pagination.custom') }}
 @endsection

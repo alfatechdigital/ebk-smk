@@ -7,12 +7,62 @@
 <div class="card" style="padding: 0; overflow: hidden; background: #fff; height: calc(100vh - 90px); display: flex; flex-direction: column;">
     @if($active)
 
+    {{-- 0. Chat Header Info --}}
+    <div class="chat-header-info" style="flex-shrink: 0; background: #fff; border-bottom: 1px solid #eee; padding: 15px 20px; display: flex; justify-content: space-between; align-items: flex-start; gap: 15px;">
+        <div style="flex-grow: 1;">
+            <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+                <h4 style="margin: 0; font-size: 1rem; font-weight: 700; color: var(--charcoal);">
+                    {{ $active->student->user->name ?? '-' }} @if($active->anonymous) <span style="font-weight: 500; color: var(--danger); font-size: 0.85rem;">(Anonim)</span> @endif
+                </h4>
+                <span style="font-size: 0.75rem; font-weight: 600; color: var(--teal); background: rgba(13,124,102,0.08); padding: 1px 6px; border-radius: 4px; display: inline-block;">
+                    Kelas: {{ $active->student->class->name ?? '-' }}
+                </span>
+                @if($active->service)
+                    <span class="badge" style="background: {{ $active->service->color ?? 'var(--teal)' }}; color: #fff; font-size: 10px; padding: 2px 8px; border-radius: 4px; display: inline-flex; align-items: center; gap: 4px; font-weight: 600;">
+                        <i class="{{ $active->service->icon ?? 'fas fa-tag' }}"></i> {{ $active->service->name }}
+                    </span>
+                @endif
+                @if($active->anonymous)
+                    <span class="badge animate-pulse" style="background-color: #fef2f2; color: #ef4444; border: 1px solid #fecaca; font-size: 10px; padding: 2px 8px; border-radius: 4px; display: inline-flex; align-items: center; gap: 4px; font-weight: 600;">
+                        <i class="fas fa-user-secret"></i> Anonim
+                    </span>
+                @endif
+                <span style="font-size: 0.75rem; color: #999; font-weight: 500; margin-left: auto;">
+                    Code: {{ $active->code }}
+                </span>
+            </div>
+            <div style="margin-top: 8px; padding: 8px 12px; background: #f9fbfb; border-left: 3px solid var(--teal); border-radius: 0 4px 4px 0; font-size: 0.85rem;">
+                <div style="font-weight: 700; color: var(--charcoal); margin-bottom: 2px;">
+                    {{ $active->title }}
+                </div>
+                <div style="color: #666; font-size: 0.8rem; line-height: 1.4;">
+                    {{ $active->description }}
+                </div>
+            </div>
+            @if($active->anonymous)
+                <div style="display: flex; align-items: center; gap: 8px; background-color: #fef2f2; border: 1px solid #fee2e2; color: #dc2626; padding: 8px 12px; border-radius: 6px; font-size: 12px; font-weight: 500; margin-top: 10px;">
+                    <i class="fas fa-user-secret" style="font-size: 14px;"></i>
+                    <span><strong>Sesi Konsultasi Anonim:</strong> Siswa mengajukan konsultasi ini secara anonim untuk menjaga kerahasiaan identitas aslinya.</span>
+                </div>
+            @endif
+        </div>
+        
+        {{-- Right Side Actions --}}
+        @if(auth()->user()->isGuru() && $active->status !== 'selesai')
+        <div style="flex-shrink: 0;">
+            <button type="button" class="btn btn-primary" onclick="openModal('modal-selesai')" style="background: var(--teal); color: #fff; border: none; padding: 8px 15px; border-radius: var(--radius-sm); cursor: pointer; font-weight: 600; display: inline-flex; align-items: center; gap: 6px; box-shadow: var(--shadow); font-size: 0.85rem;">
+                <i class="fa-solid fa-circle-check"></i> Selesaikan Sesi
+            </button>
+        </div>
+        @endif
+    </div>
+
     {{-- 1. Chat Messages Area --}}
     <div class="chat-messages" id="chat-messages" style="flex-grow: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 14px; background: #f8f9fa;">
         @foreach ($messages as $msg)
         <div class="msg {{ $msg->sender_id === auth()->id() ? 'sent' : 'received' }}">
             <div class="msg-avatar" @if($msg->sender_id === auth()->id()) style="background:var(--teal-dark)" @endif>{{ $msg->sender->avatar_initials }}</div>
-            <div>
+            <div class="msg-body">
                 @if($msg->type === 'text')
                     <div class="msg-bubble">{!! nl2br(e($msg->content)) !!}</div>
                 @elseif($msg->type === 'image')
@@ -84,20 +134,33 @@
         50% { transform: scale(1.2); }
         100% { transform: scale(1); }
     }
+    .msg-body {
+        display: flex;
+        flex-direction: column;
+        max-width: 75%;
+    }
+    .sent .msg-body {
+        align-items: flex-end;
+    }
+    .received .msg-body {
+        align-items: flex-start;
+    }
     .msg-bubble {
-        max-width: 85%;
         padding: 10px 14px;
         border-radius: 15px;
         font-size: 0.95rem;
         word-wrap: break-word;
+        max-width: 100%;
+        width: fit-content;
     }
-    .sent .msg-bubble { background: var(--teal); color: white; border-bottom-right-radius: 2px; align-self: flex-end; }
-    .received .msg-bubble { background: #eee; color: #333; border-bottom-left-radius: 2px; align-self: flex-start; }
+    .sent .msg-bubble { background: var(--teal); color: white; border-bottom-right-radius: 2px; }
+    .received .msg-bubble { background: #eee; color: #333; border-bottom-left-radius: 2px; }
     .msg { display: flex; gap: 10px; }
     .msg.sent { flex-direction: row-reverse; }
 </style>
 
 <script>
+{
     const msgInput = document.getElementById('msg-input');
     const btnRecord = document.getElementById('btn-record');
     const btnSend = document.getElementById('btn-send');
@@ -106,54 +169,62 @@
     const chatBox = document.getElementById('chat-messages');
 
     // 1. Logika Toggle Mic vs Send
-    msgInput.addEventListener('input', function() {
-        // Auto resize height
-        this.style.height = 'auto';
-        this.style.height = (this.scrollHeight) + 'px';
+    if (msgInput) {
+        msgInput.addEventListener('input', function() {
+            // Auto resize height
+            this.style.height = 'auto';
+            this.style.height = (this.scrollHeight) + 'px';
 
-        if (this.value.trim().length > 0) {
-            btnRecord.style.display = 'none';
-            btnSend.style.display = 'block';
-        } else {
-            btnRecord.style.display = 'block';
-            btnSend.style.display = 'none';
-        }
-    });
+            if (this.value.trim().length > 0) {
+                if (btnRecord) btnRecord.style.display = 'none';
+                if (btnSend) btnSend.style.display = 'block';
+            } else {
+                if (btnRecord) btnRecord.style.display = 'block';
+                if (btnSend) btnSend.style.display = 'none';
+            }
+        });
+
+        // Enter to send, Shift+Enter to newline
+        msgInput.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                if (this.value.trim().length > 0 && chatForm) {
+                    if (typeof chatForm.requestSubmit === 'function') {
+                        chatForm.requestSubmit();
+                    } else {
+                        chatForm.submit();
+                    }
+                }
+            }
+        });
+    }
 
     // 2. Logika Submit (Cegah double input & ganti ke Loading)
-    chatForm.addEventListener('submit', function(e) {
-        btnSend.style.display = 'none';
-        btnLoading.style.display = 'block';
-        msgInput.readOnly = true; // Mencegah user mengetik saat kirim
-    });
+    if (chatForm) {
+        chatForm.addEventListener('submit', function(e) {
+            if (btnSend) btnSend.style.display = 'none';
+            if (btnLoading) btnLoading.style.display = 'block';
+            if (msgInput) msgInput.readOnly = true; // Mencegah user mengetik saat kirim
+        });
+    }
 
     // 3. Handle File (Langsung loading saat upload)
-    function handleFileSelect() {
-        btnRecord.style.display = 'none';
-        btnSend.style.display = 'none';
-        btnLoading.style.display = 'block';
-        chatForm.submit();
+    window.handleFileSelect = function() {
+        if (btnRecord) btnRecord.style.display = 'none';
+        if (btnSend) btnSend.style.display = 'none';
+        if (btnLoading) btnLoading.style.display = 'block';
+        if (chatForm) chatForm.submit();
     }
 
     // 4. Scroll ke bawah
     if(chatBox) {
         chatBox.scrollTop = chatBox.scrollHeight;
     }
-
-    // 5. Contoh pemicu animasi rekam (opsional jika fungsionalitas rekam siap)
-    btnRecord.addEventListener('click', function() {
-        this.classList.toggle('recording-active');
-        // Tambahkan logika Web Audio API Anda di sini
-    });
+}
 </script>
 {{-- 3. Keterangan Bawah Kontainer (Kondisional berdasarkan Role User) --}}
 <div style="text-align: center; padding: 12px; min-height: 44px; display: flex; align-items: center; justify-content: center;">
-    @if($active && auth()->user()->isGuru() && $active->status !== 'selesai')
-        {{-- Jika yang login adalah GURU BK, tampilkan Tombol Selesaikan Sesi --}}
-        <button type="button" class="btn btn-primary" onclick="openModal('modal-selesai')" style="background: var(--teal); color: #fff; border: none; padding: 8px 20px; border-radius: var(--radius-sm); cursor: pointer; font-weight: 600; display: inline-flex; align-items: center; gap: 8px; box-shadow: var(--shadow);">
-            <i class="fa-solid fa-circle-check"></i> Selesaikan Konseling & Simpan Catatan
-        </button>
-    @else
+    @if($active && auth()->user()->isSiswa())
         {{-- Jika yang login adalah SISWA, tampilkan Keterangan Kerahasiaan --}}
         <div style="color: var(--teal); font-size: 13px; font-weight: 500;">
             <i class="fa-solid fa-shield-halved"></i> Pesan ini bersifat rahasia dengan enkripsi end-to-end, hanya orang di obrolan yang bisa membaca atau membagikannya.
@@ -222,129 +293,139 @@
 <script src="https://cdn.jsdelivr.net/npm/laravel-echo@1.15.3/dist/echo.iife.js"></script>
 
 <script>
-// Auto-scroll chat
-const msgs = document.getElementById('chat-messages');
-if (msgs) msgs.scrollTop = msgs.scrollHeight;
+{
+    // Auto-scroll chat
+    const msgs = document.getElementById('chat-messages');
+    if (msgs) msgs.scrollTop = msgs.scrollHeight;
 
-// Enter to send (Hanya jika klik tombol pesawat hijau, enter di textarea murni ganti baris sekarang)
-// Listener keydown submit dihilangkan agar teks textarea bisa berpindah baris dengan normal saat ditekan enter.
+    window.openModal = function(id) {
+        const modal = document.getElementById(id);
+        if (modal) modal.classList.add('open');
+    };
+    window.closeModal = function(id) {
+        const modal = document.getElementById(id);
+        if (modal) modal.classList.remove('open');
+    };
 
-function openModal(id){document.getElementById(id).classList.add('open')}
-function closeModal(id){document.getElementById(id).classList.remove('open')}
-document.querySelectorAll('.modal-overlay').forEach(m=>{m.addEventListener('click',e=>{if(e.target===m)m.classList.remove('open')})});
-
-// Pusher Real-Time Chat Integration
-@if($active)
-    window.Echo = new Echo({
-        broadcaster: 'pusher',
-        key: '{{ env("PUSHER_APP_KEY") }}',
-        cluster: '{{ env("PUSHER_APP_CLUSTER") }}',
-        forceTLS: true
+    document.querySelectorAll('.modal-overlay').forEach(m => {
+        m.addEventListener('click', e => {
+            if (e.target === m) m.classList.remove('open');
+        });
     });
 
-    window.Echo.private(`ticket.{{ $active->id }}`)
-        .listen('.message.sent', (e) => {
-            console.log('New Message:', e);
-            appendMessage(e);
+    // Pusher Real-Time Chat Integration
+    @if($active)
+        window.Echo = new Echo({
+            broadcaster: 'pusher',
+            key: '{{ env("PUSHER_APP_KEY") }}',
+            cluster: '{{ env("PUSHER_APP_CLUSTER") }}',
+            forceTLS: true
         });
 
-    function appendMessage(data) {
-        const isMe = data.sender.id === {{ auth()->id() }};
-        if(isMe) return;
+        window.Echo.private(`ticket.{{ $active->id }}`)
+            .listen('.message.sent', (e) => {
+                console.log('New Message:', e);
+                appendMessage(e);
+            });
 
-        const msgsDiv = document.getElementById('chat-messages');
-        let contentHtml = '';
+        function appendMessage(data) {
+            const isMe = data.sender.id === {{ auth()->id() }};
+            if(isMe) return;
 
-        if(data.type === 'text') {
-            contentHtml = `<div class="msg-bubble">${data.content}</div>`;
-        } else if(data.type === 'image') {
-            contentHtml = `<div class="msg-bubble"><img src="/storage/${data.file_path}" class="msg-img" alt="Image"><br>${data.content || ''}</div>`;
-        } else if(data.type === 'audio') {
-            contentHtml = `<div class="msg-bubble" style="padding:8px"><audio controls src="/storage/${data.file_path}" style="height:36px;max-width:220px"></audio></div>`;
-        } else if(data.type === 'video') {
-            contentHtml = `<div class="msg-bubble" style="padding:8px"><video controls src="/storage/${data.file_path}" style="max-width:220px; border-radius: var(--radius-sm);"></video></div>`;
-        } else {
-            contentHtml = `<div class="msg-bubble"><a href="/storage/${data.file_path}" target="_blank" style="color:inherit"><i class="fa-solid fa-file"></i> ${data.file_name}</a></div>`;
+            const msgsDiv = document.getElementById('chat-messages');
+            let contentHtml = '';
+
+            if(data.type === 'text') {
+                contentHtml = `<div class="msg-bubble">${data.content}</div>`;
+            } else if(data.type === 'image') {
+                contentHtml = `<div class="msg-bubble"><img src="/storage/${data.file_path}" class="msg-img" alt="Image"><br>${data.content || ''}</div>`;
+            } else if(data.type === 'audio') {
+                contentHtml = `<div class="msg-bubble" style="padding:8px"><audio controls src="/storage/${data.file_path}" style="height:36px;max-width:220px"></audio></div>`;
+            } else if(data.type === 'video') {
+                contentHtml = `<div class="msg-bubble" style="padding:8px"><video controls src="/storage/${data.file_path}" style="max-width:220px; border-radius: var(--radius-sm);"></video></div>`;
+            } else {
+                contentHtml = `<div class="msg-bubble"><a href="/storage/${data.file_path}" target="_blank" style="color:inherit"><i class="fa-solid fa-file"></i> ${data.file_name}</a></div>`;
+            }
+
+            const msgEl = document.createElement('div');
+            msgEl.className = 'msg received';
+            msgEl.innerHTML = `
+                <div class="msg-avatar">${data.sender.initials}</div>
+                <div class="msg-body">
+                    ${contentHtml}
+                    <div class="msg-time">${data.time}</div>
+                </div>
+            `;
+
+            msgsDiv.appendChild(msgEl);
+            msgsDiv.scrollTop = msgsDiv.scrollHeight;
         }
 
-        const msgEl = document.createElement('div');
-        msgEl.className = 'msg received';
-        msgEl.innerHTML = `
-            <div class="msg-avatar">${data.sender.initials}</div>
-            <div>
-                ${contentHtml}
-                <div class="msg-time">${data.time}</div>
-            </div>
-        `;
+        // Voice Note Recording
+        let mediaRecorder;
+        let audioChunks = [];
+        const btnRecord = document.getElementById('btn-record');
 
-        msgsDiv.appendChild(msgEl);
-        msgsDiv.scrollTop = msgsDiv.scrollHeight;
-    }
-
-    // Voice Note Recording
-    let mediaRecorder;
-    let audioChunks = [];
-    const btnRecord = document.getElementById('btn-record');
-
-    if(btnRecord) {
-        btnRecord.addEventListener('click', async () => {
-            if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-                alert('Akses mikrofon ditolak oleh browser. Perekaman suara (Voice Note) membutuhkan koneksi aman (HTTPS) atau localhost. Pastikan Anda mengakses situs ini menggunakan HTTPS (misal pada Herd: aktifkan ikon gembok "Secure").');
-                return;
-            }
-
-            if (!mediaRecorder || mediaRecorder.state === 'inactive') {
-                try {
-                    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-                    mediaRecorder = new MediaRecorder(stream);
-                    audioChunks = [];
-
-                    mediaRecorder.ondataavailable = e => {
-                        if (e.data.size > 0) audioChunks.push(e.data);
-                    };
-
-                    mediaRecorder.onstop = () => {
-                        const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
-                        const formData = new FormData(document.getElementById('chat-form'));
-                        formData.append('file', audioBlob, 'voicenote.webm');
-                        
-                        btnRecord.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
-                        btnRecord.style.color = 'var(--muted)';
-
-                        fetch('{{ route("chat.send", $active) }}', {
-                            method: 'POST',
-                            body: formData,
-                            headers: { 'X-Requested-With': 'XMLHttpRequest' }
-                        }).then(res => {
-                            if(res.ok) {
-                                window.location.reload();
-                            }
-                        }).catch(err => {
-                            console.error(err);
-                            alert('Gagal mengirim Voice Note');
-                        }).finally(() => {
-                            btnRecord.innerHTML = '<i class="fa-solid fa-microphone"></i>';
-                            btnRecord.style.color = 'var(--teal)';
-                        });
-                    };
-
-                    mediaRecorder.start();
-                    btnRecord.innerHTML = '<i class="fa-solid fa-stop"></i>';
-                    btnRecord.style.color = 'var(--danger)';
-                    document.getElementById('msg-input').placeholder = 'Merekam...';
-                    document.getElementById('msg-input').disabled = true;
-
-                } catch (err) {
-                    alert('Gagal mengakses mikrofon: ' + err.message);
+        if(btnRecord) {
+            btnRecord.addEventListener('click', async () => {
+                if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                    alert('Akses mikrofon ditolak oleh browser. Perekaman suara (Voice Note) membutuhkan koneksi aman (HTTPS) atau localhost. Pastikan Anda mengakses situs ini menggunakan HTTPS (misal pada Herd: aktifkan ikon gembok "Secure").');
+                    return;
                 }
-            } else {
-                mediaRecorder.stop();
-                mediaRecorder.stream.getTracks().forEach(track => track.stop());
-                document.getElementById('msg-input').placeholder = 'Ketik pesan...';
-                document.getElementById('msg-input').disabled = false;
-            }
-        });
-    }
-@endif
+
+                if (!mediaRecorder || mediaRecorder.state === 'inactive') {
+                    try {
+                        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                        mediaRecorder = new MediaRecorder(stream);
+                        audioChunks = [];
+
+                        mediaRecorder.ondataavailable = e => {
+                            if (e.data.size > 0) audioChunks.push(e.data);
+                        };
+
+                        mediaRecorder.onstop = () => {
+                            const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+                            const formData = new FormData(document.getElementById('chat-form'));
+                            formData.append('file', audioBlob, 'voicenote.webm');
+                            
+                            btnRecord.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
+                            btnRecord.style.color = 'var(--muted)';
+
+                            fetch('{{ route("chat.send", $active) }}', {
+                                method: 'POST',
+                                body: formData,
+                                headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                            }).then(res => {
+                                if(res.ok) {
+                                    window.location.reload();
+                                }
+                            }).catch(err => {
+                                console.error(err);
+                                alert('Gagal mengirim Voice Note');
+                            }).finally(() => {
+                                btnRecord.innerHTML = '<i class="fa-solid fa-microphone"></i>';
+                                btnRecord.style.color = 'var(--teal)';
+                            });
+                        };
+
+                        mediaRecorder.start();
+                        btnRecord.innerHTML = '<i class="fa-solid fa-stop"></i>';
+                        btnRecord.style.color = 'var(--danger)';
+                        document.getElementById('msg-input').placeholder = 'Merekam...';
+                        document.getElementById('msg-input').disabled = true;
+
+                    } catch (err) {
+                        alert('Gagal mengakses mikrofon: ' + err.message);
+                    }
+                } else {
+                    mediaRecorder.stop();
+                    mediaRecorder.stream.getTracks().forEach(track => track.stop());
+                    document.getElementById('msg-input').placeholder = 'Ketik pesan...';
+                    document.getElementById('msg-input').disabled = false;
+                }
+            });
+        }
+    @endif
+}
 </script>
 @endpush

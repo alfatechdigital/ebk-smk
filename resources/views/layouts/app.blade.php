@@ -109,6 +109,7 @@
                         ['route' => 'data-siswa.index', 'icon' => 'fas fa-user-graduate', 'label' => 'Data Siswa'],
                         ['route' => 'catatan.index', 'icon' => 'fas fa-notes-medical', 'label' => 'Catatan Konseling'],
                         ['route' => 'tickets.index', 'icon' => 'fas fa-comments', 'label' => 'Layanan Konsultasi'],
+                        ['route' => 'kategori.index', 'icon' => 'fas fa-tags', 'label' => 'Kategori Layanan'],
                         ['section' => 'Laporan'],
                         ['route' => 'rekap.index', 'icon' => 'fas fa-chart-bar', 'label' => 'Rekap Laporan'],
                     ],
@@ -181,11 +182,28 @@
             <i class="fas fa-bars"></i>
         </button>
         <div class="topbar-title"><span>@yield('page-title', 'Dashboard')</span></div>
-        <div class="topbar-user">
-            <div class="topbar-avatar">{{ $user->avatar_initials }}</div>
-            <div>
-                <div class="topbar-username">{{ $user->name }}</div>
-                <div class="topbar-role">{{ $user->role_label }}</div>
+        <div class="topbar-user-container" style="position: relative;">
+            <div class="topbar-user" onclick="toggleUserDropdown(event)">
+                <div class="topbar-avatar">{{ $user->avatar_initials }}</div>
+                <div style="text-align: left;">
+                    <div class="topbar-username" style="display: flex; align-items: center; gap: 6px;">
+                        <span>{{ $user->name }}</span>
+                        <i class="fas fa-chevron-down" style="font-size: 10px; color: var(--muted);"></i>
+                    </div>
+                    <div class="topbar-role">{{ $user->role_label }}</div>
+                </div>
+            </div>
+            
+            <div id="user-dropdown" style="display: none; position: absolute; top: calc(100% + 10px); right: 0; background: #fff; border: 1px solid #e2e8f0; border-radius: 8px; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05); width: 180px; z-index: 1000; overflow: hidden; animation: fadeIn 0.2s ease; text-align: left;">
+                <a href="{{ route('profil.index') }}" style="display: flex; align-items: center; gap: 8px; padding: 12px 16px; font-size: 13px; color: var(--slate); text-decoration: none; transition: background 0.2s;" onmouseover="this.style.background='#f8fafc'" onmouseout="this.style.background='transparent'">
+                    <i class="fas fa-user-circle" style="color: #64748b; font-size: 15px;"></i> Profil Saya
+                </a>
+                <form method="POST" action="{{ route('logout') }}" style="margin: 0; padding: 0;">
+                    @csrf
+                    <button type="submit" style="display: flex; align-items: center; gap: 8px; padding: 12px 16px; font-size: 13px; color: #ef4444; width: 100%; border: none; background: transparent; text-align: left; cursor: pointer; transition: background 0.2s;" onmouseover="this.style.background='#fef2f2'" onmouseout="this.style.background='transparent'">
+                        <i class="fas fa-sign-out-alt" style="font-size: 14px;"></i> Keluar / Logout
+                    </button>
+                </form>
             </div>
         </div>
     </header>
@@ -200,6 +218,29 @@
         @yield('content')
     </main>
 
+    <script>
+        function toggleUserDropdown(event) {
+            event.stopPropagation();
+            const dropdown = document.getElementById('user-dropdown');
+            if (dropdown) {
+                if (dropdown.style.display === 'none' || dropdown.style.display === '') {
+                    dropdown.style.display = 'block';
+                } else {
+                    dropdown.style.display = 'none';
+                }
+            }
+        }
+
+        window.addEventListener('click', function(event) {
+            const dropdown = document.getElementById('user-dropdown');
+            if (dropdown && dropdown.style.display === 'block') {
+                const container = event.target.closest('.topbar-user-container');
+                if (!container) {
+                    dropdown.style.display = 'none';
+                }
+            }
+        });
+    </script>
     @stack('modals')
     @stack('scripts')
 </body>

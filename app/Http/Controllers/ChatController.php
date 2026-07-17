@@ -13,7 +13,7 @@ class ChatController extends Controller
     public function index()
     {
         $user    = Auth::user();
-        $tickets = $this->getUserTickets($user)->with(['student.user','teacher.user','service'])->latest()->get();
+        $tickets = $this->getUserTickets($user)->with(['student.user', 'student.class', 'teacher.user', 'service'])->latest()->get();
         $active  = $tickets->first();
 
         $messages = $active
@@ -31,8 +31,8 @@ class ChatController extends Controller
     {
         $this->gate($ticket);
         $user    = Auth::user();
-        $tickets = $this->getUserTickets($user)->with(['student.user','teacher.user','service'])->latest()->get();
-        $ticket->load(['student.user','teacher.user','service','messages.sender']);
+        $tickets = $this->getUserTickets($user)->with(['student.user', 'student.class', 'teacher.user', 'service'])->latest()->get();
+        $ticket->load(['student.user', 'student.class', 'teacher.user', 'service', 'messages.sender']);
 
         $ticket->messages()->where('sender_id', '!=', $user->id)->update(['is_read' => true]);
 

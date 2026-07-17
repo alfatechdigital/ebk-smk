@@ -30,9 +30,9 @@ class DashboardController extends Controller
 
         if ($user->isAdmin() || $user->isSuperAdmin()) {
             $stats['total_siswa'] = Student::count();
-            $stats['total_konsultasi'] = Ticket::count();
             $stats['menunggu'] = Ticket::where('status', 'menunggu')->count();
             $stats['diproses'] = Ticket::where('status', 'diproses')->count();
+            $stats['total_konsultasi'] = $stats['menunggu'] + $stats['diproses'];
             $recentTickets = Ticket::with(['student.user', 'service'])->latest()->take(5)->get();
         } elseif ($user->isGuru()) {
             $teacherId = $user->teacher->id;
@@ -40,11 +40,11 @@ class DashboardController extends Controller
             $stats['total_siswa'] = Student::whereHas('class', function($q) use ($teacherId) {
                 $q->where('teacher_id', $teacherId);
             })->count();
-            $stats['total_konsultasi'] = Ticket::where('teacher_id', $teacherId)->count();
             $stats['menunggu'] = Ticket::where('teacher_id', $teacherId)->where('status', 'menunggu')->count();
             $stats['diproses'] = Ticket::where('teacher_id', $teacherId)->where('status', 'diproses')->count();
+            $stats['total_konsultasi'] = $stats['menunggu'] + $stats['diproses'];
             $recentTickets = Ticket::with(['student.user', 'service'])->where('teacher_id', $teacherId)->latest()->take(5)->get();
-
+ 
             // Activity per class mentored by this Guru
             $classes = SchoolClass::where('teacher_id', $teacherId)->get();
             foreach ($classes as $cls) {
@@ -55,9 +55,9 @@ class DashboardController extends Controller
             }
         } elseif ($user->isSiswa()) {
             $studentId = $user->student->id;
-            $stats['total_konsultasi'] = Ticket::where('student_id', $studentId)->count();
             $stats['menunggu'] = Ticket::where('student_id', $studentId)->where('status', 'menunggu')->count();
             $stats['diproses'] = Ticket::where('student_id', $studentId)->where('status', 'diproses')->count();
+            $stats['total_konsultasi'] = $stats['menunggu'] + $stats['diproses'];
             $recentTickets = Ticket::with(['teacher.user', 'service'])->where('student_id', $studentId)->latest()->take(5)->get();
             $assignedGuru = $user->student->class->teacher->user->name ?? 'Belum ditugaskan';
         }

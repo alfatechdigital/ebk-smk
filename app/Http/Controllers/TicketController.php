@@ -15,7 +15,15 @@ class TicketController extends Controller
     public function index(Request $request)
     {
         $user = Auth::user();
-        $q = Ticket::with(['student.user', 'teacher.user', 'service'])->latest();
+        $q = Ticket::with(['student.user', 'student.class', 'teacher.user', 'service'])
+            ->orderByDesc('is_favorite')
+            ->orderByRaw("CASE status 
+                WHEN 'menunggu' THEN 1 
+                WHEN 'diproses' THEN 2 
+                WHEN 'selesai' THEN 3 
+                ELSE 4 
+            END ASC")
+            ->latest();
 
         if ($user->role === 'guru' && $user->teacher) {
             $q->where('teacher_id', $user->teacher->id);
@@ -25,9 +33,21 @@ class TicketController extends Controller
 
         if ($request->status)  $q->where('status', $request->status);
         if ($request->service) $q->where('service_id', $request->service);
-        if ($request->search)  $q->where('title', 'like', '%'.$request->search.'%');
+        if ($request->search) {
+            $q->where(function($query) use ($request) {
+                $query->where('title', 'like', '%'.$request->search.'%')
+                      ->orWhereHas('student.user', function($u) use ($request) {
+                          $u->where('name', 'like', '%'.$request->search.'%');
+                      });
+            });
+        }
 
-        $tickets  = $q->paginate(12);
+        $perPage = $request->integer('per_page', 25);
+        if (!in_array($perPage, [5, 10, 25, 50, 100])) {
+            $perPage = 25;
+        }
+
+        $tickets  = $q->paginate($perPage)->withQueryString();
         $services = Service::where('is_active', true)->get();
         $teachers = Teacher::with('user')->get();
 
@@ -99,6 +119,17 @@ class TicketController extends Controller
     {
         $ticket->delete();
         return redirect()->route('tickets.index')->with('success', 'Tiket dihapus.');
+    }
+
+    public function toggleFavorite(Ticket $ticket)
+    {
+        $this->authorizeTicket($ticket);
+        $ticket->update([
+            'is_favorite' => !$ticket->is_favorite
+        ]);
+        
+        $msg = $ticket->is_favorite ? 'Tiket difavoritkan.' : 'Favorit tiket dihapus.';
+        return back()->with('success', $msg);
     }
 
     private function authorizeTicket(Ticket $ticket): void

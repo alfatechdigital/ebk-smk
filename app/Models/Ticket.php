@@ -11,12 +11,13 @@ class Ticket extends Model
 
     protected $fillable = [
         'code', 'student_id', 'service_id', 'teacher_id',
-        'status', 'priority', 'title', 'description',
+        'status', 'is_favorite', 'priority', 'title', 'description',
         'prior_action', 'anonymous', 'scheduled_at', 'completed_at'
     ];
 
     protected $casts = [
         'anonymous' => 'boolean',
+        'is_favorite' => 'boolean',
         'scheduled_at' => 'datetime',
         'completed_at' => 'datetime',
     ];
