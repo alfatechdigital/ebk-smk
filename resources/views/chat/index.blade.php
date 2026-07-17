@@ -60,7 +60,7 @@
     {{-- 1. Chat Messages Area --}}
     <div class="chat-messages" id="chat-messages" style="flex-grow: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 14px; background: #f8f9fa;">
         @foreach ($messages as $msg)
-        <div class="msg {{ $msg->sender_id === auth()->id() ? 'sent' : 'received' }}">
+        <div class="msg {{ $msg->sender_id === auth()->id() ? 'sent' : 'received' }}" data-id="{{ $msg->id }}">
             <div class="msg-avatar" @if($msg->sender_id === auth()->id()) style="background:var(--teal-dark)" @endif>{{ $msg->sender->avatar_initials }}</div>
             <div class="msg-body">
                 @if($msg->type === 'text')
@@ -199,21 +199,111 @@
         });
     }
 
-    // 2. Logika Submit (Cegah double input & ganti ke Loading)
+    // 2. AJAX Submit (Pesan langsung terkirim tanpa refresh halaman)
     if (chatForm) {
         chatForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            // Capture FormData before disabling input elements to avoid null/ignored values
+            const formData = new FormData(this);
+
             if (btnSend) btnSend.style.display = 'none';
             if (btnLoading) btnLoading.style.display = 'block';
-            if (msgInput) msgInput.readOnly = true; // Mencegah user mengetik saat kirim
+            if (msgInput) msgInput.disabled = true;
+
+            fetch(this.action, {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Accept': 'application/json'
+                }
+            })
+            .then(res => {
+                if (!res.ok) throw new Error('Failed to send message');
+                return res.json();
+            })
+            .then(data => {
+                if (msgInput) {
+                    msgInput.value = '';
+                    msgInput.disabled = false;
+                    msgInput.style.height = 'auto';
+                    msgInput.focus();
+                }
+                const fileInput = document.getElementById('file-input');
+                if (fileInput) fileInput.value = '';
+
+                if (btnSend) btnSend.style.display = 'none';
+                if (btnRecord) btnRecord.style.display = 'block';
+                if (btnLoading) btnLoading.style.display = 'none';
+
+                // Langsung ambil pesan baru
+                if (typeof window.fetchNewMessages === 'function') {
+                    window.fetchNewMessages();
+                }
+            })
+            .catch(err => {
+                console.error(err);
+                alert('Gagal mengirim pesan. Silakan coba lagi.');
+                if (msgInput) msgInput.disabled = false;
+                if (btnLoading) btnLoading.style.display = 'none';
+                if (msgInput && msgInput.value.trim().length > 0) {
+                    if (btnSend) btnSend.style.display = 'block';
+                } else {
+                    if (btnRecord) btnRecord.style.display = 'block';
+                }
+            });
         });
     }
 
-    // 3. Handle File (Langsung loading saat upload)
+    // 3. Handle File (Upload instan via AJAX)
     window.handleFileSelect = function() {
+        if (!chatForm) return;
+        
+        // Capture FormData before disabling input elements to avoid null/ignored values
+        const formData = new FormData(chatForm);
+
         if (btnRecord) btnRecord.style.display = 'none';
         if (btnSend) btnSend.style.display = 'none';
         if (btnLoading) btnLoading.style.display = 'block';
-        if (chatForm) chatForm.submit();
+        if (msgInput) msgInput.disabled = true;
+
+        fetch(chatForm.action, {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+                'Accept': 'application/json'
+            }
+        })
+        .then(res => {
+            if (!res.ok) throw new Error('Failed to upload file');
+            return res.json();
+        })
+        .then(data => {
+            if (msgInput) {
+                msgInput.value = '';
+                msgInput.disabled = false;
+                msgInput.style.height = 'auto';
+            }
+            const fileInput = document.getElementById('file-input');
+            if (fileInput) fileInput.value = '';
+
+            if (btnSend) btnSend.style.display = 'none';
+            if (btnRecord) btnRecord.style.display = 'block';
+            if (btnLoading) btnLoading.style.display = 'none';
+
+            if (typeof window.fetchNewMessages === 'function') {
+                window.fetchNewMessages();
+            }
+        })
+        .catch(err => {
+            console.error(err);
+            alert('Gagal mengirim file. Pastikan ukuran file tidak melebihi 10MB.');
+            if (msgInput) msgInput.disabled = false;
+            if (btnLoading) btnLoading.style.display = 'none';
+            if (btnRecord) btnRecord.style.display = 'block';
+        });
     }
 
     // 4. Scroll ke bawah
@@ -313,52 +403,88 @@
         });
     });
 
-    // Pusher Real-Time Chat Integration
+    // Real-Time Chat & Fallback Polling Integration
     @if($active)
-        window.Echo = new Echo({
-            broadcaster: 'pusher',
-            key: '{{ env("PUSHER_APP_KEY") }}',
-            cluster: '{{ env("PUSHER_APP_CLUSTER") }}',
-            forceTLS: true
+        // Track message IDs currently rendered on screen
+        let renderedMessageIds = new Set();
+        document.querySelectorAll('#chat-messages .msg').forEach(el => {
+            const id = el.getAttribute('data-id');
+            if (id) renderedMessageIds.add(parseInt(id));
         });
 
-        window.Echo.private(`ticket.{{ $active->id }}`)
-            .listen('.message.sent', (e) => {
-                console.log('New Message:', e);
-                appendMessage(e);
+        // Function to fetch messages dynamically
+        window.fetchNewMessages = function() {
+            fetch('{{ route("chat.messages", $active) }}', {
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Accept': 'application/json'
+                }
+            })
+            .then(res => res.json())
+            .then(messages => {
+                let hasNew = false;
+                const msgsDiv = document.getElementById('chat-messages');
+                
+                messages.forEach(msg => {
+                    if (!renderedMessageIds.has(msg.id)) {
+                        renderedMessageIds.add(msg.id);
+                        hasNew = true;
+                        
+                        const msgEl = document.createElement('div');
+                        msgEl.className = `msg ${msg.is_me ? 'sent' : 'received'}`;
+                        msgEl.setAttribute('data-id', msg.id);
+                        
+                        let contentHtml = '';
+                        if(msg.type === 'text') {
+                            contentHtml = `<div class="msg-bubble">${msg.content}</div>`;
+                        } else if(msg.type === 'image') {
+                            contentHtml = `<div class="msg-bubble"><img src="${msg.file_url}" class="msg-img" alt="Image" style="max-width: 100%; border-radius: 8px; margin-bottom: 5px;"><br>${msg.content || ''}</div>`;
+                        } else if(msg.type === 'audio') {
+                            contentHtml = `<div class="msg-bubble" style="padding:8px"><audio controls src="${msg.file_url}" style="height:36px;max-width:220px"></audio></div>`;
+                        } else if(msg.type === 'video') {
+                            contentHtml = `<div class="msg-bubble" style="padding:8px"><video controls src="${msg.file_url}" style="max-width:220px; border-radius: var(--radius-sm);"></video></div>`;
+                        } else {
+                            contentHtml = `<div class="msg-bubble"><a href="${msg.file_url}" target="_blank" style="color:inherit; text-decoration: none;"><i class="fa-solid fa-file"></i> ${msg.file_name}</a></div>`;
+                        }
+                        
+                        msgEl.innerHTML = `
+                            <div class="msg-avatar" ${msg.is_me ? 'style="background:var(--teal-dark)"' : ''}>${msg.sender.initials}</div>
+                            <div class="msg-body">
+                                ${contentHtml}
+                                <div class="msg-time" style="font-size: 0.7rem; color: #999; margin-top: 4px; text-align: ${msg.is_me ? 'right' : 'left'};">${msg.time}</div>
+                            </div>
+                        `;
+                        
+                        if (msgsDiv) {
+                            msgsDiv.appendChild(msgEl);
+                        }
+                    }
+                });
+                
+                if (hasNew && msgsDiv) {
+                    msgsDiv.scrollTop = msgsDiv.scrollHeight;
+                }
+            })
+            .catch(err => console.error('Error fetching messages:', err));
+        };
+
+        // Fallback polling: fetch every 3 seconds to ensure 100% real-time compatibility on cPanel
+        const pollInterval = setInterval(window.fetchNewMessages, 3000);
+
+        // Echo setup (Pusher)
+        if (typeof Echo !== 'undefined' && '{{ env("PUSHER_APP_KEY") }}') {
+            window.Echo = new Echo({
+                broadcaster: 'pusher',
+                key: '{{ env("PUSHER_APP_KEY") }}',
+                cluster: '{{ env("PUSHER_APP_CLUSTER") }}',
+                forceTLS: true
             });
 
-        function appendMessage(data) {
-            const isMe = data.sender.id === {{ auth()->id() }};
-            if(isMe) return;
-
-            const msgsDiv = document.getElementById('chat-messages');
-            let contentHtml = '';
-
-            if(data.type === 'text') {
-                contentHtml = `<div class="msg-bubble">${data.content}</div>`;
-            } else if(data.type === 'image') {
-                contentHtml = `<div class="msg-bubble"><img src="/storage/${data.file_path}" class="msg-img" alt="Image"><br>${data.content || ''}</div>`;
-            } else if(data.type === 'audio') {
-                contentHtml = `<div class="msg-bubble" style="padding:8px"><audio controls src="/storage/${data.file_path}" style="height:36px;max-width:220px"></audio></div>`;
-            } else if(data.type === 'video') {
-                contentHtml = `<div class="msg-bubble" style="padding:8px"><video controls src="/storage/${data.file_path}" style="max-width:220px; border-radius: var(--radius-sm);"></video></div>`;
-            } else {
-                contentHtml = `<div class="msg-bubble"><a href="/storage/${data.file_path}" target="_blank" style="color:inherit"><i class="fa-solid fa-file"></i> ${data.file_name}</a></div>`;
-            }
-
-            const msgEl = document.createElement('div');
-            msgEl.className = 'msg received';
-            msgEl.innerHTML = `
-                <div class="msg-avatar">${data.sender.initials}</div>
-                <div class="msg-body">
-                    ${contentHtml}
-                    <div class="msg-time">${data.time}</div>
-                </div>
-            `;
-
-            msgsDiv.appendChild(msgEl);
-            msgsDiv.scrollTop = msgsDiv.scrollHeight;
+            window.Echo.private(`ticket.{{ $active->id }}`)
+                .listen('.message.sent', (e) => {
+                    console.log('New Message via Pusher:', e);
+                    window.fetchNewMessages();
+                });
         }
 
         // Voice Note Recording
@@ -394,12 +520,19 @@
                             fetch('{{ route("chat.send", $active) }}', {
                                 method: 'POST',
                                 body: formData,
-                                headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                                headers: {
+                                    'X-Requested-With': 'XMLHttpRequest',
+                                    'Accept': 'application/json'
+                                }
                             }).then(res => {
                                 if(res.ok) {
-                                    window.location.reload();
+                                    document.getElementById('msg-input').placeholder = 'Ketik pesan...';
+                                    document.getElementById('msg-input').disabled = false;
+                                    window.fetchNewMessages();
+                                } else {
+                                    alert('Gagal mengirim Voice Note');
                                 }
-                            }).catch(err => {
+                             }).catch(err => {
                                 console.error(err);
                                 alert('Gagal mengirim Voice Note');
                             }).finally(() => {
