@@ -92,6 +92,32 @@
 <script>
 let currentStep = 1;
 function nextStep(n) {
+    if (n === 3 && currentStep === 2) {
+        const title = document.querySelector('[name=title]');
+        const desc = document.querySelector('[name=description]');
+        
+        let isValid = true;
+        if (!title.value.trim()) {
+            title.style.borderColor = 'var(--danger)';
+            isValid = false;
+        } else {
+            title.style.borderColor = '';
+        }
+        
+        if (!desc.value.trim()) {
+            desc.style.borderColor = 'var(--danger)';
+            isValid = false;
+        } else {
+            desc.style.borderColor = '';
+        }
+        
+        if (!isValid) {
+            alert('Judul dan Deskripsi Masalah wajib diisi!');
+            if (!title.value.trim()) title.focus();
+            else desc.focus();
+            return;
+        }
+    }
     for (let i=1; i<=3; i++) {
         const s = document.getElementById('ajukan-step'+i);
         if (s) s.style.display = i===n ? 'block' : 'none';

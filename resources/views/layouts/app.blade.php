@@ -185,7 +185,7 @@
         <div class="topbar-user-container" style="position: relative;">
             <div class="topbar-user" onclick="toggleUserDropdown(event)">
                 <div class="topbar-avatar">{{ $user->avatar_initials }}</div>
-                <div style="text-align: left;">
+                <div style="text-align: left;" class="topbar-user-info">
                     <div class="topbar-username" style="display: flex; align-items: center; gap: 6px;">
                         <span>{{ $user->name }}</span>
                         <i class="fas fa-chevron-down" style="font-size: 10px; color: var(--muted);"></i>

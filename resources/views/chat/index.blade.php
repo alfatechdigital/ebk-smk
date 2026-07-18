@@ -2,52 +2,62 @@
 @section('title', 'Layanan Konsultasi')
 @section('page-title', 'Layanan Konsultasi')
 
+@push('styles')
+<style>
+    /* Lock the main page layout to fit viewport, preventing double scrollbars while enabling pull-to-refresh */
+    html, body {
+        height: 100% !important;
+        overflow-y: auto !important; /* Enables pull-to-refresh on mobile */
+        overflow-x: hidden !important;
+    }
+    .main-content {
+        height: calc(100% - 64px) !important;
+        overflow: hidden !important; /* Prevents outer layout scrolling */
+        box-sizing: border-box;
+    }
+    .chat-card-container {
+        height: 100% !important;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+    }
+</style>
+@endpush
+
 @section('content')
 
-<div class="card" style="padding: 0; overflow: hidden; background: #fff; height: calc(100vh - 90px); display: flex; flex-direction: column;">
+<div class="card chat-card-container">
     @if($active)
 
-    {{-- 0. Chat Header Info --}}
-    <div class="chat-header-info" style="flex-shrink: 0; background: #fff; border-bottom: 1px solid #eee; padding: 15px 20px; display: flex; justify-content: space-between; align-items: flex-start; gap: 15px;">
-        <div style="flex-grow: 1;">
-            <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
-                <h4 style="margin: 0; font-size: 1rem; font-weight: 700; color: var(--charcoal);">
-                    {{ $active->student->user->name ?? '-' }} @if($active->anonymous) <span style="font-weight: 500; color: var(--danger); font-size: 0.85rem;">(Anonim)</span> @endif
-                </h4>
-                <span style="font-size: 0.75rem; font-weight: 600; color: var(--teal); background: rgba(13,124,102,0.08); padding: 1px 6px; border-radius: 4px; display: inline-block;">
-                    Kelas: {{ $active->student->class->name ?? '-' }}
-                </span>
-                @if($active->service)
-                    <span class="badge" style="background: {{ $active->service->color ?? 'var(--teal)' }}; color: #fff; font-size: 10px; padding: 2px 8px; border-radius: 4px; display: inline-flex; align-items: center; gap: 4px; font-weight: 600;">
-                        <i class="{{ $active->service->icon ?? 'fas fa-tag' }}"></i> {{ $active->service->name }}
+    {{-- 0. Chat Header Info (Compact & Clickable) --}}
+    <div class="chat-header-info" onclick="openModal('modal-chat-detail')" style="cursor: pointer; padding: 12px 20px; border-bottom: 1px solid #eee; transition: background 0.2s; flex-shrink: 0; background: #fff;" onmouseover="this.style.background='#fafdfc'" onmouseout="this.style.background='transparent'">
+        <div style="flex-grow: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px;">
+            <div style="display: flex; align-items: center; justify-content: space-between; gap: 10px; width: 100%;">
+                <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+                    <h4 style="margin: 0; font-size: 0.95rem; font-weight: 700; color: var(--charcoal);">
+                        {{ $active->student->user->name ?? '-' }}
+                    </h4>
+                    <span style="font-size: 0.7rem; font-weight: 600; color: var(--teal); background: rgba(13,124,102,0.08); padding: 1px 6px; border-radius: 4px; display: inline-block;">
+                        Kelas: {{ $active->student->class->name ?? '-' }}
                     </span>
-                @endif
-                @if($active->anonymous)
-                    <span class="badge animate-pulse" style="background-color: #fef2f2; color: #ef4444; border: 1px solid #fecaca; font-size: 10px; padding: 2px 8px; border-radius: 4px; display: inline-flex; align-items: center; gap: 4px; font-weight: 600;">
-                        <i class="fas fa-user-secret"></i> Anonim
-                    </span>
-                @endif
-                <span style="font-size: 0.75rem; color: #999; font-weight: 500; margin-left: auto;">
-                    Code: {{ $active->code }}
-                </span>
-            </div>
-            <div style="margin-top: 8px; padding: 8px 12px; background: #f9fbfb; border-left: 3px solid var(--teal); border-radius: 0 4px 4px 0; font-size: 0.85rem;">
-                <div style="font-weight: 700; color: var(--charcoal); margin-bottom: 2px;">
-                    {{ $active->title }}
+                    @if($active->service)
+                        <span class="badge" style="background: {{ $active->service->color ?? 'var(--teal)' }}; color: #fff; font-size: 9px; padding: 1px 6px; border-radius: 4px; display: inline-flex; align-items: center; gap: 4px; font-weight: 600;">
+                            <i class="{{ $active->service->icon ?? 'fas fa-tag' }}"></i> {{ $active->service->name }}
+                        </span>
+                    @endif
                 </div>
-                <div style="color: #666; font-size: 0.8rem; line-height: 1.4;">
-                    {{ $active->description }}
+                <div style="color: var(--muted); font-size: 12px; display: flex; align-items: center; gap: 4px; flex-shrink: 0;">
+                    <span style="font-size: 11px; font-weight: 500;">Detail</span>
+                    <i class="fa-solid fa-circle-info"></i>
                 </div>
             </div>
             @if($active->anonymous)
-                <div style="display: flex; align-items: center; gap: 8px; background-color: #fef2f2; border: 1px solid #fee2e2; color: #dc2626; padding: 8px 12px; border-radius: 6px; font-size: 12px; font-weight: 500; margin-top: 10px;">
-                    <i class="fas fa-user-secret" style="font-size: 14px;"></i>
+                <div style="display: flex; align-items: center; gap: 6px; color: #dc2626; font-size: 11px; font-weight: 600; margin-top: 2px;">
+                    <i class="fas fa-user-secret" style="font-size: 12px; animation: pulse 1.5s infinite; flex-shrink: 0;"></i>
                     <span><strong>Sesi Konsultasi Anonim:</strong> Siswa mengajukan konsultasi ini secara anonim untuk menjaga kerahasiaan identitas aslinya.</span>
                 </div>
             @endif
         </div>
-        
-
     </div>
 
     {{-- 1. Chat Messages Area --}}
@@ -305,15 +315,7 @@
     }
 }
 </script>
-{{-- 3. Keterangan Bawah Kontainer (Kondisional berdasarkan Role User) --}}
-<div style="text-align: center; padding: 12px; min-height: 44px; display: flex; align-items: center; justify-content: center;">
-    @if($active && auth()->user()->isSiswa())
-        {{-- Jika yang login adalah SISWA, tampilkan Keterangan Kerahasiaan --}}
-        <div style="color: var(--teal); font-size: 13px; font-weight: 500;">
-            <i class="fa-solid fa-shield-halved"></i> Pesan ini bersifat rahasia dengan enkripsi end-to-end, hanya orang di obrolan yang bisa membaca atau membagikannya.
-        </div>
-    @endif
-</div>
+
 
 {{-- Script auto-scroll & penanganan textarea --}}
 @push('scripts')
@@ -522,4 +524,71 @@
     @endif
 }
 </script>
+@endpush
+
+@push('modals')
+<div class="modal-overlay" id="modal-chat-detail">
+    <div class="modal" style="max-width: 520px; padding: 24px; text-align: left;">
+        <div class="modal-header" style="border-bottom: 1px solid #eee; padding-bottom: 12px; margin-bottom: 16px;">
+            <h3 style="font-size: 1.15rem; font-weight: 800; color: var(--charcoal); display: flex; align-items: center; gap: 8px; margin: 0;">
+                <i class="fas fa-info-circle" style="color: var(--teal);"></i> Detail Konsultasi
+            </h3>
+            <button class="modal-close" onclick="closeModal('modal-chat-detail')">✕</button>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 16px;">
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px;">
+                <div>
+                    <label style="font-size: 0.7rem; color: #64748b; text-transform: uppercase; font-weight: 700; display: block; margin-bottom: 2px;">Siswa</label>
+                    <div style="font-size: 0.9rem; font-weight: 700; color: #1e293b;">
+                        {{ $active->student->user->name ?? '-' }}
+                    </div>
+                </div>
+                <div>
+                    <label style="font-size: 0.7rem; color: #64748b; text-transform: uppercase; font-weight: 700; display: block; margin-bottom: 2px;">Kelas</label>
+                    <div style="font-size: 0.9rem; font-weight: 700; color: #1e293b;">
+                        {{ $active->student->class->name ?? '-' }}
+                    </div>
+                </div>
+                <div>
+                    <label style="font-size: 0.7rem; color: #64748b; text-transform: uppercase; font-weight: 700; display: block; margin-bottom: 2px;">Layanan</label>
+                    <div>
+                        @if($active->service)
+                            <span class="badge" style="background: {{ $active->service->color ?? 'var(--teal)' }}; color: #fff; font-size: 10px; padding: 2px 8px; border-radius: 4px; font-weight: 600; display: inline-flex; align-items: center; gap: 4px; margin-top: 2px;">
+                                <i class="{{ $active->service->icon ?? 'fas fa-tag' }}"></i> {{ $active->service->name }}
+                            </span>
+                        @else
+                            <span style="font-size: 0.9rem; font-weight: 700; color: #1e293b;">-</span>
+                        @endif
+                    </div>
+                </div>
+                <div>
+                    <label style="font-size: 0.7rem; color: #64748b; text-transform: uppercase; font-weight: 700; display: block; margin-bottom: 2px;">Kode Tiket</label>
+                    <div>
+                        <span style="font-weight: 800; color: var(--teal); font-size: 0.9rem;">{{ $active->code }}</span>
+                    </div>
+                </div>
+            </div>
+            
+            @if($active->anonymous)
+                <div style="display: flex; align-items: center; gap: 8px; background-color: #fef2f2; border: 1px solid #fee2e2; color: #dc2626; padding: 8px 12px; border-radius: 6px; font-size: 12px; font-weight: 500;">
+                    <i class="fas fa-user-secret" style="font-size: 14px;"></i>
+                    <span><strong>Sesi Konsultasi Anonim:</strong> Siswa mengajukan konsultasi ini secara anonim untuk menjaga kerahasiaan identitas aslinya.</span>
+                </div>
+            @endif
+
+            <div>
+                <label style="font-size: 0.75rem; color: #64748b; text-transform: uppercase; font-weight: 700; display: block; margin-bottom: 4px;">Judul Konsultasi</label>
+                <div style="font-size: 1rem; font-weight: 800; color: #0f172a;">{{ $active->title }}</div>
+            </div>
+
+            <div>
+                <label style="font-size: 0.75rem; color: #64748b; text-transform: uppercase; font-weight: 700; display: block; margin-bottom: 4px;">Deskripsi Masalah</label>
+                <div style="font-size: 0.9rem; color: #334155; background: #f8fafc; border-left: 4px solid var(--teal); padding: 12px; border-radius: 0 8px 8px 0; line-height: 1.5; white-space: pre-wrap; word-break: break-word;">{{ $active->description }}</div>
+            </div>
+        </div>
+        <div class="modal-footer" style="margin-top: 24px; padding-top: 12px; border-top: 1px solid #eee; display: flex; justify-content: flex-end;">
+            <button type="button" class="btn btn-secondary" onclick="closeModal('modal-chat-detail')">Tutup</button>
+        </div>
+    </div>
+</div>
 @endpush

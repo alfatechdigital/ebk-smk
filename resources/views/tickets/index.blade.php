@@ -81,7 +81,7 @@
         color: #059669 !important;
         border: 1px solid #a7f3d0 !important;
     }
-    @media (max-width: 768px) {
+    @media (max-width: 1024px) {
         .ticket-list-item {
             flex-direction: column !important;
             align-items: flex-start !important;
@@ -106,7 +106,7 @@
         <span class="ticket-id" style="position: absolute; top: 8px; right: 20px; font-weight: 700; font-size: 11px; margin: 0; color: var(--slate); opacity: 0.7;">{{ $ticket->code }} <span style="font-weight: 500; margin-left: 6px; color: var(--muted);">({{ $ticket->created_at->format('d M Y - H:i') }})</span></span>
 
         {{-- Leftmost Side: Student Info & Favorite Star --}}
-        <div style="flex: 0 0 240px; min-width: 0; display: flex; align-items: center; gap: 10px;">
+        <div style="flex: 0 0 220px; min-width: 0; display: flex; align-items: center; gap: 10px;">
             {{-- Favorite Star Button --}}
             <form method="POST" action="{{ route('tickets.favorite', $ticket) }}" style="display: inline; flex-shrink: 0;">
                 @csrf
@@ -159,10 +159,10 @@
         </div>
 
         {{-- Right Side: Actions --}}
-        <div style="flex: 0 0 250px; display: flex; gap: 8px; justify-content: flex-end; align-items: center;">
+        <div style="flex: 0 0 360px; display: flex; gap: 8px; justify-content: flex-end; align-items: center; flex-shrink: 0;">
             @if(auth()->user()->isGuru() && $ticket->status !== 'selesai')
-                <button type="button" class="btn btn-success btn-sm" style="padding: 6px 12px; font-size: 12px; margin: 0; background: #4f46e5; border: none; color: #fff; display: inline-flex; align-items: center; gap: 4px;" onclick="openSelesaiModal('{{ $ticket->id }}', '{{ addslashes($ticket->title) }}', '{{ addslashes($ticket->description) }}')">
-                    <i class="fas fa-check-circle"></i> Selesai
+                <button type="button" class="btn btn-gold btn-sm" style="padding: 6px 12px; font-size: 12px; margin: 0; display: inline-flex; align-items: center; gap: 4px; white-space: nowrap;" onclick="openSelesaiModal('{{ $ticket->id }}', '{{ addslashes($ticket->title) }}', '{{ addslashes($ticket->description) }}')">
+                    <i class="fas fa-check-circle"></i> Selesaikan Konsultasi
                 </button>
             @endif
             <button type="button" 
@@ -184,9 +184,9 @@
                 <i class="fas fa-info-circle"></i> Detail
             </button>
             @if($ticket->status !== 'selesai')
-                <a href="{{ route('chat.show', $ticket) }}" class="btn btn-primary btn-sm" style="padding: 6px 12px; font-size: 12px; margin: 0;"><i class="fas fa-reply"></i> {{ $ticket->status==='menunggu'?'Balas':'Lanjut' }}</a>
+                <a href="{{ route('chat.show', $ticket) }}" class="btn btn-primary btn-sm" style="padding: 6px 12px; font-size: 12px; margin: 0; display: inline-flex; align-items: center; gap: 4px;"><i class="fas fa-comments"></i> Balas</a>
             @else
-                <a href="{{ route('chat.show', $ticket) }}" class="btn btn-secondary btn-sm" style="padding: 6px 12px; font-size: 12px; margin: 0;"><i class="fas fa-eye"></i> Lihat</a>
+                <a href="{{ route('chat.show', $ticket) }}" class="btn btn-secondary btn-sm" style="padding: 6px 12px; font-size: 12px; margin: 0; display: inline-flex; align-items: center; gap: 4px;"><i class="fas fa-eye"></i> Lihat</a>
             @endif
         </div>
 
@@ -281,16 +281,14 @@
                 <div style="font-size: 0.925rem; color: #334155; background: #fffbeb; border-left: 4px solid #f59e0b; padding: 15px; border-radius: 0 8px 8px 0; line-height: 1.6; white-space: pre-wrap;" id="detail-prior-action"></div>
             </div>
         </div>
-        <div class="modal-footer" style="margin-top: 30px; padding-top: 15px; border-top: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center;">
-            <div>
-                @if(auth()->user()->isGuru())
-                    <button type="button" id="detail-selesai-btn" class="btn" style="background: #4f46e5; border: none; color: #fff; display: inline-flex; align-items: center; gap: 4px; margin: 0;"><i class="fas fa-check-circle"></i> Selesai</button>
-                @endif
-            </div>
-            <div style="display: flex; gap: 10px;">
-                <button type="button" class="btn btn-secondary" onclick="closeModal('modal-detail-ticket')">Tutup</button>
-                <a href="#" id="detail-chat-btn" class="btn btn-primary"><i class="fas fa-comments"></i> Buka Pesan</a>
-            </div>
+        <div class="modal-footer" style="margin-top: 30px; padding-top: 15px; border-top: 1px solid #e2e8f0; display: flex; gap: 10px; flex-wrap: wrap; align-items: center; justify-content: flex-end;">
+            @if(auth()->user()->isGuru())
+                <button type="button" id="detail-selesai-btn" class="btn btn-gold" style="display: inline-flex; align-items: center; gap: 4px; margin: 0; margin-right: auto;">
+                    <i class="fas fa-check-circle"></i> Selesaikan Konsultasi
+                </button>
+            @endif
+            <button type="button" class="btn btn-secondary" onclick="closeModal('modal-detail-ticket')" style="margin: 0;">Tutup</button>
+            <a href="#" id="detail-chat-btn" class="btn btn-primary" style="margin: 0; display: inline-flex; align-items: center; gap: 4px;"><i class="fas fa-comments"></i> Buka Pesan</a>
         </div>
     </div>
 </div>
@@ -392,7 +390,7 @@ function openDetailModal(btn) {
             chatBtn.innerHTML = '<i class="fas fa-eye"></i> Lihat Pesan';
         } else {
             chatBtn.className = 'btn btn-primary';
-            chatBtn.innerHTML = '<i class="fas fa-comments"></i> Balas / Lanjut Pesan';
+            chatBtn.innerHTML = '<i class="fas fa-comments"></i> Balas Pesan';
         }
     }
 

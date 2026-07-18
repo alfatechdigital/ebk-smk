@@ -64,12 +64,11 @@
             <div class="card-header">
                 <div class="card-title">Aktivitas Tiket Per Kelas (Diampu)</div>
             </div>
-            <div style="display:flex;gap:16px;flex-wrap:wrap">
+            <div class="class-activity-grid">
                 @foreach($classActivities as $ca)
-                    <div
-                        style="flex:1;min-width:120px;background:var(--cream);padding:16px;border-radius:var(--radius-sm);text-align:center">
-                        <div style="font-size:24px;font-weight:700;color:var(--teal)">{{ $ca['count'] }}</div>
-                        <div style="font-size:13px;color:var(--slate);margin-top:4px">{{ $ca['class_name'] }}</div>
+                    <div class="class-activity-card">
+                        <div class="class-activity-count">{{ $ca['count'] }}</div>
+                        <div class="class-activity-name">{{ $ca['class_name'] }}</div>
                     </div>
                 @endforeach
             </div>
