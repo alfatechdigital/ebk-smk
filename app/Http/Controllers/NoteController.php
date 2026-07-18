@@ -119,7 +119,7 @@ class NoteController extends Controller
             $month = date('F Y', strtotime($request->month));
         }
 
-        $pdf = Pdf::loadView('pdf.rekap_catatan', compact('notes', 'student', 'month', 'teacher'));
+        $pdf = Pdf::loadView('pdf.rekap_catatan', compact('notes', 'student', 'month', 'teacher'))->setPaper('a4', 'landscape');
         return $pdf->download('Rekap_Catatan_Konseling.pdf');
     }
 

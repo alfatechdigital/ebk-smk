@@ -100,7 +100,19 @@
                     <p>{{ $note->tindakan }}</p>
                 </div>
                 <div class="action-btns" style="flex-direction: column; gap: 6px;">
-                    <button class="btn btn-secondary btn-sm" title="Edit Catatan" onclick="openEditModal({{ json_encode(['id'=>$note->id,'title'=>$note->title,'masalah'=>$note->masalah,'tindakan'=>$note->tindakan,'kesimpulan'=>$note->kesimpulan,'service_id'=>$note->ticket?->service_id]) }})"><i class="fas fa-edit"></i></button>
+                    <button class="btn btn-secondary btn-sm" style="background: var(--teal); color: white; border-color: var(--teal);" title="Detail Catatan" onclick="openNoteDetailModal(this)"
+                        data-siswa="{{ $note->ticket?->student?->user?->name ? ($note->ticket->student->user->name . ' · ' . ($note->ticket->student->class->name ?? '')) : 'Anonim' }}"
+                        data-title="{{ $note->title }}"
+                        data-masalah="{{ $note->masalah }}"
+                        data-tindakan="{{ $note->tindakan }}"
+                        data-kesimpulan="{{ $note->kesimpulan ?? '-' }}"><i class="fas fa-eye"></i></button>
+                    <button class="btn btn-secondary btn-sm" title="Edit Catatan" onclick="openEditModal(this)"
+                        data-id="{{ $note->id }}"
+                        data-title="{{ $note->title }}"
+                        data-masalah="{{ $note->masalah }}"
+                        data-tindakan="{{ $note->tindakan }}"
+                        data-kesimpulan="{{ $note->kesimpulan ?? '' }}"
+                        data-service-id="{{ $note->ticket?->service_id ?? '' }}"><i class="fas fa-edit"></i></button>
                     <a href="{{ route('catatan.pdf', $note) }}" class="btn btn-primary btn-sm" title="Cetak Catatan"><i class="fas fa-print"></i></a>
                     <button type="button" class="btn btn-danger btn-sm" title="Hapus Catatan" onclick="openDeleteModal({{ $note->id }})"><i class="fas fa-trash"></i></button>
                 </div>
@@ -259,6 +271,49 @@
         </form>
     </div>
 </div>
+
+{{-- Modal Detail Catatan --}}
+<div class="modal-overlay" id="modal-detail-catatan">
+    <div class="modal" style="max-width: 600px; max-height: 90vh; overflow-y: auto; padding: 24px;">
+        <div class="modal-header" style="border-bottom: 1px solid #eee; padding-bottom: 15px; margin-bottom: 20px;">
+            <h3 style="font-size: 1.15rem; font-weight: 800; color: var(--charcoal); display: flex; align-items: center; gap: 8px; margin: 0;">
+                <i class="fa-solid fa-file-lines" style="color: var(--teal);"></i> Detail Catatan Konseling
+            </h3>
+            <button class="modal-close" onclick="closeModal('modal-detail-catatan')">✕</button>
+        </div>
+        
+        <div style="display: flex; flex-direction: column; gap: 15px;">
+            <div>
+                <label style="font-size: 0.75rem; color: #64748b; text-transform: uppercase; font-weight: 700; display: block; margin-bottom: 4px;">Siswa</label>
+                <div id="detail-siswa" style="font-size: 0.95rem; color: var(--navy); font-weight: 700;">-</div>
+            </div>
+
+            <div>
+                <label style="font-size: 0.75rem; color: #64748b; text-transform: uppercase; font-weight: 700; display: block; margin-bottom: 4px;">Judul / Topik</label>
+                <div id="detail-title" style="font-size: 0.95rem; color: var(--navy); font-weight: 700;">-</div>
+            </div>
+
+            <div>
+                <label style="font-size: 0.75rem; color: #64748b; text-transform: uppercase; font-weight: 700; display: block; margin-bottom: 4px;">Masalah / Permasalahan</label>
+                <div id="detail-masalah" style="font-size: 0.9rem; color: #334155; background: #f8fafc; border-left: 4px solid var(--teal); padding: 12px; border-radius: 0 8px 8px 0; line-height: 1.5; white-space: pre-wrap; word-break: break-word;">-</div>
+            </div>
+
+            <div>
+                <label style="font-size: 0.75rem; color: #64748b; text-transform: uppercase; font-weight: 700; display: block; margin-bottom: 4px;">Tindakan yang Dilakukan (Solusi)</label>
+                <div id="detail-tindakan" style="font-size: 0.9rem; color: #334155; background: #f8fafc; border-left: 4px solid #059669; padding: 12px; border-radius: 0 8px 8px 0; line-height: 1.5; white-space: pre-wrap; word-break: break-word;">-</div>
+            </div>
+
+            <div>
+                <label style="font-size: 0.75rem; color: #64748b; text-transform: uppercase; font-weight: 700; display: block; margin-bottom: 4px;">Kesimpulan</label>
+                <div id="detail-kesimpulan" style="font-size: 0.9rem; color: #334155; background: #f8fafc; border-left: 4px solid #f59e0b; padding: 12px; border-radius: 0 8px 8px 0; line-height: 1.5; white-space: pre-wrap; word-break: break-word;">-</div>
+            </div>
+        </div>
+
+        <div class="modal-footer" style="justify-content: flex-end; gap: 10px; border-top: none; padding-top: 20px;">
+            <button type="button" class="btn btn-secondary" onclick="closeModal('modal-detail-catatan')">Tutup</button>
+        </div>
+    </div>
+</div>
 @endpush
 
 @push('scripts')
@@ -282,15 +337,31 @@
             }
         }
 
-        function openEditModal(note) {
-            document.getElementById('form-edit-catatan').action = '/catatan/' + note.id;
-            document.getElementById('edit-title').value = note.title;
-            document.getElementById('edit-masalah').value = note.masalah;
-            document.getElementById('edit-tindakan').value = note.tindakan;
-            document.getElementById('edit-kesimpulan').value = note.kesimpulan || '';
+        function openNoteDetailModal(btn) {
+            document.getElementById('detail-siswa').innerText = btn.getAttribute('data-siswa');
+            document.getElementById('detail-title').innerText = btn.getAttribute('data-title');
+            document.getElementById('detail-masalah').innerText = btn.getAttribute('data-masalah');
+            document.getElementById('detail-tindakan').innerText = btn.getAttribute('data-tindakan');
+            document.getElementById('detail-kesimpulan').innerText = btn.getAttribute('data-kesimpulan') || '-';
+            openModal('modal-detail-catatan');
+        }
+
+        function openEditModal(btn) {
+            const id = btn.getAttribute('data-id');
+            const title = btn.getAttribute('data-title');
+            const masalah = btn.getAttribute('data-masalah');
+            const tindakan = btn.getAttribute('data-tindakan');
+            const kesimpulan = btn.getAttribute('data-kesimpulan');
+            const serviceId = btn.getAttribute('data-service-id');
+
+            document.getElementById('form-edit-catatan').action = '/catatan/' + id;
+            document.getElementById('edit-title').value = title;
+            document.getElementById('edit-masalah').value = masalah;
+            document.getElementById('edit-tindakan').value = tindakan;
+            document.getElementById('edit-kesimpulan').value = kesimpulan || '';
             const serviceSelect = document.getElementById('edit-service-id');
             if (serviceSelect) {
-                serviceSelect.value = note.service_id || '';
+                serviceSelect.value = serviceId || '';
             }
             openModal('modal-edit-catatan');
         }

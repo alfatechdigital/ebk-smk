@@ -33,10 +33,12 @@ Route::middleware('auth')->group(function () {
     Route::get('/chat/{ticket}/messages', [ChatController::class, 'messages'])->name('chat.messages');
 
     // Tickets
+    Route::get('/tickets/unread-counts', [TicketController::class, 'unreadCounts'])->name('tickets.unread_counts');
     Route::resource('tickets', TicketController::class)->except(['edit']);
     Route::post('/tickets/{ticket}/status', [TicketController::class, 'updateStatus'])->name('tickets.status');
     Route::post('/tickets/{ticket}/assign', [TicketController::class, 'assignTeacher'])->name('tickets.assign');
     Route::post('/tickets/{ticket}/toggle-favorite', [TicketController::class, 'toggleFavorite'])->name('tickets.favorite');
+    Route::post('/tickets/{ticket}/toggle-pinned', [TicketController::class, 'togglePinned'])->name('tickets.pinned');
 
     // Catatan Konseling
     Route::get('/catatan', [NoteController::class, 'index'])->name('catatan.index');

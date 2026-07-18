@@ -157,7 +157,15 @@
                     <a href="{{ route($item['route']) }}"
                         class="nav-item {{ request()->routeIs($item['route'] . '*') ? 'active' : '' }}">
                         <i class="{{ $item['icon'] }}"></i>
-                        <span>{{ $item['label'] }}</span>
+                        <span style="display: flex; align-items: center; justify-content: space-between; width: 100%; gap: 8px; min-width: 0;">
+                            <span style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ $item['label'] }}</span>
+                            @if($item['route'] === 'tickets.index')
+                                <span class="sidebar-unread-badge" style="display: none; position: relative; width: 20px; height: 20px; align-items: center; justify-content: center; flex-shrink: 0; margin-left: auto;">
+                                    <i class="fas fa-comment" style="font-size: 15px; color: currentColor; opacity: 0.7;"></i>
+                                    <span class="count" style="position: absolute; top: -4px; right: -6px; background: #ef4444; color: white; border-radius: 50%; width: 14px; height: 14px; font-size: 8px; font-weight: 700; display: flex; align-items: center; justify-content: center; line-height: 1; border: 1px solid white;">0</span>
+                                </span>
+                            @endif
+                        </span>
                     </a>
                 @endif
             @endforeach
@@ -218,6 +226,11 @@
         @yield('content')
     </main>
 
+    @if(env('PUSHER_APP_KEY'))
+        <script src="https://js.pusher.com/8.2.0/pusher.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/laravel-echo@1.15.3/dist/echo.iife.js"></script>
+    @endif
+
     <script>
         function toggleUserDropdown(event) {
             event.stopPropagation();
@@ -239,7 +252,85 @@
                     dropdown.style.display = 'none';
                 }
             }
+            if (!event.target.closest('.ticket-actions-dropdown')) {
+                window.closeAllDropdowns();
+            }
         });
+
+        window.toggleActionsDropdown = function(event, id) {
+            event.stopPropagation();
+            const targetDropdown = document.getElementById('actions-dropdown-' + id);
+            const allDropdowns = document.querySelectorAll('.dropdown-menu-content');
+            
+            // Reset z-index on all cards first
+            document.querySelectorAll('.ticket-card').forEach(card => {
+                card.style.zIndex = '';
+            });
+
+            allDropdowns.forEach(dd => {
+                if (dd !== targetDropdown) {
+                    dd.style.display = 'none';
+                }
+            });
+            if (targetDropdown) {
+                const card = targetDropdown.closest('.ticket-card');
+                if (targetDropdown.style.display === 'none' || targetDropdown.style.display === '') {
+                    targetDropdown.style.display = 'block';
+                    if (card) {
+                        card.style.zIndex = '15'; // Lift active card above the rest
+                    }
+                } else {
+                    targetDropdown.style.display = 'none';
+                }
+            }
+        };
+
+        window.closeAllDropdowns = function() {
+            const allDropdowns = document.querySelectorAll('.dropdown-menu-content');
+            allDropdowns.forEach(dd => {
+                dd.style.display = 'none';
+            });
+            // Reset z-index on all cards
+            document.querySelectorAll('.ticket-card').forEach(card => {
+                card.style.zIndex = '';
+            });
+        };
+
+        window.updateSidebarUnreadBadge = function(count) {
+            const badge = document.querySelector('.sidebar-unread-badge');
+            if (badge) {
+                if (count > 0) {
+                    const countSpan = badge.querySelector('.count');
+                    if (countSpan) {
+                        countSpan.textContent = count > 99 ? '99+' : count;
+                    }
+                    badge.style.display = 'inline-flex';
+                } else {
+                    badge.style.display = 'none';
+                }
+            }
+        };
+
+        @auth
+        window.pollSidebarUnread = function() {
+            // Skip layout polling if index page has a active local poll to avoid double network requests
+            if (window._isLocalTicketsPollingActive) {
+                return;
+            }
+            fetch('{{ route("tickets.unread_counts") }}')
+                .then(res => res.json())
+                .then(data => {
+                    if (data && typeof data.total_unread !== 'undefined') {
+                        window.updateSidebarUnreadBadge(data.total_unread);
+                    }
+                })
+                .catch(err => console.error('Error fetching unread count:', err));
+        };
+
+        // Run initial load and set 3-second interval
+        window.pollSidebarUnread();
+        setInterval(window.pollSidebarUnread, 3000);
+        @endauth
     </script>
     @stack('modals')
     @stack('scripts')

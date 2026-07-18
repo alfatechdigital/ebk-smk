@@ -10,8 +10,13 @@
             Kode Tiket: <span style="font-weight: 700; color: var(--teal);">{{ $ticket->code }}</span> · Diajukan pada {{ $ticket->created_at->format('d M Y - H:i') }}
         </p>
     </div>
-    <div style="flex-shrink: 0;">
+    <div style="flex-shrink: 0; text-align: right;">
         <span class="badge {{ $ticket->status_badge }}" style="padding: 6px 14px; font-size: 13px; border-radius: 6px;">{{ $ticket->status_label }}</span>
+        @if($ticket->completed_at)
+            <div style="font-size: 11px; color: var(--muted); margin-top: 4px;">Selesai: {{ $ticket->completed_at->format('d M Y - H:i') }}</div>
+        @elseif($ticket->cancelled_at)
+            <div style="font-size: 11px; color: #ef4444; margin-top: 4px;">Dibatalkan: {{ $ticket->cancelled_at->format('d M Y - H:i') }}</div>
+        @endif
     </div>
 </div>
 
@@ -73,6 +78,16 @@
             </div>
         </div>
 
+        @if($ticket->status === 'dibatalkan')
+            <div style="display: flex; align-items: flex-start; gap: 10px; background-color: #fef2f2; border: 1px solid #fecaca; color: #ef4444; padding: 12px 16px; border-radius: 6px; font-size: 13px; font-weight: 500; text-align: left; margin-bottom: 20px;">
+                <i class="fas fa-ban" style="font-size: 16px; margin-top: 2px; flex-shrink: 0;"></i>
+                <div>
+                    <strong style="color: #dc2626; display: block; margin-bottom: 4px; font-size: 14px;">Konsultasi ini Dibatalkan</strong>
+                    {{ $ticket->cancel_reason ?? 'Konsultasi ini telah dibatalkan.' }}
+                </div>
+            </div>
+        @endif
+
         @if($ticket->anonymous && auth()->user()->isSiswa())
             <div style="display: flex; align-items: center; gap: 8px; background-color: #1e293b; border: 1px solid #334155; color: #94a3b8; padding: 10px 14px; border-radius: 6px; font-size: 12px; font-weight: 500;">
                 <i class="fas fa-user-secret" style="font-size: 14px; color: #cbd5e1;"></i>
@@ -84,13 +99,6 @@
             <label style="font-size: 12px; font-weight: 700; color: var(--muted); text-transform: uppercase; display: block; margin-bottom: 6px; letter-spacing: 0.3px;">Deskripsi Masalah</label>
             <div style="line-height: 1.6; color: var(--slate); font-size: 14px; white-space: pre-wrap; background: #fafafa; border-left: 4px solid var(--teal); padding: 16px; border-radius: 0 8px 8px 0; word-break: break-word;">{{ $ticket->description }}</div>
         </div>
-
-        @if($ticket->prior_action)
-            <div>
-                <label style="font-size: 12px; font-weight: 700; color: var(--muted); text-transform: uppercase; display: block; margin-bottom: 6px; letter-spacing: 0.3px;">Tindakan yang Pernah Dilakukan Sebelumnya</label>
-                <div style="line-height: 1.6; color: var(--slate); font-size: 14px; white-space: pre-wrap; background: #fffdf5; border-left: 4px solid var(--gold); padding: 16px; border-radius: 0 8px 8px 0; word-break: break-word;">{{ $ticket->prior_action }}</div>
-            </div>
-        @endif
     </div>
 
     <!-- Right Column (Aksi) -->

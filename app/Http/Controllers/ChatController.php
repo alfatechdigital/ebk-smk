@@ -75,8 +75,8 @@ class ChatController extends Controller
         // Broadcast the message via Pusher
         broadcast(new \App\Events\MessageSent($message))->toOthers();
 
-        // Update ticket status to 'diproses' if it was 'menunggu'
-        if ($ticket->status === 'menunggu') {
+        // Update ticket status to 'diproses' if it was 'menunggu' and the sender is a Guru BK (teacher)
+        if ($ticket->status === 'menunggu' && Auth::user()->isGuru()) {
             $ticket->update(['status' => 'diproses']);
         }
 
@@ -93,6 +93,11 @@ class ChatController extends Controller
     public function messages(Ticket $ticket)
     {
         $this->gate($ticket);
+        $user = Auth::user();
+
+        // Mark incoming messages as read when user polls
+        $ticket->messages()->where('sender_id', '!=', $user->id)->where('is_read', false)->update(['is_read' => true]);
+
         $messages = $ticket->messages()->with('sender')->get()->map(fn($m) => [
             'id'        => $m->id,
             'type'      => $m->type,

@@ -11,15 +11,17 @@ class Ticket extends Model
 
     protected $fillable = [
         'code', 'student_id', 'service_id', 'teacher_id',
-        'status', 'is_favorite', 'priority', 'title', 'description',
-        'prior_action', 'anonymous', 'scheduled_at', 'completed_at'
+        'status', 'is_favorite', 'is_pinned', 'priority', 'title', 'description',
+        'prior_action', 'anonymous', 'scheduled_at', 'completed_at', 'cancelled_at', 'cancel_reason'
     ];
 
     protected $casts = [
         'anonymous' => 'boolean',
         'is_favorite' => 'boolean',
+        'is_pinned' => 'boolean',
         'scheduled_at' => 'datetime',
         'completed_at' => 'datetime',
+        'cancelled_at' => 'datetime',
     ];
 
     protected static function boot()
@@ -70,6 +72,7 @@ class Ticket extends Model
             'menunggu' => 'Menunggu',
             'diproses' => 'Diproses',
             'selesai'  => 'Selesai',
+            'dibatalkan' => 'Dibatalkan',
             default    => $this->status,
         };
     }
@@ -80,6 +83,7 @@ class Ticket extends Model
             'menunggu' => 'badge-warning',
             'diproses' => 'badge-info',
             'selesai'  => 'badge-success',
+            'dibatalkan' => 'badge-danger',
             default    => 'badge-info',
         };
     }
