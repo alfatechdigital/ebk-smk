@@ -4,7 +4,7 @@
 
 @section('content')
 
-<div class="card" style="padding: 0; overflow: hidden; background: #fff; height: calc(100vh - 90px); display: flex; flex-direction: column;">
+<div class="card" id="chat-container" style="padding: 0; overflow: hidden; background: #fff; height: calc(100vh - 140px); min-height: 400px; display: flex; flex-direction: column;">
     @if($active)
 
     {{-- 1. Chat Messages Area --}}
