@@ -59,7 +59,7 @@
         <div class="field-group"><label>Tindakan yang sudah kamu lakukan <span style="color:var(--muted);font-weight:400">(opsional)</span></label><textarea name="prior_action" placeholder="Apakah kamu sudah mencoba melakukan sesuatu?"></textarea></div>
         <div class="field-group" style="background:var(--cream);padding:14px;border-radius:var(--radius-sm);display:flex;align-items:center;gap:10px;margin-bottom:20px;">
             <input type="checkbox" name="anonymous" id="anonymous" value="1" style="width:18px;height:18px;accent-color:var(--teal);cursor:pointer;">
-            <label for="anonymous" style="margin:0;cursor:pointer;">Ajukan secara Anonim <span style="font-weight:400;color:var(--muted);font-size:12px;display:block;">Identitasmu akan ditandai anonim di sistem, namun Guru BK tetap dapat melihat namamu dengan label Anonim untuk keperluan tindak lanjut.</span></label>
+            <label for="anonymous" style="margin:0;cursor:pointer;">Ajukan secara Anonim <span style="font-weight:400;color:var(--muted);font-size:12px;display:block;">Identitasmu akan ditandai sebagai Anonim di sistem untuk menjaga kerahasiaan privasimu.</span></label>
         </div>
         <div style="display:flex;gap:10px;justify-content:space-between">
             <button type="button" class="btn btn-secondary" onclick="nextStep(1)"><i class="fas fa-arrow-left"></i> Kembali</button>
