@@ -1784,6 +1784,18 @@ td {
     display: none;
   }
 
+  .ticket-code-text {
+    display: none !important;
+  }
+
+  .desktop-status-badges {
+    display: none !important;
+  }
+
+  .mobile-status-badges {
+    display: flex !important;
+  }
+
   .grid-2,
   .grid-3 {
     grid-template-columns: 1fr;

@@ -103,35 +103,51 @@
     <div class="ticket-card {{ $ticket->status }} ticket-list-item {{ $ticket->is_favorite ? 'is-favorite' : '' }}" style="position: relative; padding-top: 24px;">
         
         {{-- Absolute Ticket Code & Date at Top Right --}}
-        <span class="ticket-id" style="position: absolute; top: 8px; right: 20px; font-weight: 700; font-size: 11px; margin: 0; color: var(--slate); opacity: 0.7;">{{ $ticket->code }} <span style="font-weight: 500; margin-left: 6px; color: var(--muted);">({{ $ticket->created_at->format('d M Y - H:i') }})</span></span>
+        <span class="ticket-id" style="position: absolute; top: 8px; right: 20px; font-weight: 700; font-size: 11px; margin: 0; color: var(--slate); opacity: 0.7;"><span class="ticket-code-text">{{ $ticket->code }}</span> <span style="font-weight: 500; margin-left: 6px; color: var(--muted);">({{ $ticket->created_at->format('d M Y - H:i') }})</span></span>
 
         {{-- Leftmost Side: Student Info & Favorite Star --}}
-        <div style="flex: 0 0 220px; min-width: 0; display: flex; align-items: center; gap: 10px;">
-            {{-- Favorite Star Button --}}
-            <form method="POST" action="{{ route('tickets.favorite', $ticket) }}" style="display: inline; flex-shrink: 0;">
-                @csrf
-                <button type="submit" style="background: none; border: none; cursor: pointer; color: {{ $ticket->is_favorite ? '#f59e0b' : '#d1d5db' }}; font-size: 1.15rem; padding: 2px; line-height: 1;" title="{{ $ticket->is_favorite ? 'Batal Favorit' : 'Jadikan Favorit' }}">
-                    <i class="fa-{{ $ticket->is_favorite ? 'solid' : 'regular' }} fa-star"></i>
-                </button>
-            </form>
-            
-            {{-- Avatar & Name/Class & Status Badge --}}
-            @if($ticket->student)
-                <div class="ticket-guru-avatar" style="flex-shrink: 0; margin: 0;">{{ $ticket->student->avatar_initials }}</div>
-                <div style="min-width: 0; display: flex; flex-direction: column; gap: 3px;">
-                    <div style="font-size: 11px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; line-height: 1;">{{ $ticket->student->class->name ?? '-' }}</div>
-                    <div style="font-size: 14px; font-weight: 600; color: var(--navy); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; line-height: 1.2;" title="{{ $ticket->student->user->name ?? '-' }}">{{ $ticket->student->user->name ?? '-' }}</div>
-                    <div style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
-                        <span class="badge badge-{{ $ticket->status }}" style="margin: 2px 0 0 0; width: fit-content; padding: 2px 8px; font-size: 10px; border-radius: 4px; line-height: 1.2;">{{ $ticket->status_label }}</span>
-                        @if($ticket->anonymous)
-                            <span class="badge" style="background-color: #fef2f2; color: #ef4444; border: 1px solid #fecaca; margin: 2px 0 0 0; width: fit-content; padding: 2px 8px; font-size: 10px; border-radius: 4px; line-height: 1.2; font-weight: 600;" title="Pengajuan sebagai Anonim">
-                                <i class="fas fa-user-secret"></i> Anonim
-                            </span>
-                        @endif
+        <div class="ticket-student-col" style="flex: 0 0 250px; min-width: 0; display: flex; align-items: center; justify-content: space-between; gap: 10px; width: 100%;">
+            <div style="display: flex; align-items: center; gap: 10px; min-width: 0; flex-grow: 1;">
+                {{-- Favorite Star Button --}}
+                <form method="POST" action="{{ route('tickets.favorite', $ticket) }}" style="display: inline; flex-shrink: 0;">
+                    @csrf
+                    <button type="submit" style="background: none; border: none; cursor: pointer; color: {{ $ticket->is_favorite ? '#f59e0b' : '#d1d5db' }}; font-size: 1.15rem; padding: 2px; line-height: 1;" title="{{ $ticket->is_favorite ? 'Batal Favorit' : 'Jadikan Favorit' }}">
+                        <i class="fa-{{ $ticket->is_favorite ? 'solid' : 'regular' }} fa-star"></i>
+                    </button>
+                </form>
+                
+                {{-- Avatar & Name/Class --}}
+                @if($ticket->student)
+                    <div class="ticket-guru-avatar" style="flex-shrink: 0; margin: 0;">{{ $ticket->student->avatar_initials }}</div>
+                    <div style="min-width: 0; display: flex; flex-direction: column; gap: 2px;">
+                        <div style="font-size: 10px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; line-height: 1;">{{ $ticket->student->class->name ?? '-' }}</div>
+                        <div style="font-size: 14px; font-weight: 600; color: var(--navy); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; line-height: 1.2;" title="{{ $ticket->student->user->name ?? '-' }}">{{ $ticket->student->user->name ?? '-' }}</div>
+                        
+                        {{-- Desktop Status Badges (Shown on Desktop, Hidden on Mobile) --}}
+                        <div class="desktop-status-badges" style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap; margin-top: 2px;">
+                            <span class="badge badge-{{ $ticket->status }}" style="margin: 0; width: fit-content; padding: 2px 8px; font-size: 10px; border-radius: 4px; line-height: 1.2; font-weight: 700;">{{ $ticket->status_label }}</span>
+                            @if($ticket->anonymous)
+                                <span class="badge" style="background-color: #fef2f2; color: #ef4444; border: 1px solid #fecaca; margin: 0; width: fit-content; padding: 2px 8px; font-size: 9px; border-radius: 4px; line-height: 1.2; font-weight: 600;" title="Pengajuan sebagai Anonim">
+                                    <i class="fas fa-user-secret"></i> Anonim
+                                </span>
+                            @endif
+                        </div>
                     </div>
+                @else
+                    <span class="text-muted" style="font-size:12px;">Siswa tidak ditemukan</span>
+                @endif
+            </div>
+            
+            {{-- Mobile Status Badges (Hidden on Desktop, Shown on Mobile) --}}
+            @if($ticket->student)
+                <div class="mobile-status-badges" style="display: none; flex-direction: column; align-items: flex-end; gap: 4px; flex-shrink: 0;">
+                    <span class="badge badge-{{ $ticket->status }}" style="margin: 0; width: fit-content; padding: 3px 8px; font-size: 10px; border-radius: 4px; line-height: 1.2; font-weight: 700; white-space: nowrap;">{{ $ticket->status_label }}</span>
+                    @if($ticket->anonymous)
+                        <span class="badge" style="background-color: #fef2f2; color: #ef4444; border: 1px solid #fecaca; margin: 0; width: fit-content; padding: 2px 8px; font-size: 9px; border-radius: 4px; line-height: 1.2; font-weight: 600; white-space: nowrap;" title="Pengajuan sebagai Anonim">
+                            <i class="fas fa-user-secret"></i> Anonim
+                        </span>
+                    @endif
                 </div>
-            @else
-                <span class="text-muted" style="font-size:12px;">Siswa tidak ditemukan</span>
             @endif
         </div>
 
