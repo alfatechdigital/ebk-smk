@@ -118,21 +118,38 @@
                 
                 {{-- Avatar & Name/Class --}}
                 @if($ticket->student)
-                    <div class="ticket-guru-avatar" style="flex-shrink: 0; margin: 0;">{{ $ticket->student->avatar_initials }}</div>
-                    <div style="min-width: 0; display: flex; flex-direction: column; gap: 2px;">
-                        <div style="font-size: 10px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; line-height: 1;">{{ $ticket->student->class->name ?? '-' }}</div>
-                        <div style="font-size: 14px; font-weight: 600; color: var(--navy); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; line-height: 1.2;" title="{{ $ticket->student->user->name ?? '-' }}">{{ $ticket->student->user->name ?? '-' }}</div>
-                        
-                        {{-- Desktop Status Badges (Shown on Desktop, Hidden on Mobile) --}}
-                        <div class="desktop-status-badges" style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap; margin-top: 2px;">
-                            <span class="badge badge-{{ $ticket->status }}" style="margin: 0; width: fit-content; padding: 2px 8px; font-size: 10px; border-radius: 4px; line-height: 1.2; font-weight: 700;">{{ $ticket->status_label }}</span>
-                            @if($ticket->anonymous)
-                                <span class="badge" style="background-color: #fef2f2; color: #ef4444; border: 1px solid #fecaca; margin: 0; width: fit-content; padding: 2px 8px; font-size: 9px; border-radius: 4px; line-height: 1.2; font-weight: 600;" title="Pengajuan sebagai Anonim">
-                                    <i class="fas fa-user-secret"></i> Anonim
-                                </span>
-                            @endif
+                    @if(auth()->user()->isSiswa() && $ticket->anonymous)
+                        <div class="ticket-guru-avatar" style="flex-shrink: 0; margin: 0; background: #e2e8f0; color: #475569;"><i class="fas fa-user-secret"></i></div>
+                        <div style="min-width: 0; display: flex; flex-direction: column; gap: 2px;">
+                            <div style="font-size: 14px; font-weight: 600; color: var(--navy); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; line-height: 1.2;">Anonim</div>
+                            
+                            {{-- Desktop Status Badges (Shown on Desktop, Hidden on Mobile) --}}
+                            <div class="desktop-status-badges" style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap; margin-top: 2px;">
+                                <span class="badge badge-{{ $ticket->status }}" style="margin: 0; width: fit-content; padding: 2px 8px; font-size: 10px; border-radius: 4px; line-height: 1.2; font-weight: 700;">{{ $ticket->status_label }}</span>
+                                @if($ticket->anonymous)
+                                    <span class="badge" style="background-color: #fef2f2; color: #ef4444; border: 1px solid #fecaca; margin: 0; width: fit-content; padding: 2px 8px; font-size: 9px; border-radius: 4px; line-height: 1.2; font-weight: 600;" title="Pengajuan sebagai Anonim">
+                                        <i class="fas fa-user-secret"></i> Anonim
+                                    </span>
+                                @endif
+                            </div>
                         </div>
-                    </div>
+                    @else
+                        <div class="ticket-guru-avatar" style="flex-shrink: 0; margin: 0;">{{ $ticket->student->avatar_initials }}</div>
+                        <div style="min-width: 0; display: flex; flex-direction: column; gap: 2px;">
+                            <div style="font-size: 10px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; line-height: 1;">{{ $ticket->student->class->name ?? '-' }}</div>
+                            <div style="font-size: 14px; font-weight: 600; color: var(--navy); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; line-height: 1.2;" title="{{ $ticket->student->user->name ?? '-' }}">{{ $ticket->student->user->name ?? '-' }}</div>
+                            
+                            {{-- Desktop Status Badges (Shown on Desktop, Hidden on Mobile) --}}
+                            <div class="desktop-status-badges" style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap; margin-top: 2px;">
+                                <span class="badge badge-{{ $ticket->status }}" style="margin: 0; width: fit-content; padding: 2px 8px; font-size: 10px; border-radius: 4px; line-height: 1.2; font-weight: 700;">{{ $ticket->status_label }}</span>
+                                @if($ticket->anonymous)
+                                    <span class="badge" style="background-color: #fef2f2; color: #ef4444; border: 1px solid #fecaca; margin: 0; width: fit-content; padding: 2px 8px; font-size: 9px; border-radius: 4px; line-height: 1.2; font-weight: 600;" title="Pengajuan sebagai Anonim">
+                                        <i class="fas fa-user-secret"></i> Anonim
+                                    </span>
+                                @endif
+                            </div>
+                        </div>
+                    @endif
                 @else
                     <span class="text-muted" style="font-size:12px;">Siswa tidak ditemukan</span>
                 @endif
@@ -192,10 +209,12 @@
                     data-description="{{ $ticket->description }}"
                     data-student="{{ $ticket->student?->user?->name ?? 'Anonim' }}"
                     data-class="{{ $ticket->student?->class?->name ?? '-' }}"
+                    data-teacher="{{ $ticket->teacher?->user?->name ?? 'Belum Ditentukan' }}"
                     data-service="{{ $ticket->service?->name ?? '-' }}"
                     data-service-color="{{ $ticket->service?->color ?? '#3d5454' }}"
                     data-service-icon="{{ $ticket->service?->icon ?? 'fas fa-tag' }}"
                     data-prior-action="{{ $ticket->prior_action ?? '' }}"
+                    data-anonymous="{{ $ticket->anonymous ? '1' : '0' }}"
                     style="padding: 6px 12px; font-size: 12px; margin: 0;">
                 <i class="fas fa-info-circle"></i> Detail
             </button>
@@ -272,6 +291,10 @@
                     <div style="font-size: 0.95rem; font-weight: 700; color: #1e293b;" id="detail-class-info"></div>
                 </div>
                 <div>
+                    <label style="font-size: 0.7rem; color: #64748b; text-transform: uppercase; font-weight: 700; display: block; margin-bottom: 4px; letter-spacing: 0.5px;">Guru BK</label>
+                    <div style="font-size: 0.95rem; font-weight: 700; color: #1e293b;" id="detail-teacher-info"></div>
+                </div>
+                <div>
                     <label style="font-size: 0.7rem; color: #64748b; text-transform: uppercase; font-weight: 700; display: block; margin-bottom: 4px; letter-spacing: 0.5px;">Kategori Layanan</label>
                     <span id="detail-service-badge" class="badge" style="color: #fff; padding: 4px 10px; border-radius: 4px; font-weight: 700; font-size: 11px; display: inline-flex; align-items: center; gap: 6px;"></span>
                 </div>
@@ -280,6 +303,19 @@
                     <span id="detail-code" style="font-weight: 800; color: var(--teal); font-size: 0.95rem;"></span>
                 </div>
             </div>
+
+            {{-- Anonymous Banner (shown via JS) --}}
+            @if(auth()->user()->isSiswa())
+                <div id="detail-anon-banner-student" style="display: none; align-items: center; gap: 8px; background-color: #1e293b; border: 1px solid #334155; padding: 10px 14px; border-radius: 6px; font-size: 12px; font-weight: 500;">
+                    <i class="fas fa-user-secret" style="font-size: 14px; color: #cbd5e1; flex-shrink: 0;"></i>
+                    <span style="color: #cbd5e1;"><strong style="color: #e2e8f0;">Konsultasi Anonim:</strong> Kamu mengajukan konsultasi ini secara anonim. Identitasmu sepenuhnya tersembunyi dan terjaga kerahasiaannya di sistem.</span>
+                </div>
+            @else
+                <div id="detail-anon-banner-guru" style="display: none; align-items: center; gap: 8px; background-color: #fef2f2; border: 1px solid #fee2e2; color: #dc2626; padding: 10px 14px; border-radius: 6px; font-size: 12px; font-weight: 500;">
+                    <i class="fas fa-user-secret" style="font-size: 14px; flex-shrink: 0;"></i>
+                    <span><strong>Sesi Konsultasi Anonim:</strong> Siswa mengajukan konsultasi ini secara anonim untuk menjaga kerahasiaan identitas aslinya.</span>
+                </div>
+            @endif
 
             <!-- Detail Masalah -->
             <div style="text-align: left;">
@@ -376,12 +412,33 @@ function openDetailModal(btn) {
     const serviceColor = btn.getAttribute('data-service-color');
     const serviceIcon = btn.getAttribute('data-service-icon');
     const priorAction = btn.getAttribute('data-prior-action');
+    const isAnonymous = btn.getAttribute('data-anonymous') === '1';
+    const isSiswa = {{ auth()->user()->isSiswa() ? 'true' : 'false' }};
+    const teacher = btn.getAttribute('data-teacher');
 
     document.getElementById('detail-code').innerText = code;
     document.getElementById('detail-title').innerText = title;
-    document.getElementById('detail-student-info').innerText = student;
-    document.getElementById('detail-class-info').innerText = className;
     document.getElementById('detail-description').innerText = description;
+    document.getElementById('detail-teacher-info').innerText = teacher;
+    
+    if (isSiswa && isAnonymous) {
+        document.getElementById('detail-student-info').innerText = 'Anonim';
+        const classContainer = document.getElementById('detail-class-info').parentElement;
+        if (classContainer) classContainer.style.display = 'none';
+        const bannerStudent = document.getElementById('detail-anon-banner-student');
+        if (bannerStudent) bannerStudent.style.display = 'flex';
+    } else {
+        document.getElementById('detail-student-info').innerText = student;
+        const classContainer = document.getElementById('detail-class-info').parentElement;
+        if (classContainer) {
+            classContainer.style.display = 'block';
+            document.getElementById('detail-class-info').innerText = className;
+        }
+        const bannerStudent = document.getElementById('detail-anon-banner-student');
+        if (bannerStudent) bannerStudent.style.display = 'none';
+        const bannerGuru = document.getElementById('detail-anon-banner-guru');
+        if (bannerGuru) bannerGuru.style.display = isAnonymous ? 'flex' : 'none';
+    }
     
     const badge = document.getElementById('detail-service-badge');
     if (badge) {

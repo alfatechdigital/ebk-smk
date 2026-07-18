@@ -35,12 +35,24 @@
             <div style="display: flex; align-items: center; justify-content: space-between; gap: 10px; width: 100%;">
                 <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
                     <h4 style="margin: 0; font-size: 0.95rem; font-weight: 700; color: var(--charcoal);">
-                        {{ $active->student->user->name ?? '-' }}
+                        @if(auth()->user()->isSiswa())
+                            {{ $active->teacher->user->name ?? 'Guru BK' }}
+                        @else
+                            {{ $active->student->user->name ?? '-' }}
+                        @endif
                     </h4>
-                    <span style="font-size: 0.7rem; font-weight: 600; color: var(--teal); background: rgba(13,124,102,0.08); padding: 1px 6px; border-radius: 4px; display: inline-block;">
-                        Kelas: {{ $active->student->class->name ?? '-' }}
-                    </span>
-                    @if($active->service)
+                    @if(!auth()->user()->isSiswa())
+                        <span style="font-size: 0.7rem; font-weight: 600; color: var(--teal); background: rgba(13,124,102,0.08); padding: 1px 6px; border-radius: 4px; display: inline-block;">
+                            Kelas: {{ $active->student->class->name ?? '-' }}
+                        </span>
+                    @else
+                        @if($active->teacher && $active->teacher->spesialisasi)
+                            <span style="font-size: 0.7rem; font-weight: 600; color: var(--teal); background: rgba(13,124,102,0.08); padding: 1px 6px; border-radius: 4px; display: inline-block;">
+                                Spesialisasi: {{ $active->teacher->spesialisasi }}
+                            </span>
+                        @endif
+                    @endif
+                    @if($active->service && !auth()->user()->isSiswa())
                         <span class="badge" style="background: {{ $active->service->color ?? 'var(--teal)' }}; color: #fff; font-size: 9px; padding: 1px 6px; border-radius: 4px; display: inline-flex; align-items: center; gap: 4px; font-weight: 600;">
                             <i class="{{ $active->service->icon ?? 'fas fa-tag' }}"></i> {{ $active->service->name }}
                         </span>
@@ -51,7 +63,7 @@
                     <i class="fa-solid fa-circle-info"></i>
                 </div>
             </div>
-            @if($active->anonymous)
+            @if($active->anonymous && !auth()->user()->isSiswa())
                 <div style="display: flex; align-items: center; gap: 6px; color: #dc2626; font-size: 11px; font-weight: 600; margin-top: 2px;">
                     <i class="fas fa-user-secret" style="font-size: 12px; animation: pulse 1.5s infinite; flex-shrink: 0;"></i>
                     <span><strong>Sesi Konsultasi Anonim:</strong> Siswa mengajukan konsultasi ini secara anonim untuk menjaga kerahasiaan identitas aslinya.</span>
@@ -537,16 +549,31 @@
         </div>
         <div style="display: flex; flex-direction: column; gap: 16px;">
             <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px;">
-                <div>
-                    <label style="font-size: 0.7rem; color: #64748b; text-transform: uppercase; font-weight: 700; display: block; margin-bottom: 2px;">Siswa</label>
-                    <div style="font-size: 0.9rem; font-weight: 700; color: #1e293b;">
-                        {{ $active->student->user->name ?? '-' }}
+                @if(auth()->user()->isSiswa() && $active->anonymous)
+                    <div>
+                        <label style="font-size: 0.7rem; color: #64748b; text-transform: uppercase; font-weight: 700; display: block; margin-bottom: 2px;">Siswa</label>
+                        <div style="font-size: 0.9rem; font-weight: 700; color: #1e293b;">
+                            Anonim
+                        </div>
                     </div>
-                </div>
+                @else
+                    <div>
+                        <label style="font-size: 0.7rem; color: #64748b; text-transform: uppercase; font-weight: 700; display: block; margin-bottom: 2px;">Siswa</label>
+                        <div style="font-size: 0.9rem; font-weight: 700; color: #1e293b;">
+                            {{ $active->student->user->name ?? '-' }}
+                        </div>
+                    </div>
+                    <div>
+                        <label style="font-size: 0.7rem; color: #64748b; text-transform: uppercase; font-weight: 700; display: block; margin-bottom: 2px;">Kelas</label>
+                        <div style="font-size: 0.9rem; font-weight: 700; color: #1e293b;">
+                            {{ $active->student->class->name ?? '-' }}
+                        </div>
+                    </div>
+                @endif
                 <div>
-                    <label style="font-size: 0.7rem; color: #64748b; text-transform: uppercase; font-weight: 700; display: block; margin-bottom: 2px;">Kelas</label>
+                    <label style="font-size: 0.7rem; color: #64748b; text-transform: uppercase; font-weight: 700; display: block; margin-bottom: 2px;">Guru BK</label>
                     <div style="font-size: 0.9rem; font-weight: 700; color: #1e293b;">
-                        {{ $active->student->class->name ?? '-' }}
+                        {{ $active->teacher->user->name ?? 'Belum Ditentukan' }}
                     </div>
                 </div>
                 <div>
@@ -570,10 +597,17 @@
             </div>
             
             @if($active->anonymous)
-                <div style="display: flex; align-items: center; gap: 8px; background-color: #fef2f2; border: 1px solid #fee2e2; color: #dc2626; padding: 8px 12px; border-radius: 6px; font-size: 12px; font-weight: 500;">
-                    <i class="fas fa-user-secret" style="font-size: 14px;"></i>
-                    <span><strong>Sesi Konsultasi Anonim:</strong> Siswa mengajukan konsultasi ini secara anonim untuk menjaga kerahasiaan identitas aslinya.</span>
-                </div>
+                @if(auth()->user()->isSiswa())
+                    <div style="display: flex; align-items: center; gap: 8px; background-color: #1e293b; border: 1px solid #334155; color: #94a3b8; padding: 8px 12px; border-radius: 6px; font-size: 12px; font-weight: 500;">
+                        <i class="fas fa-user-secret" style="font-size: 14px; color: #cbd5e1;"></i>
+                        <span style="color: #cbd5e1;"><strong style="color: #e2e8f0;">Konsultasi Anonim:</strong> Kamu mengajukan konsultasi ini secara anonim. Identitasmu sepenuhnya tersembunyi dan terjaga kerahasiaannya di sistem.</span>
+                    </div>
+                @else
+                    <div style="display: flex; align-items: center; gap: 8px; background-color: #fef2f2; border: 1px solid #fee2e2; color: #dc2626; padding: 8px 12px; border-radius: 6px; font-size: 12px; font-weight: 500;">
+                        <i class="fas fa-user-secret" style="font-size: 14px;"></i>
+                        <span><strong>Sesi Konsultasi Anonim:</strong> Siswa mengajukan konsultasi ini secara anonim untuk menjaga kerahasiaan identitas aslinya.</span>
+                    </div>
+                @endif
             @endif
 
             <div>

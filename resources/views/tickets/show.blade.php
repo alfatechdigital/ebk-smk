@@ -26,23 +26,32 @@
 
         <!-- Metadata Info Grid -->
         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px; background: var(--cream); padding: 16px; border-radius: var(--radius-sm);">
-            <div>
-                <label style="font-size: 11px; font-weight: 700; color: var(--muted); text-transform: uppercase; display: block; margin-bottom: 2px;">Siswa</label>
-                <div style="font-size: 14px; font-weight: 600; color: var(--charcoal);">
-                    @if(auth()->user()->isSiswa())
-                        {{ $ticket->anonymous ? 'Kamu (Anonim)' : $ticket->student?->user?->name ?? '-' }}
-                    @else
-                        {{ $ticket->student?->user?->name ?? '-' }}
-                        @if($ticket->anonymous) <span class="badge badge-warning" style="font-size:9px;padding:1px 5px;margin-left:4px">Anonim</span> @endif
-                    @endif
+            @if(auth()->user()->isSiswa() && $ticket->anonymous)
+                <div>
+                    <label style="font-size: 11px; font-weight: 700; color: var(--muted); text-transform: uppercase; display: block; margin-bottom: 2px;">Siswa</label>
+                    <div style="font-size: 14px; font-weight: 600; color: var(--charcoal);">
+                        Anonim
+                    </div>
                 </div>
-            </div>
-            <div>
-                <label style="font-size: 11px; font-weight: 700; color: var(--muted); text-transform: uppercase; display: block; margin-bottom: 2px;">Kelas</label>
-                <div style="font-size: 14px; font-weight: 600; color: var(--charcoal);">
-                    {{ $ticket->student->class->name ?? '-' }}
+            @else
+                <div>
+                    <label style="font-size: 11px; font-weight: 700; color: var(--muted); text-transform: uppercase; display: block; margin-bottom: 2px;">Siswa</label>
+                    <div style="font-size: 14px; font-weight: 600; color: var(--charcoal);">
+                        @if(auth()->user()->isSiswa())
+                            {{ $ticket->anonymous ? 'Kamu (Anonim)' : $ticket->student?->user?->name ?? '-' }}
+                        @else
+                            {{ $ticket->student?->user?->name ?? '-' }}
+                            @if($ticket->anonymous) <span class="badge badge-warning" style="font-size:9px;padding:1px 5px;margin-left:4px">Anonim</span> @endif
+                        @endif
+                    </div>
                 </div>
-            </div>
+                <div>
+                    <label style="font-size: 11px; font-weight: 700; color: var(--muted); text-transform: uppercase; display: block; margin-bottom: 2px;">Kelas</label>
+                    <div style="font-size: 14px; font-weight: 600; color: var(--charcoal);">
+                        {{ $ticket->student->class->name ?? '-' }}
+                    </div>
+                </div>
+            @endif
             <div>
                 <label style="font-size: 11px; font-weight: 700; color: var(--muted); text-transform: uppercase; display: block; margin-bottom: 2px;">Layanan</label>
                 <div>
@@ -65,9 +74,9 @@
         </div>
 
         @if($ticket->anonymous && auth()->user()->isSiswa())
-            <div style="display: flex; align-items: center; gap: 8px; background-color: #fef2f2; border: 1px solid #fee2e2; color: #dc2626; padding: 10px 14px; border-radius: 6px; font-size: 12px; font-weight: 500;">
-                <i class="fas fa-user-secret" style="font-size: 14px;"></i>
-                <span><strong>Sesi Anonim Aktif:</strong> Identitas aslimu disembunyikan di sistem chat dan daftar tiket untuk menjaga privasimu.</span>
+            <div style="display: flex; align-items: center; gap: 8px; background-color: #1e293b; border: 1px solid #334155; color: #94a3b8; padding: 10px 14px; border-radius: 6px; font-size: 12px; font-weight: 500;">
+                <i class="fas fa-user-secret" style="font-size: 14px; color: #cbd5e1;"></i>
+                <span style="color: #cbd5e1;"><strong style="color: #e2e8f0;">Konsultasi Anonim:</strong> Kamu mengajukan konsultasi ini secara anonim. Identitasmu sepenuhnya tersembunyi dan terjaga kerahasiaannya di sistem.</span>
             </div>
         @endif
 
