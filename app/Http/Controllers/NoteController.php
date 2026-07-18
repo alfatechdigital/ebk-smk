@@ -110,6 +110,24 @@ class NoteController extends Controller
         }
 
         $notes = $query->oldest()->get();
+
+        if ($request->query('format') === 'word') {
+            $student = $request->filled('student_id') ? Student::with('user')->find($request->student_id) : null;
+            
+            $month = 'Semua Bulan';
+            if ($request->filled('date')) {
+                $month = date('d F Y', strtotime($request->date));
+            } elseif ($request->filled('month')) {
+                $month = date('F Y', strtotime($request->month));
+            }
+
+            $institute = \App\Models\Institute::first();
+            $html = view('pdf.rekap_catatan', compact('notes', 'student', 'month', 'teacher', 'institute'))->render();
+            return response($html)
+                ->header('Content-Type', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document')
+                ->header('Content-Disposition', 'attachment; filename="Rekap_Catatan_Konseling.docx"');
+        }
+
         $student = $request->filled('student_id') ? Student::with('user')->find($request->student_id) : null;
         
         $month = 'Semua Bulan';
@@ -119,7 +137,8 @@ class NoteController extends Controller
             $month = date('F Y', strtotime($request->month));
         }
 
-        $pdf = Pdf::loadView('pdf.rekap_catatan', compact('notes', 'student', 'month', 'teacher'))->setPaper('a4', 'landscape');
+        $institute = \App\Models\Institute::first();
+        $pdf = Pdf::loadView('pdf.rekap_catatan', compact('notes', 'student', 'month', 'teacher', 'institute'))->setPaper('a4', 'landscape');
         return $pdf->download('Rekap_Catatan_Konseling.pdf');
     }
 
@@ -209,11 +228,20 @@ class NoteController extends Controller
         }
     }
 
-    public function generatePdf(CounselingNote $note)
+    public function generatePdf(CounselingNote $note, Request $request)
     {
         $note->load(['ticket.student.user', 'ticket.service', 'teacher.user']);
 
-        $pdf = Pdf::loadView('pdf.catatan', compact('note'));
+        if ($request->query('format') === 'word') {
+            $institute = \App\Models\Institute::first();
+            $html = view('pdf.catatan', compact('note', 'institute'))->render();
+            return response($html)
+                ->header('Content-Type', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document')
+                ->header('Content-Disposition', 'attachment; filename="Catatan_Konseling_' . $note->ticket->code . '.docx"');
+        }
+
+        $institute = \App\Models\Institute::first();
+        $pdf = Pdf::loadView('pdf.catatan', compact('note', 'institute'));
         $filename = 'jurnal-' . $note->ticket->code . '-' . now()->format('Ymd') . '.pdf';
         $path = 'journals/' . $filename;
 

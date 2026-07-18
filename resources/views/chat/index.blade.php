@@ -797,6 +797,13 @@
                                 style="font-weight: 800; color: var(--teal); font-size: 0.9rem;">{{ $active->code }}</span>
                         </div>
                     </div>
+                    <div>
+                        <label
+                            style="font-size: 0.7rem; color: #64748b; text-transform: uppercase; font-weight: 700; display: block; margin-bottom: 2px;">Tanggal Konseling</label>
+                        <div style="font-size: 0.9rem; font-weight: 700; color: #1e293b;">
+                            {{ $active->created_at->translatedFormat('d M Y') }}
+                        </div>
+                    </div>
                 </div>
 
                 @if($active->anonymous)

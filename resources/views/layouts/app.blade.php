@@ -87,7 +87,7 @@
                         ['route' => 'tickets.index', 'icon' => 'fas fa-ticket-alt', 'label' => 'Semua Tiket'],
                         ['route' => 'kategori.index', 'icon' => 'fas fa-tags', 'label' => 'Kategori Layanan'],
                         ['section' => 'Sistem'],
-                        // ['route' => 'pengaturan.index', 'icon' => 'fas fa-cog', 'label' => 'Pengaturan Lembaga'],
+                        ['route' => 'pengaturan.index', 'icon' => 'fas fa-cog', 'label' => 'Pengaturan Lembaga'],
                         ['route' => 'rekap.index', 'icon' => 'fas fa-chart-bar', 'label' => 'Rekap Laporan'],
                     ],
                     'admin' => [
@@ -98,7 +98,7 @@
                         ['label' => 'Manajemen User', 'icon' => 'fas fa-users-cog', 'submenu' => $userSubmenu],
                         ['route' => 'kategori.index', 'icon' => 'fas fa-tags', 'label' => 'Kategori Layanan'],
                         ['section' => 'Sistem'],
-                        // ['route' => 'pengaturan.index', 'icon' => 'fas fa-cog', 'label' => 'Pengaturan Lembaga'],
+                        ['route' => 'pengaturan.index', 'icon' => 'fas fa-cog', 'label' => 'Pengaturan Lembaga'],
                         ['route' => 'rekap.index', 'icon' => 'fas fa-chart-bar', 'label' => 'Rekap Laporan'],
                     ],
                     'guru' => [

@@ -211,6 +211,10 @@
                     <label style="font-size: 0.7rem; color: #64748b; text-transform: uppercase; font-weight: 700; display: block; margin-bottom: 4px; letter-spacing: 0.5px;">Kode Tiket</label>
                     <span id="detail-code" style="font-weight: 800; color: var(--teal); font-size: 0.95rem;"></span>
                 </div>
+                <div>
+                    <label style="font-size: 0.7rem; color: #64748b; text-transform: uppercase; font-weight: 700; display: block; margin-bottom: 4px; letter-spacing: 0.5px;">Tanggal Konseling</label>
+                    <div style="font-size: 0.95rem; font-weight: 700; color: #1e293b;" id="detail-date-info">-</div>
+                </div>
             </div>
 
             {{-- Anonymous Banner (shown via JS) --}}
@@ -406,11 +410,13 @@ function openDetailModal(btn) {
     const isSiswa = {{ auth()->user()->isSiswa() ? 'true' : 'false' }};
     const teacher = btn.getAttribute('data-teacher');
     const cancelReason = btn.getAttribute('data-cancel-reason');
+    const ticketDate = btn.getAttribute('data-date') || '-';
 
     document.getElementById('detail-code').innerText = code;
     document.getElementById('detail-title').innerText = title;
     document.getElementById('detail-description').innerText = description;
     document.getElementById('detail-teacher-info').innerText = teacher;
+    document.getElementById('detail-date-info').innerText = ticketDate;
     
     if (isSiswa && isAnonymous) {
         document.getElementById('detail-student-info').innerText = 'Anonim';

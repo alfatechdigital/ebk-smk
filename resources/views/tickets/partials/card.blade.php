@@ -120,6 +120,7 @@
                 data-prior-action="{{ $ticket->prior_action ?? '' }}"
                 data-anonymous="{{ $ticket->anonymous ? '1' : '0' }}"
                 data-cancel-reason="{{ $ticket->cancel_reason ?? '' }}"
+                data-date="{{ $ticket->created_at->translatedFormat('d M Y') }}"
                 style="padding: 6px 12px; font-size: 12px; margin: 0; display: inline-flex; align-items: center; gap: 4px;">
             <i class="fas fa-info-circle"></i> Detail
         </button>
