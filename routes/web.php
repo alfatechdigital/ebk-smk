@@ -7,7 +7,7 @@ use App\Http\Controllers\ChatController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\NoteController;
 use App\Http\Controllers\ServiceController;
-use App\Http\Controllers\ReportController;
+
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\InstitutionController;
 use App\Http\Controllers\JournalController;
@@ -26,32 +26,34 @@ Route::middleware('auth')->group(function () {
     // Dashboard
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
-    // Chat / Konsultasi
-    Route::get('/chat', [ChatController::class, 'index'])->name('chat.index');
-    Route::get('/chat/{ticket}', [ChatController::class, 'show'])->name('chat.show');
-    Route::post('/chat/{ticket}/message', [ChatController::class, 'sendMessage'])->name('chat.send');
-    Route::get('/chat/{ticket}/messages', [ChatController::class, 'messages'])->name('chat.messages');
+    // Chat & Tickets: only GURU and SISWA can access
+    Route::middleware('role:guru,siswa')->group(function () {
+        // Chat / Konsultasi
+        Route::get('/chat', [ChatController::class, 'index'])->name('chat.index');
+        Route::get('/chat/{ticket}', [ChatController::class, 'show'])->name('chat.show');
+        Route::post('/chat/{ticket}/message', [ChatController::class, 'sendMessage'])->name('chat.send');
+        Route::get('/chat/{ticket}/messages', [ChatController::class, 'messages'])->name('chat.messages');
 
-    // Tickets
-    Route::get('/tickets/unread-counts', [TicketController::class, 'unreadCounts'])->name('tickets.unread_counts');
-    Route::resource('tickets', TicketController::class)->except(['edit']);
-    Route::post('/tickets/{ticket}/status', [TicketController::class, 'updateStatus'])->name('tickets.status');
-    Route::post('/tickets/{ticket}/assign', [TicketController::class, 'assignTeacher'])->name('tickets.assign');
-    Route::post('/tickets/{ticket}/toggle-favorite', [TicketController::class, 'toggleFavorite'])->name('tickets.favorite');
-    Route::post('/tickets/{ticket}/toggle-pinned', [TicketController::class, 'togglePinned'])->name('tickets.pinned');
+        // Tickets
+        Route::get('/tickets/unread-counts', [TicketController::class, 'unreadCounts'])->name('tickets.unread_counts');
+        Route::resource('tickets', TicketController::class)->except(['edit']);
+        Route::post('/tickets/{ticket}/status', [TicketController::class, 'updateStatus'])->name('tickets.status');
+        Route::post('/tickets/{ticket}/assign', [TicketController::class, 'assignTeacher'])->name('tickets.assign');
+        Route::post('/tickets/{ticket}/toggle-favorite', [TicketController::class, 'toggleFavorite'])->name('tickets.favorite');
+        Route::post('/tickets/{ticket}/toggle-pinned', [TicketController::class, 'togglePinned'])->name('tickets.pinned');
+    });
 
-    // Catatan Konseling
-    Route::get('/catatan', [NoteController::class, 'index'])->name('catatan.index');
-    Route::get('/catatan/rekap', [NoteController::class, 'exportRekapPdf'])->name('catatan.rekap');
-    Route::post('/catatan', [NoteController::class, 'store'])->name('catatan.store');
-    Route::put('/catatan/{note}', [NoteController::class, 'update'])->name('catatan.update');
-    Route::delete('/catatan/{note}', [NoteController::class, 'destroy'])->name('catatan.destroy');
-    Route::get('/catatan/{note}/pdf', [NoteController::class, 'generatePdf'])->name('catatan.pdf');
+    // Catatan Konseling: only GURU BK can access
+    Route::middleware('role:guru')->group(function () {
+        Route::get('/catatan', [NoteController::class, 'index'])->name('catatan.index');
+        Route::get('/catatan/rekap', [NoteController::class, 'exportRekapPdf'])->name('catatan.rekap');
+        Route::post('/catatan', [NoteController::class, 'store'])->name('catatan.store');
+        Route::put('/catatan/{note}', [NoteController::class, 'update'])->name('catatan.update');
+        Route::delete('/catatan/{note}', [NoteController::class, 'destroy'])->name('catatan.destroy');
+        Route::get('/catatan/{note}/pdf', [NoteController::class, 'generatePdf'])->name('catatan.pdf');
+    });
 
-    // Rekap Laporan
-    Route::get('/rekap', [ReportController::class, 'index'])->name('rekap.index');
-    Route::get('/rekap/export-excel', [ReportController::class, 'exportExcel'])->name('rekap.export.excel');
-    Route::get('/rekap/export-pdf', [ReportController::class, 'exportPdf'])->name('rekap.export.pdf');
+
 
     // ── Admin & SuperAdmin only ──
     Route::middleware('role:admin,superadmin')->group(function () {

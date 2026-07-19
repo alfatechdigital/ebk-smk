@@ -84,11 +84,9 @@
                         ['section' => 'Manajemen'],
                         ['label' => 'Manajemen User', 'icon' => 'fas fa-users-cog', 'submenu' => $userSubmenu],
                         ['route' => 'hakakses.index', 'icon' => 'fas fa-shield-alt', 'label' => 'Hak Akses Menu'],
-                        ['route' => 'tickets.index', 'icon' => 'fas fa-ticket-alt', 'label' => 'Semua Tiket'],
                         ['route' => 'kategori.index', 'icon' => 'fas fa-tags', 'label' => 'Kategori Layanan'],
                         ['section' => 'Sistem'],
                         ['route' => 'pengaturan.index', 'icon' => 'fas fa-cog', 'label' => 'Pengaturan Lembaga'],
-                        ['route' => 'rekap.index', 'icon' => 'fas fa-chart-bar', 'label' => 'Rekap Laporan'],
                     ],
                     'admin' => [
                         ['section' => 'Utama'],
@@ -99,7 +97,6 @@
                         ['route' => 'kategori.index', 'icon' => 'fas fa-tags', 'label' => 'Kategori Layanan'],
                         ['section' => 'Sistem'],
                         ['route' => 'pengaturan.index', 'icon' => 'fas fa-cog', 'label' => 'Pengaturan Lembaga'],
-                        ['route' => 'rekap.index', 'icon' => 'fas fa-chart-bar', 'label' => 'Rekap Laporan'],
                     ],
                     'guru' => [
                         ['section' => 'Utama'],
@@ -107,11 +104,10 @@
                         ['route' => 'profil.index', 'icon' => 'fas fa-user-circle', 'label' => 'Profil Saya'],
                         ['section' => 'Konseling'],
                         ['route' => 'data-siswa.index', 'icon' => 'fas fa-user-graduate', 'label' => 'Data Siswa'],
-                        ['route' => 'catatan.index', 'icon' => 'fas fa-notes-medical', 'label' => 'Catatan Konseling'],
                         ['route' => 'tickets.index', 'icon' => 'fas fa-comments', 'label' => 'Layanan Konsultasi'],
                         ['route' => 'kategori.index', 'icon' => 'fas fa-tags', 'label' => 'Kategori Layanan'],
                         ['section' => 'Laporan'],
-                        ['route' => 'rekap.index', 'icon' => 'fas fa-chart-bar', 'label' => 'Rekap Laporan'],
+                        ['route' => 'catatan.index', 'icon' => 'fas fa-clipboard-list', 'label' => 'Catatan Konseling'],
                     ],
                     'siswa' => [
                         ['section' => 'Utama'],

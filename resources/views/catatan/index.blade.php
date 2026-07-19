@@ -123,8 +123,9 @@
                         data-title="{{ $note->title }}"
                         data-masalah="{{ $note->masalah }}"
                         data-tindakan="{{ $note->tindakan }}"
-                        data-kesimpulan="{{ $note->kesimpulan ?? '-' }}">
-                        <i class="fas fa-eye"></i> Detail
+                        data-kesimpulan="{{ $note->kesimpulan ?? '-' }}"
+                        data-ticket-id="{{ $note->ticket_id ?? '' }}">
+                        <i class="fas fa-info-circle"></i> Detail
                     </button>
                     
                     <div class="ticket-actions-dropdown" style="position: relative; display: inline-block;">
@@ -382,6 +383,7 @@
 
         <div class="modal-footer" style="margin-top: 30px; padding-top: 15px; border-top: 1px solid #e2e8f0; display: flex; gap: 10px; flex-wrap: wrap; align-items: center; justify-content: flex-end; position: relative;">
             <button type="button" class="btn btn-secondary" onclick="closeModal('modal-detail-catatan')" style="margin: 0;">Tutup</button>
+            <a href="#" id="detail-note-chat-btn" class="btn btn-primary" style="margin: 0; display: none; align-items: center; gap: 4px;"><i class="fas fa-comments"></i> Riwayat Percakapan</a>
         </div>
     </div>
 </div>
@@ -425,6 +427,19 @@
             document.getElementById('detail-tindakan').innerText = btn.getAttribute('data-tindakan');
             document.getElementById('detail-kesimpulan').innerText = btn.getAttribute('data-kesimpulan') || '-';
             
+            // Check ticket-id to show/hide Chat button
+            const ticketId = btn.getAttribute('data-ticket-id');
+            const chatBtn = document.getElementById('detail-note-chat-btn');
+            if (chatBtn) {
+                if (ticketId && ticketId.trim() !== '') {
+                    chatBtn.href = '/chat/' + ticketId;
+                    chatBtn.style.display = 'inline-flex';
+                } else {
+                    chatBtn.style.display = 'none';
+                    chatBtn.href = '#';
+                }
+            }
+
             openModal('modal-detail-catatan');
         }
 

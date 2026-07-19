@@ -286,12 +286,46 @@
             </form>
         </div>
     </div>
+
+    {{-- Modal Konfirmasi Simpan User --}}
+    <div class="modal-overlay" id="modal-confirm-user">
+        <div class="modal" style="max-width: 400px; text-align: center; padding: 24px;">
+            <div style="font-size: 3rem; color: #f59e0b; margin-bottom: 15px;">
+                <i class="fa-solid fa-triangle-exclamation"></i>
+            </div>
+            <h3 style="font-size: 1.25rem; font-weight: 700; color: var(--charcoal); margin: 0;">Simpan Data User?</h3>
+            <p style="color: #64748b; font-size: 0.9rem; margin-top: 10px; line-height: 1.5;">
+                Apakah Anda yakin ingin menyimpan perubahan data user ini?
+            </p>
+            <div class="modal-footer" style="justify-content: center; gap: 10px; border-top: none; padding-top: 20px; margin-top: 10px;">
+                <button type="button" class="btn btn-secondary" onclick="closeModal('modal-confirm-user')" style="margin: 0;">Batal</button>
+                <button type="button" class="btn btn-primary" onclick="submitUserForm()" style="margin: 0; background: var(--teal); border-color: var(--teal);"><i class="fas fa-check"></i> Ya, Simpan</button>
+            </div>
+        </div>
+    </div>
 @endpush
 
 @push('scripts')
     <script>
         function openModal(id) { document.getElementById(id).classList.add('open') }
         function closeModal(id) { document.getElementById(id).classList.remove('open') }
+
+        document.addEventListener("DOMContentLoaded", function() {
+            const form = document.getElementById('user-form');
+            if (form) {
+                form.addEventListener('submit', function(event) {
+                    event.preventDefault();
+                    openModal('modal-confirm-user');
+                });
+            }
+        });
+
+        window.submitUserForm = function() {
+            const form = document.getElementById('user-form');
+            if (form) {
+                form.submit();
+            }
+        };
 
         function toggleRoleUI() {
             const role = document.getElementById('user-role').value;

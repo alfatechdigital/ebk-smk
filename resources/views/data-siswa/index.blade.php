@@ -219,6 +219,23 @@
         </form>
     </div>
 </div>
+
+{{-- Modal Konfirmasi Edit Siswa --}}
+<div class="modal-overlay" id="modal-confirm-edit-siswa">
+    <div class="modal" style="max-width: 400px; text-align: center; padding: 24px;">
+        <div style="font-size: 3rem; color: #f59e0b; margin-bottom: 15px;">
+            <i class="fa-solid fa-triangle-exclamation"></i>
+        </div>
+        <h3 style="font-size: 1.25rem; font-weight: 700; color: var(--charcoal); margin: 0;">Simpan Perubahan Data Siswa?</h3>
+        <p style="color: #64748b; font-size: 0.9rem; margin-top: 10px; line-height: 1.5;">
+            Apakah Anda yakin ingin menyimpan perubahan pada data siswa ini?
+        </p>
+        <div class="modal-footer" style="justify-content: center; gap: 10px; border-top: none; padding-top: 20px; margin-top: 10px;">
+            <button type="button" class="btn btn-secondary" onclick="closeModal('modal-confirm-edit-siswa')" style="margin: 0;">Batal</button>
+            <button type="button" class="btn btn-primary" onclick="submitEditSiswaForm()" style="margin: 0; background: var(--teal); border-color: var(--teal);"><i class="fas fa-check"></i> Ya, Simpan</button>
+        </div>
+    </div>
+</div>
 @endpush
 
 @push('scripts')
@@ -226,6 +243,23 @@
     function openModal(id) { document.getElementById(id).classList.add('open'); }
     function closeModal(id) { document.getElementById(id).classList.remove('open'); }
     document.querySelectorAll('.modal-overlay').forEach(m => { m.addEventListener('click', e => { if (e.target === m) m.classList.remove('open') }) });
+
+    document.addEventListener("DOMContentLoaded", function() {
+        const editForm = document.getElementById('form-edit-siswa');
+        if (editForm) {
+            editForm.addEventListener('submit', function(event) {
+                event.preventDefault();
+                openModal('modal-confirm-edit-siswa');
+            });
+        }
+    });
+
+    window.submitEditSiswaForm = function() {
+        const editForm = document.getElementById('form-edit-siswa');
+        if (editForm) {
+            editForm.submit();
+        }
+    };
     
     function openEditSiswaModal(student) {
         document.getElementById('form-edit-siswa').action = '/data-siswa/' + student.id;
