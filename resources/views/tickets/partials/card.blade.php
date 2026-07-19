@@ -82,7 +82,7 @@
         <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
             @if($ticket->service)
                 <span class="badge" style="background: {{ $ticket->service->color ?? '#3d5454' }}; color: #fff; display: inline-flex; align-items: center; gap: 4px; font-weight: 600; font-size: 10px; padding: 2px 8px; border-radius: 4px; margin: 0; width: fit-content;">
-                    <i class="{{ $ticket->service->icon ?? 'fas fa-tag' }}"></i> {{ $ticket->service->name }}
+                    <i class="fas {{ str_starts_with($ticket->service->icon ?? 'fa-tag', 'fas ') ? Str::after($ticket->service->icon, 'fas ') : ($ticket->service->icon ?? 'fa-tag') }}"></i> {{ $ticket->service->name }}
                 </span>
             @endif
         </div>

@@ -62,7 +62,7 @@
                 <div>
                     @if($ticket->service)
                         <span class="badge" style="background: {{ $ticket->service->color ?? 'var(--teal)' }}; color: #fff; font-size: 10px; padding: 2px 8px; border-radius: 4px; font-weight: 600;">
-                            <i class="{{ $ticket->service->icon ?? 'fas fa-tag' }}"></i> {{ $ticket->service->name }}
+                            <i class="fas {{ str_starts_with($ticket->service->icon ?? 'fa-tag', 'fas ') ? Str::after($ticket->service->icon, 'fas ') : ($ticket->service->icon ?? 'fa-tag') }}"></i> {{ $ticket->service->name }}
                         </span>
                     @else
                         <span style="font-size: 14px; font-weight: 600; color: var(--charcoal);">-</span>

@@ -83,7 +83,7 @@
                             @if($active->service && !auth()->user()->isSiswa())
                                 <span class="badge"
                                     style="background: {{ $active->service->color ?? 'var(--teal)' }}; color: #fff; font-size: 9px; padding: 1px 6px; border-radius: 4px; display: inline-flex; align-items: center; gap: 4px; font-weight: 600;">
-                                    <i class="{{ $active->service->icon ?? 'fas fa-tag' }}"></i> {{ $active->service->name }}
+                                    <i class="fas {{ str_starts_with($active->service->icon ?? 'fa-tag', 'fas ') ? Str::after($active->service->icon, 'fas ') : ($active->service->icon ?? 'fa-tag') }}"></i> {{ $active->service->name }}
                                 </span>
                             @endif
                         </div>

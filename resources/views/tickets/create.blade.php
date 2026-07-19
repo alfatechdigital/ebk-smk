@@ -14,7 +14,7 @@
     <div class="step-wizard">
         <div style="flex:1;text-align:center">
             <div class="step-dot active" id="step1-dot">1</div>
-            <p class="step-label active" id="step1-lbl">Jenis Layanan</p>
+            <p class="step-label active" id="step1-lbl">Kategori Layanan</p>
         </div>
         <div class="step-line">
             <div></div>
@@ -35,20 +35,23 @@
     <form method="POST" action="{{ route('tickets.store') }}" id="form-ajukan">
         @csrf
 
-        <!-- Step 1: Jenis Layanan -->
+        <!-- Step 1: Kategori Layanan -->
         <div id="ajukan-step1">
             <div class="card">
                 <div class="card-header">
-                    <div class="card-title">Pilih Jenis Layanan Konseling</div>
+                    <div class="card-title">Pilih Kategori Layanan Konseling</div>
                 </div>
                 <div class="grid-3" style="margin-bottom:20px">
                     @foreach ($services as $s)
                         <div class="service-option" onclick="selectLayanan(this, {{ $s->id }})"
                             style="border:2px solid var(--cream-dark);border-radius:var(--radius);padding:16px;cursor:pointer;text-align:center">
-                            <i class="{{ $s->icon }}"
-                                style="font-size:28px;color:{{ $s->color }};margin-bottom:8px;display:block"></i>
+                            @php
+                                $iconClass = Str::startsWith($s->icon, 'fas ') ? $s->icon : 'fas ' . $s->icon;
+                            @endphp
+                            <i class="{{ $iconClass }}"
+                                style="font-size:28px;color:{{ $s->color ?? 'var(--teal)' }};margin-bottom:8px;display:block"></i>
                             <p style="font-weight:700;font-size:14px">{{ $s->name }}</p>
-                            <p class="text-muted" style="font-size:12px;margin-top:4px">{{ Str::limit($s->description, 40) }}
+                            <p class="text-muted" style="font-size:12px;margin-top:4px;line-height:1.5">{{ $s->description }}
                             </p>
                         </div>
                     @endforeach
@@ -104,7 +107,7 @@
                 </div>
                 <div style="background:var(--cream);border-radius:var(--radius-sm);padding:20px;margin-bottom:20px">
                     <div class="profile-info-grid">
-                        <div class="profile-info-item"><label>Jenis Layanan</label>
+                        <div class="profile-info-item"><label>Kategori Layanan</label>
                             <p id="review-service">-</p>
                         </div>
                         <div class="profile-info-item"><label>Topik Konsultasi</label>
@@ -117,7 +120,8 @@
                 <div style="display:flex;gap:10px;justify-content:space-between">
                     <button type="button" class="btn btn-secondary" onclick="nextStep(2)"><i class="fas fa-arrow-left"></i>
                         Kembali</button>
-                    <button type="button" class="btn btn-primary" onclick="openConfirmSubmit()"><i class="fas fa-paper-plane"></i> Kirim Konsultasi</button>
+                    <button type="button" class="btn btn-primary" onclick="openConfirmSubmit()"><i
+                            class="fas fa-paper-plane"></i> Kirim Konsultasi</button>
                 </div>
             </div>
         </div>
@@ -180,25 +184,29 @@
 
         function openModal(id) { document.getElementById(id).classList.add('open'); }
         function closeModal(id) { document.getElementById(id).classList.remove('open'); }
-        window.openConfirmSubmit = function() { openModal('modal-confirm-submit'); }
-        window.submitForm = function() { document.getElementById('form-ajukan').submit(); }
+        window.openConfirmSubmit = function () { openModal('modal-confirm-submit'); }
+        window.submitForm = function () { document.getElementById('form-ajukan').submit(); }
     </script>
 @endpush
 
 @push('modals')
-<div class="modal-overlay" id="modal-confirm-submit">
-    <div class="modal" style="max-width: 450px; text-align: center; padding: 24px;">
-        <div style="font-size: 3rem; color: var(--teal); margin-bottom: 15px;">
-            <i class="fa-solid fa-circle-question"></i>
-        </div>
-        <h3 style="font-size: 1.25rem; font-weight: 800; color: var(--charcoal); margin: 0 0 10px 0;">Kirim Konsultasi?</h3>
-        <p style="color: #64748b; font-size: 0.9rem; line-height: 1.5; margin: 0 0 24px 0;">
-            Apakah kamu yakin data yang kamu isi sudah benar dan ingin mengirim pengajuan konsultasi ini?
-        </p>
-        <div style="display: flex; gap: 10px; justify-content: center; margin-top: 20px;">
-            <button type="button" class="btn btn-secondary" onclick="closeModal('modal-confirm-submit')" style="margin: 0; padding: 10px 20px;">Batal</button>
-            <button type="button" class="btn btn-primary" onclick="submitForm()" style="margin: 0; padding: 10px 20px; background: var(--teal); border: none; color: white;"><i class="fas fa-paper-plane"></i> Ya, Kirim</button>
+    <div class="modal-overlay" id="modal-confirm-submit">
+        <div class="modal" style="max-width: 450px; text-align: center; padding: 24px;">
+            <div style="font-size: 3rem; color: var(--teal); margin-bottom: 15px;">
+                <i class="fa-solid fa-circle-question"></i>
+            </div>
+            <h3 style="font-size: 1.25rem; font-weight: 800; color: var(--charcoal); margin: 0 0 10px 0;">Kirim Konsultasi?
+            </h3>
+            <p style="color: #64748b; font-size: 0.9rem; line-height: 1.5; margin: 0 0 24px 0;">
+                Apakah kamu yakin data yang kamu isi sudah benar dan ingin mengirim pengajuan konsultasi ini?
+            </p>
+            <div style="display: flex; gap: 10px; justify-content: center; margin-top: 20px;">
+                <button type="button" class="btn btn-secondary" onclick="closeModal('modal-confirm-submit')"
+                    style="margin: 0; padding: 10px 20px;">Batal</button>
+                <button type="button" class="btn btn-primary" onclick="submitForm()"
+                    style="margin: 0; padding: 10px 20px; background: var(--teal); border: none; color: white;"><i
+                        class="fas fa-paper-plane"></i> Ya, Kirim</button>
+            </div>
         </div>
     </div>
-</div>
 @endpush

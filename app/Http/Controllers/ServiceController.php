@@ -27,22 +27,23 @@ class ServiceController extends Controller
         return back()->with('success', 'Kategori layanan ditambahkan.');
     }
 
-    public function update(Request $request, Service $service)
+    public function update(Request $request, Service $kategori)
     {
         $validated = $request->validate([
             'name'        => 'required|string|max:255',
             'description' => 'nullable|string',
             'icon'        => 'nullable|string',
+            'color'       => 'nullable|string',
             'is_active'   => 'boolean',
         ]);
         $validated['is_active'] = $request->boolean('is_active', true);
-        $service->update($validated);
+        $kategori->update($validated);
         return back()->with('success', 'Kategori diperbarui.');
     }
 
-    public function destroy(Service $service)
+    public function destroy(Service $kategori)
     {
-        $service->delete();
+        $kategori->delete();
         return back()->with('success', 'Kategori dihapus.');
     }
 }
