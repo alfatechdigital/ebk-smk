@@ -53,7 +53,7 @@
                 <div>
                     <label style="font-size: 11px; font-weight: 700; color: var(--muted); text-transform: uppercase; display: block; margin-bottom: 2px;">Kelas</label>
                     <div style="font-size: 14px; font-weight: 600; color: var(--charcoal);">
-                        {{ $ticket->student->class->name ?? '-' }}
+                        {{ $ticket->class->name ?? $ticket->student->class->name ?? '-' }}
                     </div>
                 </div>
             @endif

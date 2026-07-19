@@ -10,7 +10,7 @@ class User extends Authenticatable
 {
     use HasFactory, Notifiable;
 
-    protected $fillable = ['name', 'email', 'password', 'role', 'is_active'];
+    protected $fillable = ['name', 'email', 'password', 'role', 'is_active', 'no_hp', 'jenis_kelamin'];
 
     protected $hidden = ['password', 'remember_token'];
 
@@ -38,8 +38,7 @@ class User extends Authenticatable
         return $this->hasMany(TicketMessage::class, 'sender_id');
     }
 
-    public function isSuperAdmin(): bool { return $this->role === 'superadmin'; }
-    public function isAdmin(): bool { return in_array($this->role, ['superadmin', 'admin']); }
+    public function isAdmin(): bool { return $this->role === 'admin'; }
     public function isGuru(): bool { return $this->role === 'guru'; }
     public function isSiswa(): bool { return $this->role === 'siswa'; }
 
@@ -55,7 +54,6 @@ class User extends Authenticatable
     public function getRoleLabelAttribute(): string
     {
         return match($this->role) {
-            'superadmin' => 'Super Administrator',
             'admin' => 'Administrator',
             'guru' => 'Guru BK',
             'siswa' => 'Siswa',

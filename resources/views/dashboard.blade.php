@@ -11,9 +11,8 @@
             <h2>Dashboard Guru BK</h2>
             <p>Ringkasan aktivitas konseling kamu</p>
         @elseif(auth()->user()->isAdmin())
-            <h2>Dashboard {{ auth()->user()->isSuperAdmin() ? 'Super Admin' : 'Admin' }}</h2>
-            <p>{{ auth()->user()->isSuperAdmin() ? 'Pantau seluruh aktivitas sistem E-BK' : 'Kelola user dan tiket konsultasi' }}
-            </p>
+            <h2>Dashboard Admin</h2>
+            <p>Kelola user dan tiket konsultasi</p>
         @endif
     </div>
 
@@ -27,7 +26,7 @@
                     <p>Guru BK Kelas Anda</p>
                 </div>
             </div>
-        @elseif(auth()->user()->isAdmin() || auth()->user()->isSuperAdmin() || auth()->user()->isGuru())
+        @elseif(auth()->user()->isAdmin() || auth()->user()->isGuru())
             <div class="stat-card">
                 <div class="stat-icon"><i class="fas fa-users"></i></div>
                 <div class="stat-info">

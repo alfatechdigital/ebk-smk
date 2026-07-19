@@ -11,6 +11,7 @@ use App\Http\Controllers\ServiceController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\InstitutionController;
 use App\Http\Controllers\JournalController;
+use App\Http\Controllers\ClassController;
 use Illuminate\Support\Facades\Route;
 
 // ─── Auth ───────────────────────────────────────────────
@@ -55,11 +56,12 @@ Route::middleware('auth')->group(function () {
 
 
 
-    // ── Admin & SuperAdmin only ──
-    Route::middleware('role:admin,superadmin')->group(function () {
+    // ── Admin only ──
+    Route::middleware('role:admin')->group(function () {
         Route::post('/users/import', [UserController::class, 'import'])->name('users.import');
         Route::resource('users', UserController::class)->except(['show','create','edit']);
         Route::get('/users', [UserController::class, 'index'])->name('users.index');
+        Route::resource('kelas', ClassController::class)->parameters(['kelas' => 'kelas'])->except(['show','create','edit']);
 
 
 
@@ -71,15 +73,10 @@ Route::middleware('auth')->group(function () {
         Route::get('/jurnal/rekap', [JournalController::class, 'exportPdf'])->name('jurnal.rekap');
     });
 
-    // Kategori Layanan (Admin, SuperAdmin & Guru BK)
-    Route::middleware('role:admin,superadmin,guru')->group(function () {
+    // Kategori Layanan (Admin & Guru BK)
+    Route::middleware('role:admin,guru')->group(function () {
         Route::resource('kategori', ServiceController::class)->except(['show','create','edit']);
         Route::get('/kategori', [ServiceController::class, 'index'])->name('kategori.index');
-    });
-
-    // ── SuperAdmin only ──
-    Route::middleware('role:superadmin')->group(function () {
-        Route::get('/hak-akses', fn() => view('hakakses.index'))->name('hakakses.index');
     });
 
     // Profile

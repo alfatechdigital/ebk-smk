@@ -154,7 +154,7 @@
         <tr>
             <td class="label">Kelas</td>
             <td>:</td>
-            <td>{{ $note->ticket->student->class->name ?? '-' }}</td>
+            <td>{{ $note->ticket->class->name ?? $note->ticket->student->class->name ?? '-' }}</td>
         </tr>
         <tr>
             <td class="label">Guru Pembimbing</td>

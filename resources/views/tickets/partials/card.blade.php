@@ -44,7 +44,7 @@
                 @else
                     <div class="ticket-guru-avatar" style="flex-shrink: 0; margin: 0;">{{ $ticket->student->avatar_initials }}</div>
                     <div style="min-width: 0; display: flex; flex-direction: column; gap: 2px;">
-                        <div style="font-size: 10px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; line-height: 1;">{{ $ticket->student->class->name ?? '-' }}</div>
+                        <div style="font-size: 10px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; line-height: 1;">{{ $ticket->class->name ?? $ticket->student->class->name ?? '-' }}</div>
                         <div style="font-size: 14px; font-weight: 600; color: var(--navy); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; line-height: 1.2;" title="{{ $ticket->student->user->name ?? '-' }}">{{ $ticket->student->user->name ?? '-' }}</div>
                         
                         {{-- Desktop Status Badges (Shown on Desktop, Hidden on Mobile) --}}

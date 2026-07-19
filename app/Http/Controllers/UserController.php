@@ -36,7 +36,12 @@ class UserController extends Controller
         }
         if ($request->role) $q->where('role', $request->role);
 
-        $users   = $q->paginate(15);
+        $perPage = $request->integer('per_page', 25);
+        if (!in_array($perPage, [5, 10, 25, 50, 100])) {
+            $perPage = 25;
+        }
+
+        $users   = $q->paginate($perPage)->withQueryString();
         $classes = SchoolClass::all();
 
         return view('users.index', compact('users', 'classes'));
@@ -45,30 +50,38 @@ class UserController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'name'     => 'required|string|max:255',
-            'email'    => 'required|email|unique:users,email',
-            'password' => 'required|string|min:6',
-            'role'     => 'required|in:superadmin,admin,guru,siswa',
-            'nis_nip'  => 'nullable|string',
-            'class_id' => 'nullable|exists:classes,id',
-            'teacher_class_ids' => 'nullable|array',
-            'teacher_class_ids.*' => 'exists:classes,id'
+            'name'          => 'required|string|max:255',
+            'email'         => 'required|email|unique:users,email',
+            'password'      => 'required|string|min:6',
+            'role'          => 'required|in:admin,guru,siswa',
+            'nis_nip'       => 'nullable|string',
+            'class_id'      => 'nullable|exists:classes,id',
+            'no_hp'         => 'nullable|string|max:20',
+            'jenis_kelamin' => 'nullable|in:L,P',
         ]);
 
         $user = User::create([
-            'name'     => $validated['name'],
-            'email'    => $validated['email'],
-            'password' => Hash::make($validated['password']),
-            'role'     => $validated['role'],
+            'name'          => $validated['name'],
+            'email'         => $validated['email'],
+            'password'      => Hash::make($validated['password']),
+            'role'          => $validated['role'],
+            'no_hp'         => $validated['no_hp'] ?? null,
+            'jenis_kelamin' => $validated['jenis_kelamin'] ?? null,
         ]);
 
         if ($validated['role'] === 'siswa') {
-            Student::create(['user_id' => $user->id, 'class_id' => $validated['class_id'] ?? null, 'nis' => $validated['nis_nip'] ?? null]);
+            Student::create([
+                'user_id'  => $user->id,
+                'class_id' => $validated['class_id'] ?? null,
+                'nis'      => $validated['nis_nip'] ?? null,
+                'no_hp'    => $validated['no_hp'] ?? null
+            ]);
         } elseif ($validated['role'] === 'guru') {
-            $teacher = Teacher::create(['user_id' => $user->id, 'nip' => $validated['nis_nip'] ?? null]);
-            if (!empty($validated['teacher_class_ids'])) {
-                SchoolClass::whereIn('id', $validated['teacher_class_ids'])->update(['teacher_id' => $teacher->id]);
-            }
+            Teacher::create([
+                'user_id'     => $user->id,
+                'nip'         => $validated['nis_nip'] ?? null,
+                'no_whatsapp' => $validated['no_hp'] ?? null
+            ]);
         }
 
         return back()->with('success', 'Pengguna berhasil ditambahkan.');
@@ -77,41 +90,59 @@ class UserController extends Controller
     public function update(Request $request, User $user)
     {
         $validated = $request->validate([
-            'name'     => 'required|string|max:255',
-            'email'    => 'required|email|unique:users,email,'.$user->id,
-            'role'     => 'required|in:superadmin,admin,guru,siswa',
-            'password' => 'nullable|string|min:6',
-            'class_id' => 'nullable|exists:classes,id',
-            'nis_nip'  => 'nullable|string',
-            'teacher_class_ids' => 'nullable|array',
-            'teacher_class_ids.*' => 'exists:classes,id'
+            'name'          => 'required|string|max:255',
+            'email'         => 'required|email|unique:users,email,'.$user->id,
+            'role'          => 'required|in:admin,guru,siswa',
+            'password'      => 'nullable|string|min:6',
+            'class_id'      => 'nullable|exists:classes,id',
+            'nis_nip'       => 'nullable|string',
+            'no_hp'         => 'nullable|string|max:20',
+            'jenis_kelamin' => 'nullable|in:L,P',
         ]);
 
-        $user->update(array_filter([
-            'name'     => $validated['name'],
-            'email'    => $validated['email'],
-            'role'     => $validated['role'],
-            'password' => isset($validated['password']) ? Hash::make($validated['password']) : null,
-        ]));
+        $updateData = [
+            'name'          => $validated['name'],
+            'email'         => $validated['email'],
+            'role'          => $validated['role'],
+            'no_hp'         => $validated['no_hp'] ?? null,
+            'jenis_kelamin' => $validated['jenis_kelamin'] ?? null,
+        ];
+
+        if (isset($validated['password'])) {
+            $updateData['password'] = Hash::make($validated['password']);
+        }
+
+        $user->update($updateData);
 
         if ($validated['role'] === 'siswa') {
             $student = $user->student;
             if (!$student) {
-                Student::create(['user_id' => $user->id, 'class_id' => $validated['class_id'] ?? null, 'nis' => $validated['nis_nip'] ?? null]);
+                Student::create([
+                    'user_id'  => $user->id,
+                    'class_id' => $validated['class_id'] ?? null,
+                    'nis'      => $validated['nis_nip'] ?? null,
+                    'no_hp'    => $validated['no_hp'] ?? null
+                ]);
             } else {
-                $student->update(['class_id' => $validated['class_id'] ?? null, 'nis' => $validated['nis_nip'] ?? null]);
+                $student->update([
+                    'class_id' => $validated['class_id'] ?? null,
+                    'nis'      => $validated['nis_nip'] ?? null,
+                    'no_hp'    => $validated['no_hp'] ?? null
+                ]);
             }
         } elseif ($validated['role'] === 'guru') {
             $teacher = $user->teacher;
             if (!$teacher) {
-                $teacher = Teacher::create(['user_id' => $user->id, 'nip' => $validated['nis_nip'] ?? null]);
+                $teacher = Teacher::create([
+                    'user_id'     => $user->id,
+                    'nip'         => $validated['nis_nip'] ?? null,
+                    'no_whatsapp' => $validated['no_hp'] ?? null
+                ]);
             } else {
-                $teacher->update(['nip' => $validated['nis_nip'] ?? null]);
-            }
-            
-            SchoolClass::where('teacher_id', $teacher->id)->update(['teacher_id' => null]);
-            if (!empty($validated['teacher_class_ids'])) {
-                SchoolClass::whereIn('id', $validated['teacher_class_ids'])->update(['teacher_id' => $teacher->id]);
+                $teacher->update([
+                    'nip'         => $validated['nis_nip'] ?? null,
+                    'no_whatsapp' => $validated['no_hp'] ?? null
+                ]);
             }
         }
 

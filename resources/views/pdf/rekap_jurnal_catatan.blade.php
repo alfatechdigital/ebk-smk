@@ -118,7 +118,7 @@ Kode Pos: 65153' }}</p>
                     <td style="text-align: center;">{{ $index + 1 }}</td>
                     <td>{{ $note->created_at->format('d/m/Y') }}</td>
                     <td>{{ $note->ticket->student->user->name ?? '-' }}</td>
-                    <td>{{ $note->ticket->student->class->name ?? '-' }}</td>
+                    <td>{{ $note->ticket->class->name ?? $note->ticket->student->class->name ?? '-' }}</td>
                     <td>{{ $note->teacher->user->name ?? '-' }}</td>
                     <td><strong>{{ $note->title }}</strong><br>{{ $note->masalah }}</td>
                     <td>{{ $note->tindakan }}</td>

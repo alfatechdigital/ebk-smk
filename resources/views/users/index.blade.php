@@ -2,6 +2,61 @@
 @section('title', 'Manajemen User')
 @section('page-title', 'Manajemen User')
 
+@push('styles')
+<style>
+    .action-dropdown-container {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        position: relative;
+    }
+    .dropdown {
+        position: relative;
+        display: inline-block;
+    }
+    .dropdown-menu {
+        display: none;
+        position: absolute;
+        right: 0;
+        top: 100%;
+        margin-top: 4px;
+        background: #ffffff;
+        min-width: 130px;
+        border: 1px solid #e2e8f0;
+        border-radius: 8px;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        z-index: 1000;
+        padding: 6px 0;
+    }
+    .dropdown-menu.show {
+        display: block;
+    }
+    .dropdown-menu button {
+        width: 100%;
+        text-align: left;
+        background: none;
+        border: none;
+        padding: 8px 16px;
+        font-size: 0.85rem;
+        color: #334155;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        transition: background 0.2s;
+    }
+    .dropdown-menu button:hover {
+        background: #f1f5f9;
+    }
+    .dropdown-menu button.delete-btn {
+        color: var(--danger);
+    }
+    .dropdown-menu button.delete-btn:hover {
+        background: #fef2f2;
+    }
+</style>
+@endpush
+
 @section('content')
     <div class="page-header-row">
         <div class="page-header">
@@ -19,70 +74,138 @@
 
     <form class="filter-bar" method="GET">
         <input type="hidden" name="role" value="{{ request('role') }}">
-        <input type="text" name="search" placeholder="Cari nama, identitas, email..." value="{{ request('search') }}">
+        <input type="text" name="search" id="search-input" placeholder="Cari nama, identitas, email..."
+            value="{{ request('search') }}">
+
+        <div style="margin-left: auto; display: flex; align-items: center; gap: 8px;">
+            <span style="font-size: 13px; color: var(--slate); font-weight: 500;">Tampilkan:</span>
+            <select name="per_page" onchange="this.form.submit()" style="width: auto; padding: 6px 12px; margin: 0;">
+                @foreach([5, 10, 25, 50, 100] as $p)
+                    <option value="{{ $p }}" {{ request('per_page', 25) == $p ? 'selected' : '' }}>{{ $p }}</option>
+                @endforeach
+            </select>
+        </div>
     </form>
 
     <div class="card">
         <div class="table-wrap">
             <table>
                 <thead>
-                    <tr>
-                        <th>No</th>
-                        <th>Nama</th>
-                        <th>NIS/NIP</th>
-                        <th>Role</th>
-                        <th>Akses Kelas</th>
-                        <th>Status</th>
-                        <th>Aksi</th>
-                    </tr>
+                    @if(request('role') === 'siswa')
+                        <tr>
+                            <th>No</th>
+                            <th>NIS</th>
+                            <th>Nama</th>
+                            <th style="text-align: center;">JK</th>
+                            <th>Kelas</th>
+                            <th>No. HP</th>
+                            <th>Email</th>
+                            <th>Status</th>
+                            <th style="text-align: center;">Aksi</th>
+                        </tr>
+                    @else
+                        <tr>
+                            <th>No</th>
+                            <th>Nama</th>
+                            <th style="text-align: center;">JK</th>
+                            <th>NIP</th>
+                            <th>Role</th>
+                            <th>Status</th>
+                            <th style="text-align: center;">Aksi</th>
+                        </tr>
+                    @endif
                 </thead>
                 <tbody>
                     @forelse ($users as $i => $u)
-                        <tr>
-                            <td>{{ $users->firstItem() + $i }}</td>
-                            <td><strong>{{ $u->name }}</strong><br><small class="text-muted">{{ $u->email }}</small></td>
-                            <td>{{ $u->student?->nis ?? $u->teacher?->nip ?? '-' }}</td>
-                            <td><span
-                                    class="badge {{ $u->role === 'guru' ? 'badge-success' : ($u->role === 'siswa' ? 'badge-info' : 'badge-danger') }}">{{ $u->role_label }}</span>
-                            </td>
-                            <td>
-                                @if($u->role === 'siswa')
-                                    {{ $u->student?->class?->name ?? '—' }}
-                                @elseif($u->role === 'guru')
-                                    @if($u->teacher && $u->teacher->classes->count() > 0)
-                                        <div style="display: flex; flex-direction: column; gap: 4px;">
-                                            @foreach($u->teacher->classes as $cls)
-                                                <span class="badge badge-outline"
-                                                    style="border: 1px solid var(--teal); color: var(--teal); text-align: left;">
-                                                    <i class="fas fa-chalkboard-teacher"></i> {{ $cls->name }}
-                                                </span>
-                                            @endforeach
+                        @if(request('role') === 'siswa')
+                            <tr>
+                                <td>{{ $users->firstItem() + $i }}</td>
+                                <td>{{ $u->student?->nis ?? '-' }}</td>
+                                <td><strong>{{ $u->name }}</strong></td>
+                                <td style="text-align: center;">{{ $u->jenis_kelamin ?? '-' }}</td>
+                                <td>{{ $u->student?->class?->name ?? '-' }}</td>
+                                <td>{{ $u->no_hp ?? '-' }}</td>
+                                <td>{{ $u->email }}</td>
+                                <td><span
+                                        class="badge {{ $u->is_active ? 'badge-success' : 'badge-danger' }}">{{ $u->is_active ? 'Aktif' : 'Nonaktif' }}</span>
+                                </td>
+                                <td style="text-align: center;">
+                                    <div class="action-dropdown-container">
+                                        <button class="btn btn-primary btn-sm" style="display: inline-flex; align-items: center; gap: 4px;" title="Detail Siswa" onclick="openDetailUserModal({{ json_encode([
+                                            'role' => 'siswa',
+                                            'name' => $u->name,
+                                            'nis_nip' => $u->student?->nis ?? '-',
+                                            'class' => $u->student?->class?->name ?? '-',
+                                            'gender' => $u->jenis_kelamin === 'L' ? 'Laki-laki' : ($u->jenis_kelamin === 'P' ? 'Perempuan' : '-'),
+                                            'phone' => $u->no_hp ?? '-',
+                                            'email' => $u->email,
+                                            'status' => $u->is_active ? 'Aktif' : 'Nonaktif',
+                                            'classes_managed' => []
+                                        ]) }})"><i class="fas fa-eye"></i> Detail</button>
+
+                                        <div class="dropdown">
+                                            <button class="btn btn-secondary btn-sm" onclick="toggleActionDropdown(event, this)">
+                                                <i class="fas fa-ellipsis-v"></i>
+                                            </button>
+                                            <div class="dropdown-menu">
+                                                <button type="button" onclick="editUser({{ $u->id }},'{{ addslashes($u->name) }}','{{ $u->email }}','{{ $u->role }}','{{ $u->student?->nis ?? $u->teacher?->nip ?? '' }}','{{ $u->student?->class_id ?? '' }}', [],'{{ $u->no_hp }}','{{ $u->jenis_kelamin }}')">
+                                                    <i class="fas fa-edit" style="color: #f59e0b;"></i> Edit
+                                                </button>
+                                                <button type="button" class="delete-btn" onclick="openDeleteUserModal({{ $u->id }}, '{{ addslashes($u->name) }}')">
+                                                    <i class="fas fa-trash" style="color: var(--danger);"></i> Hapus
+                                                </button>
+                                            </div>
                                         </div>
-                                    @else
-                                        <span class="text-muted">—</span>
-                                    @endif
-                                @else
-                                    <span class="text-muted">Akses Penuh</span>
-                                @endif
-                            </td>
-                            <td><span
-                                    class="badge {{ $u->is_active ? 'badge-success' : 'badge-danger' }}">{{ $u->is_active ? 'Aktif' : 'Nonaktif' }}</span>
-                            </td>
-                            <td class="action-btns">
-                                <button class="btn btn-secondary btn-sm"
-                                    onclick="editUser({{ $u->id }},'{{ $u->name }}','{{ $u->email }}','{{ $u->role }}','{{ $u->student?->nis ?? $u->teacher?->nip ?? '' }}','{{ $u->student?->class_id ?? '' }}', {{ $u->teacher ? $u->teacher->classes->pluck('id') : '[]' }})">
-                                    <i class="fas fa-edit"></i>
-                                </button>
-                                <form method="POST" action="{{ route('users.destroy', $u) }}" style="display:inline"
-                                    onsubmit="return confirm('Hapus user ini?')">
-                                    @csrf @method('DELETE')
-                                    <button class="btn btn-danger btn-sm"><i class="fas fa-trash"></i></button>
-                                </form>
-                            </td>
-                        </tr>
+                                    </div>
+                                </td>
+                            </tr>
+                        @else
+                            <tr>
+                                <td>{{ $users->firstItem() + $i }}</td>
+                                <td><strong>{{ $u->name }}</strong><br><small class="text-muted">{{ $u->email }}</small></td>
+                                <td style="text-align: center;">{{ $u->jenis_kelamin ?? '-' }}</td>
+                                <td>{{ $u->student?->nis ?? $u->teacher?->nip ?? '-' }}</td>
+                                <td><span
+                                        class="badge {{ $u->role === 'guru' ? 'badge-success' : ($u->role === 'siswa' ? 'badge-info' : 'badge-danger') }}">{{ $u->role_label }}</span>
+                                </td>
+                                <td><span
+                                        class="badge {{ $u->is_active ? 'badge-success' : 'badge-danger' }}">{{ $u->is_active ? 'Aktif' : 'Nonaktif' }}</span>
+                                </td>
+                                <td style="text-align: center;">
+                                    <div class="action-dropdown-container">
+                                        <button class="btn btn-primary btn-sm" style="display: inline-flex; align-items: center; gap: 4px;" title="Detail User" onclick="openDetailUserModal({{ json_encode([
+                                            'role' => $u->role,
+                                            'name' => $u->name,
+                                            'nis_nip' => $u->teacher?->nip ?? '-',
+                                            'class' => '-',
+                                            'gender' => $u->jenis_kelamin === 'L' ? 'Laki-laki' : ($u->jenis_kelamin === 'P' ? 'Perempuan' : '-'),
+                                            'phone' => $u->no_hp ?? '-',
+                                            'email' => $u->email,
+                                            'status' => $u->is_active ? 'Aktif' : 'Nonaktif',
+                                            'classes_managed' => $u->teacher ? $u->teacher->classes->pluck('name')->toArray() : []
+                                        ]) }})"><i class="fas fa-eye"></i> Detail</button>
+
+                                        <div class="dropdown">
+                                            <button class="btn btn-secondary btn-sm" onclick="toggleActionDropdown(event, this)">
+                                                <i class="fas fa-ellipsis-v"></i>
+                                            </button>
+                                            <div class="dropdown-menu">
+                                                <button type="button" onclick="editUser({{ $u->id }},'{{ addslashes($u->name) }}','{{ $u->email }}','{{ $u->role }}','{{ $u->student?->nis ?? $u->teacher?->nip ?? '' }}','{{ $u->student?->class_id ?? '' }}', [],'{{ $u->no_hp }}','{{ $u->jenis_kelamin }}')">
+                                                    <i class="fas fa-edit" style="color: #f59e0b;"></i> Edit
+                                                </button>
+                                                <button type="button" class="delete-btn" onclick="openDeleteUserModal({{ $u->id }}, '{{ addslashes($u->name) }}')">
+                                                    <i class="fas fa-trash" style="color: var(--danger);"></i> Hapus
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </td>
+                            </tr>
+                        @endif
                     @empty
                         <tr>
-                            <td colspan="7" class="text-muted" style="text-align:center">Data tidak ditemukan</td>
+                            <td colspan="{{ request('role') === 'siswa' ? 9 : 7 }}" class="text-muted"
+                                style="text-align:center">Data tidak ditemukan</td>
                         </tr>
                     @endforelse
                 </tbody>
@@ -102,25 +225,34 @@
             <form method="POST" id="user-form" action="{{ route('users.store') }}">
                 @csrf
                 <input type="hidden" name="_method" id="user-method" value="POST">
+                <input type="hidden" name="role" id="user-role" value="{{ request('role', 'siswa') }}">
 
-                <div class="form-row">
-                    <div class="field-group"><label>Nama Lengkap</label><input type="text" name="name" id="user-name"
-                            required></div>
-                    <div class="field-group"><label>NIS / NIP</label><input type="text" name="nis_nip" id="user-nis"></div>
+                <div class="field-group">
+                    <label>Nama Lengkap</label>
+                    <input type="text" name="name" id="user-name" required>
                 </div>
 
-                <div class="form-row">
-                    <div class="field-group">
-                        <label>Role</label>
-                        <select name="role" id="user-role" onchange="toggleRoleUI()">
-                            <option value="siswa" {{ request('role') == 'siswa' ? 'selected' : '' }}>Siswa</option>
-                            <option value="guru" {{ request('role') == 'guru' ? 'selected' : '' }}>Guru BK</option>
-                            <option value="admin" {{ request('role') == 'admin' ? 'selected' : '' }}>Admin</option>
-                            @if(auth()->user()->isSuperAdmin())
-                            <option value="superadmin">Super Admin</option>@endif
-                        </select>
-                    </div>
-                    <div class="field-group" id="container-class-siswa">
+                <div class="field-group">
+                    <label>NIS / NIP</label>
+                    <input type="text" name="nis_nip" id="user-nis">
+                </div>
+
+                <div class="field-group">
+                    <label>No. HP</label>
+                    <input type="text" name="no_hp" id="user-nohp" placeholder="Contoh: 08123456789">
+                </div>
+
+                <div class="field-group">
+                    <label>Jenis Kelamin</label>
+                    <select name="jenis_kelamin" id="user-gender">
+                        <option value="">— Pilih Jenis Kelamin —</option>
+                        <option value="L">Laki-laki (L)</option>
+                        <option value="P">Perempuan (P)</option>
+                    </select>
+                </div>
+
+                <div id="container-class-siswa-row" style="margin-bottom: 15px;">
+                    <div class="field-group" id="container-class-siswa" style="width: 100%; margin-bottom: 0;">
                         <label>Kelas Siswa</label>
                         <select name="class_id" id="user-class-siswa">
                             <option value="">— Pilih Kelas —</option>
@@ -131,115 +263,16 @@
                     </div>
                 </div>
 
-                {{-- UI Khusus Guru: Tabel Pemilihan Kelas --}}
-                <style>
-                    .class-selection-grid {
-                        display: grid;
-                        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-                        gap: 12px;
-                        max-height: 300px;
-                        overflow-y: auto;
-                        padding: 5px;
-                    }
 
-                    .class-card {
-                        border: 1px solid #e2e8f0;
-                        border-radius: 8px;
-                        padding: 12px;
-                        cursor: pointer;
-                        display: flex;
-                        flex-direction: column;
-                        gap: 8px;
-                        transition: all 0.2s;
-                        position: relative;
-                        background: #fff;
-                    }
 
-                    .class-card:hover {
-                        border-color: #cbd5e1;
-                        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-                    }
-
-                    .class-card:has(input:checked) {
-                        border-color: var(--teal, #0d9488);
-                        background-color: #f0fdfa;
-                        box-shadow: 0 0 0 1px var(--teal, #0d9488);
-                    }
-
-                    .class-card-header {
-                        display: flex;
-                        justify-content: space-between;
-                        align-items: center;
-                    }
-
-                    .class-card .class-name {
-                        font-weight: 600;
-                        font-size: 0.95rem;
-                        color: #1e293b;
-                    }
-
-                    .class-card input[type="checkbox"] {
-                        width: 18px;
-                        height: 18px;
-                        cursor: pointer;
-                        accent-color: var(--teal, #0d9488);
-                    }
-
-                    .class-teacher-badge {
-                        font-size: 0.75rem;
-                        padding: 4px 8px;
-                        border-radius: 4px;
-                        display: inline-flex;
-                        align-items: center;
-                        gap: 4px;
-                        width: fit-content;
-                    }
-
-                    .class-teacher-badge.warning {
-                        color: #b45309;
-                        background: #fef3c7;
-                    }
-
-                    .class-teacher-badge.empty {
-                        color: #64748b;
-                        font-style: italic;
-                    }
-                </style>
-                <div id="container-class-guru" style="display: none; margin-top: 15px;">
-                    <label style="display: block; margin-bottom: 10px; font-weight: 600;">Pilih Kelas Kelolaan (Guru
-                        BK)</label>
-                    <div class="class-selection-grid">
-                        @foreach($classes as $c)
-                            <label class="class-card">
-                                <div class="class-card-header">
-                                    <span class="class-name">{{ $c->name }}</span>
-                                    <input type="checkbox" name="teacher_class_ids[]" value="{{ $c->id }}"
-                                        class="class-checkbox" id="check-{{ $c->id }}">
-                                </div>
-                                @if($c->teacher)
-                                    <div class="class-teacher-badge warning">
-                                        <i class="fas fa-user-tie"></i> {{ $c->teacher->user->name }}
-                                    </div>
-                                @else
-                                    <div class="class-teacher-badge empty">
-                                        <i class="fas fa-info-circle"></i> Belum ada guru
-                                    </div>
-                                @endif
-                            </label>
-                        @endforeach
-                    </div>
-                    <p
-                        style="font-size: 0.8rem; color: #64748b; margin-top: 12px; display: flex; align-items: center; gap: 6px;">
-                        <i class="fas fa-info-circle text-blue-500"></i> Jika kelas sudah memiliki guru, memilihnya akan
-                        memindahkan hak akses kelas ke guru ini (ambil alih).
-                    </p>
+                <div class="field-group">
+                    <label>Email</label>
+                    <input type="email" name="email" id="user-email" required>
                 </div>
 
-                <div class="form-row">
-                    <div class="field-group"><label>Email</label><input type="email" name="email" id="user-email" required>
-                    </div>
-                    <div class="field-group"><label>Password</label><input type="password" name="password"
-                            id="user-password"></div>
+                <div class="field-group">
+                    <label>Password</label>
+                    <input type="password" name="password" id="user-password">
                 </div>
 
                 <div class="modal-footer">
@@ -297,9 +330,93 @@
             <p style="color: #64748b; font-size: 0.9rem; margin-top: 10px; line-height: 1.5;">
                 Apakah Anda yakin ingin menyimpan perubahan data user ini?
             </p>
-            <div class="modal-footer" style="justify-content: center; gap: 10px; border-top: none; padding-top: 20px; margin-top: 10px;">
-                <button type="button" class="btn btn-secondary" onclick="closeModal('modal-confirm-user')" style="margin: 0;">Batal</button>
-                <button type="button" class="btn btn-primary" onclick="submitUserForm()" style="margin: 0; background: var(--teal); border-color: var(--teal);"><i class="fas fa-check"></i> Ya, Simpan</button>
+            <div class="modal-footer"
+                style="justify-content: center; gap: 10px; border-top: none; padding-top: 20px; margin-top: 10px;">
+                <button type="button" class="btn btn-secondary" onclick="closeModal('modal-confirm-user')"
+                    style="margin: 0;">Batal</button>
+                <button type="button" class="btn btn-primary" onclick="submitUserForm()"
+                    style="margin: 0; background: var(--teal); border-color: var(--teal);"><i class="fas fa-check"></i> Ya,
+                    Simpan</button>
+            </div>
+        </div>
+    </div>
+
+    {{-- Modal Konfirmasi Hapus User --}}
+    <div class="modal-overlay" id="modal-delete-user">
+        <div class="modal" style="max-width: 400px; text-align: center; padding: 24px;">
+            <div style="font-size: 3rem; color: var(--danger); margin-bottom: 15px;">
+                <i class="fa-solid fa-triangle-exclamation"></i>
+            </div>
+            <h3>Hapus User?</h3>
+            <p style="color: #666; font-size: 0.9rem; margin-top: 10px; line-height: 1.5;">
+                Apakah Anda yakin ingin menghapus user <strong id="delete-user-name"></strong>? Seluruh data terkait user
+                ini akan terhapus secara permanen dari sistem.
+            </p>
+            <form method="POST" id="form-delete-user" style="margin-top: 25px;">
+                @csrf
+                @method('DELETE')
+                <div class="modal-footer" style="justify-content: center; gap: 10px; border-top: none; padding-top: 0;">
+                    <button type="button" class="btn btn-secondary" onclick="closeModal('modal-delete-user')"
+                        style="margin: 0;">Batal</button>
+                    <button type="submit" class="btn btn-danger" style="margin: 0;"><i class="fas fa-trash"></i> Ya,
+                        Hapus</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    {{-- Modal Detail User --}}
+    <div class="modal-overlay" id="modal-detail-user">
+        <div class="modal" style="max-width: 500px; width: 95%;">
+            <div class="modal-header" style="border-bottom: 1px solid #e2e8f0; padding-bottom: 15px;">
+                <h3>Detail Profil Pengguna</h3>
+                <button class="modal-close" onclick="closeModal('modal-detail-user')">✕</button>
+            </div>
+            <div class="modal-body" style="padding-top: 20px;">
+                <div style="display: flex; align-items: center; gap: 15px; margin-bottom: 25px; border-bottom: 1px dashed #e2e8f0; padding-bottom: 20px;">
+                    <div style="width: 60px; height: 60px; border-radius: 50%; background: #f0fdfa; display: flex; align-items: center; justify-content: center; font-size: 1.8rem; color: var(--teal); font-weight: bold;" id="detail-user-initial">
+                        U
+                    </div>
+                    <div>
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <h4 style="font-size: 1.15rem; font-weight: 700; color: #1e293b; margin: 0;" id="detail-user-name">Nama User</h4>
+                            <span class="badge" id="detail-user-role-badge" style="font-size: 0.75rem; padding: 2px 8px; border-radius: 9999px;">Siswa</span>
+                        </div>
+                        <span style="font-size: 0.85rem; color: #64748b;" id="detail-user-nis-nip-badge">NIS: -</span>
+                    </div>
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr; gap: 15px; margin-bottom: 20px;">
+                    <div style="display: flex; flex-direction: column; gap: 4px;" id="detail-user-class-row">
+                        <span style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; color: #94a3b8; font-weight: 600;">Kelas</span>
+                        <span style="font-size: 0.95rem; color: #334155; font-weight: 500;" id="detail-user-class">-</span>
+                    </div>
+                    <div style="display: flex; flex-direction: column; gap: 4px;" id="detail-user-classes-managed-row">
+                        <span style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; color: #94a3b8; font-weight: 600;">Kelas Diampu</span>
+                        <div id="detail-user-classes-managed-list" style="display: flex; flex-wrap: wrap; gap: 6px; margin-top: 4px;">
+                            <!-- Will be populated dynamically -->
+                        </div>
+                    </div>
+                    <div style="display: flex; flex-direction: column; gap: 4px;">
+                        <span style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; color: #94a3b8; font-weight: 600;">Jenis Kelamin</span>
+                        <span style="font-size: 0.95rem; color: #334155; font-weight: 500;" id="detail-user-gender">Laki-laki</span>
+                    </div>
+                    <div style="display: flex; flex-direction: column; gap: 4px;">
+                        <span style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; color: #94a3b8; font-weight: 600;">No. WhatsApp / HP</span>
+                        <span style="font-size: 0.95rem; color: #334155; font-weight: 500;" id="detail-user-phone">-</span>
+                    </div>
+                    <div style="display: flex; flex-direction: column; gap: 4px;">
+                        <span style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; color: #94a3b8; font-weight: 600;">Email</span>
+                        <span style="font-size: 0.95rem; color: #334155; font-weight: 500;" id="detail-user-email">email@example.com</span>
+                    </div>
+                    <div style="display: flex; flex-direction: column; gap: 4px;">
+                        <span style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; color: #94a3b8; font-weight: 600;">Status Akun</span>
+                        <span style="width: fit-content;" id="detail-user-status">Aktif</span>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer" style="border-top: 1px solid #e2e8f0; padding-top: 15px; margin-top: 20px;">
+                <button type="button" class="btn btn-secondary" onclick="closeModal('modal-detail-user')" style="margin: 0; width: 100%; display: flex; justify-content: center; align-items: center; text-align: center;">Tutup</button>
             </div>
         </div>
     </div>
@@ -309,18 +426,19 @@
     <script>
         function openModal(id) { document.getElementById(id).classList.add('open') }
         function closeModal(id) { document.getElementById(id).classList.remove('open') }
+        document.querySelectorAll('.modal-overlay').forEach(m => { m.addEventListener('click', e => { if (e.target === m) m.classList.remove('open') }) });
 
-        document.addEventListener("DOMContentLoaded", function() {
+        document.addEventListener("DOMContentLoaded", function () {
             const form = document.getElementById('user-form');
             if (form) {
-                form.addEventListener('submit', function(event) {
+                form.addEventListener('submit', function (event) {
                     event.preventDefault();
                     openModal('modal-confirm-user');
                 });
             }
         });
 
-        window.submitUserForm = function() {
+        window.submitUserForm = function () {
             const form = document.getElementById('user-form');
             if (form) {
                 form.submit();
@@ -330,10 +448,15 @@
         function toggleRoleUI() {
             const role = document.getElementById('user-role').value;
             const siswaUI = document.getElementById('container-class-siswa');
-            const guruUI = document.getElementById('container-class-guru');
+            const siswaRow = document.getElementById('container-class-siswa-row');
 
-            siswaUI.style.display = (role === 'siswa') ? 'block' : 'none';
-            guruUI.style.display = (role === 'guru') ? 'block' : 'none';
+            if (role === 'siswa') {
+                siswaUI.style.display = 'block';
+                if (siswaRow) siswaRow.style.display = 'flex';
+            } else {
+                siswaUI.style.display = 'none';
+                if (siswaRow) siswaRow.style.display = 'none';
+            }
         }
 
         function openImportModal() {
@@ -346,11 +469,12 @@
             document.getElementById('user-method').value = 'POST';
             document.getElementById('user-form').reset();
             document.getElementById('user-password').setAttribute('required', 'required');
+            document.getElementById('user-role').value = "{{ request('role', 'siswa') }}";
             toggleRoleUI();
             openModal('modal-user');
         }
 
-        function editUser(id, name, email, role, nis, classId, teacherClasses) {
+        function editUser(id, name, email, role, nis, classId, teacherClasses, noHp, gender) {
             document.getElementById('user-modal-title').textContent = 'Edit User';
             document.getElementById('user-form').action = '/users/' + id;
             document.getElementById('user-method').value = 'PUT';
@@ -358,25 +482,132 @@
             document.getElementById('user-email').value = email;
             document.getElementById('user-role').value = role;
             document.getElementById('user-nis').value = nis;
+            document.getElementById('user-nohp').value = noHp || '';
+            document.getElementById('user-gender').value = gender || '';
             document.getElementById('user-class-siswa').value = classId;
             document.getElementById('user-password').removeAttribute('required');
-
-            // Reset Checkboxes
-            document.querySelectorAll('.class-checkbox').forEach(cb => cb.checked = false);
-
-            // Set Checkboxes untuk Guru
-            if (teacherClasses && Array.isArray(teacherClasses)) {
-                teacherClasses.forEach(classId => {
-                    const cb = document.getElementById('check-' + classId);
-                    if (cb) cb.checked = true;
-                });
-            }
 
             toggleRoleUI();
             openModal('modal-user');
         }
 
+        function openDeleteUserModal(id, name) {
+            document.getElementById('form-delete-user').action = '/users/' + id;
+            document.getElementById('delete-user-name').textContent = name;
+            openModal('modal-delete-user');
+        }
+
+        function openDetailUserModal(user) {
+            document.getElementById('detail-user-initial').textContent = user.name.charAt(0).toUpperCase();
+            document.getElementById('detail-user-name').textContent = user.name;
+            document.getElementById('detail-user-gender').textContent = user.gender;
+            document.getElementById('detail-user-phone').textContent = user.phone;
+            document.getElementById('detail-user-email').textContent = user.email;
+            document.getElementById('detail-user-status').textContent = user.status;
+
+            // Status Badge Styling
+            const statusSpan = document.getElementById('detail-user-status');
+            statusSpan.className = 'badge';
+            if (user.status === 'Aktif') {
+                statusSpan.classList.add('badge-success');
+            } else {
+                statusSpan.classList.add('badge-danger');
+            }
+
+            // Role Badge Styling and Text
+            const roleBadge = document.getElementById('detail-user-role-badge');
+            roleBadge.className = 'badge';
+            if (user.role === 'admin') {
+                roleBadge.textContent = 'Admin';
+                roleBadge.classList.add('badge-danger');
+            } else if (user.role === 'guru') {
+                roleBadge.textContent = 'Guru BK';
+                roleBadge.classList.add('badge-success');
+            } else {
+                roleBadge.textContent = 'Siswa';
+                roleBadge.classList.add('badge-info');
+            }
+
+            // NIS / NIP Badge
+            const nisNipBadge = document.getElementById('detail-user-nis-nip-badge');
+            if (user.role === 'admin') {
+                nisNipBadge.style.display = 'none';
+            } else {
+                nisNipBadge.style.display = 'inline';
+                nisNipBadge.textContent = (user.role === 'guru' ? 'NIP: ' : 'NIS: ') + user.nis_nip;
+            }
+
+            // Class Row (For Siswa)
+            const classRow = document.getElementById('detail-user-class-row');
+            if (user.role === 'siswa') {
+                classRow.style.display = 'flex';
+                document.getElementById('detail-user-class').textContent = user.class;
+            } else {
+                classRow.style.display = 'none';
+            }
+
+            // Classes Managed Row (For Guru BK)
+            const classesManagedRow = document.getElementById('detail-user-classes-managed-row');
+            if (user.role === 'guru') {
+                classesManagedRow.style.display = 'flex';
+                const listContainer = document.getElementById('detail-user-classes-managed-list');
+                listContainer.innerHTML = '';
+                if (user.classes_managed && user.classes_managed.length > 0) {
+                    user.classes_managed.forEach(cls => {
+                        const span = document.createElement('span');
+                        span.className = 'badge badge-outline';
+                        span.style.border = '1px solid var(--teal)';
+                        span.style.color = 'var(--teal)';
+                        span.style.background = '#f0fdfa';
+                        span.innerHTML = '<i class="fas fa-chalkboard-teacher"></i> ' + cls;
+                        listContainer.appendChild(span);
+                    });
+                } else {
+                    listContainer.innerHTML = '<span class="text-muted" style="font-style: italic; font-size: 0.9rem;">Belum mengampu kelas apa pun</span>';
+                }
+            } else {
+                classesManagedRow.style.display = 'none';
+            }
+
+            openModal('modal-detail-user');
+        }
+
+        window.toggleActionDropdown = function(event, button) {
+            event.stopPropagation();
+            document.querySelectorAll('.dropdown-menu').forEach(menu => {
+                if (menu !== button.nextElementSibling) {
+                    menu.classList.remove('show');
+                }
+            });
+            button.nextElementSibling.classList.toggle('show');
+        };
+
+        document.addEventListener('click', function() {
+            document.querySelectorAll('.dropdown-menu').forEach(menu => {
+                menu.classList.remove('show');
+            });
+        });
+
         // Inisialisasi awal saat halaman dimuat
         document.addEventListener('DOMContentLoaded', toggleRoleUI);
+
+        // Real-time search script
+        const searchInput = document.getElementById('search-input');
+        if (searchInput) {
+            if (searchInput.value.trim().length > 0) {
+                const val = searchInput.value;
+                searchInput.value = '';
+                searchInput.value = val;
+                searchInput.focus();
+            }
+
+            let searchTimeout = null;
+            searchInput.addEventListener('input', function () {
+                clearTimeout(searchTimeout);
+                searchTimeout = setTimeout(() => {
+                    this.form.submit();
+                }, 400);
+            });
+        }
     </script>
 @endpush

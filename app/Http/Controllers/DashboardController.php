@@ -28,7 +28,7 @@ class DashboardController extends Controller
         $assignedGuru = null;
         $classActivities = collect();
 
-        if ($user->isAdmin() || $user->isSuperAdmin()) {
+        if ($user->isAdmin()) {
             $stats['total_siswa'] = Student::count();
             $stats['menunggu'] = Ticket::where('status', 'menunggu')->count();
             $stats['diproses'] = Ticket::where('status', 'diproses')->count();

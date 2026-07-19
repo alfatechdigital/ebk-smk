@@ -10,7 +10,7 @@ class Ticket extends Model
     use HasFactory;
 
     protected $fillable = [
-        'code', 'student_id', 'service_id', 'teacher_id',
+        'code', 'student_id', 'class_id', 'service_id', 'teacher_id',
         'status', 'is_favorite', 'is_pinned', 'priority', 'title', 'description',
         'prior_action', 'anonymous', 'scheduled_at', 'completed_at', 'cancelled_at', 'cancel_reason'
     ];
@@ -39,6 +39,11 @@ class Ticket extends Model
     public function student()
     {
         return $this->belongsTo(Student::class);
+    }
+
+    public function class()
+    {
+        return $this->belongsTo(SchoolClass::class, 'class_id');
     }
 
     public function service()

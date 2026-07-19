@@ -119,7 +119,7 @@
                         <i class="fas fa-user-circle" style="color: var(--slate); font-size: 13px;"></i>
                         <span
                             style="font-size: 13px; color: var(--slate); font-weight: 600;">{{ $note->ticket?->student?->user?->name ?? 'Anonim' }}
-                            · {{ $note->ticket?->student?->class?->name ?? '' }}</span>
+                            · {{ $note->ticket?->class?->name ?? $note->ticket?->student?->class?->name ?? '' }}</span>
                         @if($note->ticket?->service)
                             <span class="badge"
                                 style="background: {{ $note->ticket->service->color ?? 'var(--teal)' }}; color: #fff; font-size: 10px; padding: 2px 8px; border-radius: 4px; display: inline-flex; align-items: center; gap: 4px; font-weight: 600; line-height: 1.2;">
@@ -141,7 +141,7 @@
                         style="background: var(--teal); color: white; border-color: var(--teal); margin: 0; display: inline-flex; align-items: center; gap: 4px; padding: 6px 12px; font-size: 12px; font-weight: 600;"
                         title="Detail Catatan" onclick="openNoteDetailModal(this)"
                         data-nama="{{ $note->ticket?->student?->user?->name ?? 'Anonim' }}"
-                        data-kelas="{{ $note->ticket?->student?->class?->name ?? '-' }}"
+                        data-kelas="{{ $note->ticket?->class?->name ?? $note->ticket?->student?->class?->name ?? '-' }}"
                         data-layanan="{{ $note->ticket?->service?->name ?? '-' }}"
                         data-layanan-color="{{ $note->ticket?->service?->color ?? 'var(--teal)' }}"
                         data-layanan-icon="{{ $note->ticket?->service?->icon ?? 'fas fa-tag' }}"

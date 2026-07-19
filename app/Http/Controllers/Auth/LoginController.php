@@ -21,11 +21,11 @@ class LoginController extends Controller
     public function login(Request $request)
     {
         $credentials = $request->validate([
-            'email'    => ['required', 'string'],
+            'email' => ['required', 'string'],
             'password' => ['required', 'string'],
         ]);
 
-        // Allow login with email or NIS/NIP (stored in name field for demo)
+        // Allow login with email or NIP (stored in name field for demo)
         $user = User::where('email', $credentials['email'])->first();
 
         if (!$user || !Auth::attempt(['email' => $credentials['email'], 'password' => $credentials['password']], $request->boolean('remember'))) {

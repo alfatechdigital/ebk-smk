@@ -12,6 +12,7 @@ return new class extends Migration
             $table->id();
             $table->string('code')->unique();
             $table->foreignId('student_id')->nullable()->constrained('students')->nullOnDelete();
+            $table->foreignId('class_id')->nullable()->constrained('classes')->nullOnDelete();
             $table->foreignId('service_id')->nullable()->constrained('services')->nullOnDelete();
             $table->foreignId('teacher_id')->nullable()->constrained('teachers')->nullOnDelete();
             $table->enum('status', ['menunggu', 'diproses', 'selesai'])->default('menunggu');

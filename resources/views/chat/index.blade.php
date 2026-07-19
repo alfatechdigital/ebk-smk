@@ -70,7 +70,7 @@
                             @if(!auth()->user()->isSiswa())
                                 <span
                                     style="font-size: 0.7rem; font-weight: 600; color: var(--teal); background: rgba(13,124,102,0.08); padding: 1px 6px; border-radius: 4px; display: inline-block;">
-                                    Kelas: {{ $active->student->class->name ?? '-' }}
+                                    Kelas: {{ $active->class->name ?? $active->student->class->name ?? '-' }}
                                 </span>
                             @else
                                 @if($active->teacher && $active->teacher->spesialisasi)
@@ -762,7 +762,7 @@
                             <label
                                 style="font-size: 0.7rem; color: #64748b; text-transform: uppercase; font-weight: 700; display: block; margin-bottom: 2px;">Kelas</label>
                             <div style="font-size: 0.9rem; font-weight: 700; color: #1e293b;">
-                                {{ $active->student->class->name ?? '-' }}
+                                {{ $active->class->name ?? $active->student->class->name ?? '-' }}
                             </div>
                         </div>
                     @endif

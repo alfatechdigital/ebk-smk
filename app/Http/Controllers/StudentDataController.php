@@ -16,12 +16,22 @@ class StudentDataController extends Controller
             $perPage = 25;
         }
 
+        $user = auth()->user();
+        $teacher = $user->teacher;
+
         $students = Student::with(['user', 'class', 'tickets'])
-            ->when($request->search, fn($q) => $q->whereHas('user', fn($u) => $u->where('name','like','%'.$request->search.'%')))
+            ->when($user->role === 'guru' && $teacher, function ($q) use ($teacher) {
+                $q->whereIn('class_id', $teacher->classes->pluck('id'));
+            })
+            ->when($request->search, fn($q) => $q->whereHas('user', fn($u) => $u->where('name', 'like', '%' . $request->search . '%')))
             ->when($request->class_id, fn($q) => $q->where('class_id', $request->class_id))
             ->latest()->paginate($perPage)->withQueryString();
 
-        $classes = \App\Models\SchoolClass::all();
+        if ($user->role === 'guru' && $teacher) {
+            $classes = $teacher->classes;
+        } else {
+            $classes = \App\Models\SchoolClass::all();
+        }
 
         return view('data-siswa.index', compact('students', 'classes'));
     }
@@ -29,22 +39,25 @@ class StudentDataController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'name'     => 'required|string|max:255',
-            'email'    => 'required|email|unique:users,email',
-            'password' => 'required|string|min:6',
-            'class_id' => 'required|exists:classes,id',
-            'nis'      => 'required|string|unique:students,nis',
-            'no_hp'    => 'nullable|string|max:20',
+            'name'          => 'required|string|max:255',
+            'email'         => 'required|email|unique:users,email',
+            'password'      => 'required|string|min:6',
+            'class_id'      => 'required|exists:classes,id',
+            'nis'           => 'required|string|unique:students,nis',
+            'no_hp'         => 'nullable|string|max:20',
+            'jenis_kelamin' => 'nullable|in:L,P',
         ], [
             'nis.unique' => 'NIS sudah terdaftar di sistem. Harap gunakan NIS lain.',
             'email.unique' => 'Email sudah terdaftar di sistem. Harap gunakan email lain.',
         ]);
 
         $user = User::create([
-            'name'     => $validated['name'],
-            'email'    => $validated['email'],
-            'password' => Hash::make($validated['password']),
-            'role'     => 'siswa',
+            'name'          => $validated['name'],
+            'email'         => $validated['email'],
+            'password'      => Hash::make($validated['password']),
+            'role'          => 'siswa',
+            'no_hp'         => $validated['no_hp'] ?? null,
+            'jenis_kelamin' => $validated['jenis_kelamin'] ?? null,
         ]);
 
         Student::create([
@@ -62,20 +75,23 @@ class StudentDataController extends Controller
         $user = $student->user;
         
         $validated = $request->validate([
-            'name'     => 'required|string|max:255',
-            'email'    => 'required|email|unique:users,email,' . $user->id,
-            'password' => 'nullable|string|min:6',
-            'class_id' => 'required|exists:classes,id',
-            'nis'      => 'required|string|unique:students,nis,' . $student->id,
-            'no_hp'    => 'nullable|string|max:20',
+            'name'          => 'required|string|max:255',
+            'email'         => 'required|email|unique:users,email,' . $user->id,
+            'password'      => 'nullable|string|min:6',
+            'class_id'      => 'required|exists:classes,id',
+            'nis'           => 'required|string|unique:students,nis,' . $student->id,
+            'no_hp'         => 'nullable|string|max:20',
+            'jenis_kelamin' => 'nullable|in:L,P',
         ], [
             'nis.unique' => 'NIS sudah terdaftar di sistem. Harap gunakan NIS lain.',
             'email.unique' => 'Email sudah terdaftar di sistem. Harap gunakan email lain.',
         ]);
 
         $userData = [
-            'name'  => $validated['name'],
-            'email' => $validated['email'],
+            'name'          => $validated['name'],
+            'email'         => $validated['email'],
+            'no_hp'         => $validated['no_hp'] ?? null,
+            'jenis_kelamin' => $validated['jenis_kelamin'] ?? null,
         ];
 
         if (!empty($validated['password'])) {

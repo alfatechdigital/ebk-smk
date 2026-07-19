@@ -72,22 +72,12 @@
             @php
                 // Logic Sub-menu Manajemen User
                 $userSubmenu = [
-                    ['route' => 'users.index', 'params' => ['role' => 'admin'], 'label' => 'Data Admin'],
-                    ['route' => 'users.index', 'params' => ['role' => 'guru'], 'label' => 'Data Guru BK'],
-                    ['route' => 'users.index', 'params' => ['role' => 'siswa'], 'label' => 'Data Siswa'],
+                    ['route' => 'users.index', 'params' => ['role' => 'admin'], 'label' => 'Admin'],
+                    ['route' => 'users.index', 'params' => ['role' => 'guru'], 'label' => 'Guru BK'],
+                    ['route' => 'users.index', 'params' => ['role' => 'siswa'], 'label' => 'Siswa'],
                 ];
 
                 $menus = [
-                    'superadmin' => [
-                        ['section' => 'Utama'],
-                        ['route' => 'dashboard', 'icon' => 'fas fa-th-large', 'label' => 'Dashboard'],
-                        ['section' => 'Manajemen'],
-                        ['label' => 'Manajemen User', 'icon' => 'fas fa-users-cog', 'submenu' => $userSubmenu],
-                        ['route' => 'hakakses.index', 'icon' => 'fas fa-shield-alt', 'label' => 'Hak Akses Menu'],
-                        ['route' => 'kategori.index', 'icon' => 'fas fa-tags', 'label' => 'Kategori Layanan'],
-                        ['section' => 'Sistem'],
-                        ['route' => 'pengaturan.index', 'icon' => 'fas fa-cog', 'label' => 'Pengaturan Lembaga'],
-                    ],
                     'admin' => [
                         ['section' => 'Utama'],
                         ['route' => 'dashboard', 'icon' => 'fas fa-th-large', 'label' => 'Dashboard'],
@@ -95,6 +85,7 @@
                         ['section' => 'Manajemen'],
                         ['label' => 'Manajemen User', 'icon' => 'fas fa-users-cog', 'submenu' => $userSubmenu],
                         ['route' => 'kategori.index', 'icon' => 'fas fa-tags', 'label' => 'Kategori Layanan'],
+                        ['route' => 'kelas.index', 'icon' => 'fas fa-school', 'label' => 'Data Kelas'],
                         ['section' => 'Sistem'],
                         ['route' => 'pengaturan.index', 'icon' => 'fas fa-cog', 'label' => 'Pengaturan Lembaga'],
                     ],
@@ -153,12 +144,16 @@
                     <a href="{{ route($item['route']) }}"
                         class="nav-item {{ request()->routeIs($item['route'] . '*') ? 'active' : '' }}">
                         <i class="{{ $item['icon'] }}"></i>
-                        <span style="display: flex; align-items: center; justify-content: space-between; width: 100%; gap: 8px; min-width: 0;">
-                            <span style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ $item['label'] }}</span>
+                        <span
+                            style="display: flex; align-items: center; justify-content: space-between; width: 100%; gap: 8px; min-width: 0;">
+                            <span
+                                style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ $item['label'] }}</span>
                             @if($item['route'] === 'tickets.index')
-                                <span class="sidebar-unread-badge" style="display: none; position: relative; width: 20px; height: 20px; align-items: center; justify-content: center; flex-shrink: 0; margin-left: auto;">
+                                <span class="sidebar-unread-badge"
+                                    style="display: none; position: relative; width: 20px; height: 20px; align-items: center; justify-content: center; flex-shrink: 0; margin-left: auto;">
                                     <i class="fas fa-comment" style="font-size: 15px; color: currentColor; opacity: 0.7;"></i>
-                                    <span class="count" style="position: absolute; top: -4px; right: -6px; background: #ef4444; color: white; border-radius: 50%; width: 14px; height: 14px; font-size: 8px; font-weight: 700; display: flex; align-items: center; justify-content: center; line-height: 1; border: 1px solid white;">0</span>
+                                    <span class="count"
+                                        style="position: absolute; top: -4px; right: -6px; background: #ef4444; color: white; border-radius: 50%; width: 14px; height: 14px; font-size: 8px; font-weight: 700; display: flex; align-items: center; justify-content: center; line-height: 1; border: 1px solid white;">0</span>
                                 </span>
                             @endif
                         </span>
@@ -197,14 +192,19 @@
                     <div class="topbar-role">{{ $user->role_label }}</div>
                 </div>
             </div>
-            
-            <div id="user-dropdown" style="display: none; position: absolute; top: calc(100% + 10px); right: 0; background: #fff; border: 1px solid #e2e8f0; border-radius: 8px; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05); width: 180px; z-index: 1000; overflow: hidden; animation: fadeIn 0.2s ease; text-align: left;">
-                <a href="{{ route('profil.index') }}" style="display: flex; align-items: center; gap: 8px; padding: 12px 16px; font-size: 13px; color: var(--slate); text-decoration: none; transition: background 0.2s;" onmouseover="this.style.background='#f8fafc'" onmouseout="this.style.background='transparent'">
+
+            <div id="user-dropdown"
+                style="display: none; position: absolute; top: calc(100% + 10px); right: 0; background: #fff; border: 1px solid #e2e8f0; border-radius: 8px; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05); width: 180px; z-index: 1000; overflow: hidden; animation: fadeIn 0.2s ease; text-align: left;">
+                <a href="{{ route('profil.index') }}"
+                    style="display: flex; align-items: center; gap: 8px; padding: 12px 16px; font-size: 13px; color: var(--slate); text-decoration: none; transition: background 0.2s;"
+                    onmouseover="this.style.background='#f8fafc'" onmouseout="this.style.background='transparent'">
                     <i class="fas fa-user-circle" style="color: #64748b; font-size: 15px;"></i> Profil Saya
                 </a>
                 <form method="POST" action="{{ route('logout') }}" style="margin: 0; padding: 0;">
                     @csrf
-                    <button type="submit" style="display: flex; align-items: center; gap: 8px; padding: 12px 16px; font-size: 13px; color: #ef4444; width: 100%; border: none; background: transparent; text-align: left; cursor: pointer; transition: background 0.2s;" onmouseover="this.style.background='#fef2f2'" onmouseout="this.style.background='transparent'">
+                    <button type="submit"
+                        style="display: flex; align-items: center; gap: 8px; padding: 12px 16px; font-size: 13px; color: #ef4444; width: 100%; border: none; background: transparent; text-align: left; cursor: pointer; transition: background 0.2s;"
+                        onmouseover="this.style.background='#fef2f2'" onmouseout="this.style.background='transparent'">
                         <i class="fas fa-sign-out-alt" style="font-size: 14px;"></i> Keluar / Logout
                     </button>
                 </form>
@@ -240,7 +240,7 @@
             }
         }
 
-        window.addEventListener('click', function(event) {
+        window.addEventListener('click', function (event) {
             const dropdown = document.getElementById('user-dropdown');
             if (dropdown && dropdown.style.display === 'block') {
                 const container = event.target.closest('.topbar-user-container');
@@ -253,11 +253,11 @@
             }
         });
 
-        window.toggleActionsDropdown = function(event, id) {
+        window.toggleActionsDropdown = function (event, id) {
             event.stopPropagation();
             const targetDropdown = document.getElementById('actions-dropdown-' + id);
             const allDropdowns = document.querySelectorAll('.dropdown-menu-content');
-            
+
             // Reset z-index on all cards first
             document.querySelectorAll('.ticket-card').forEach(card => {
                 card.style.zIndex = '';
@@ -281,7 +281,7 @@
             }
         };
 
-        window.closeAllDropdowns = function() {
+        window.closeAllDropdowns = function () {
             const allDropdowns = document.querySelectorAll('.dropdown-menu-content');
             allDropdowns.forEach(dd => {
                 dd.style.display = 'none';
@@ -292,7 +292,7 @@
             });
         };
 
-        window.updateSidebarUnreadBadge = function(count) {
+        window.updateSidebarUnreadBadge = function (count) {
             const badge = document.querySelector('.sidebar-unread-badge');
             if (badge) {
                 if (count > 0) {
@@ -308,24 +308,24 @@
         };
 
         @auth
-        window.pollSidebarUnread = function() {
-            // Skip layout polling if index page has a active local poll to avoid double network requests
-            if (window._isLocalTicketsPollingActive) {
-                return;
-            }
-            fetch('{{ route("tickets.unread_counts") }}')
-                .then(res => res.json())
-                .then(data => {
-                    if (data && typeof data.total_unread !== 'undefined') {
-                        window.updateSidebarUnreadBadge(data.total_unread);
-                    }
-                })
-                .catch(err => console.error('Error fetching unread count:', err));
-        };
+            window.pollSidebarUnread = function() {
+                // Skip layout polling if index page has a active local poll to avoid double network requests
+                if (window._isLocalTicketsPollingActive) {
+                    return;
+                }
+                fetch('{{ route("tickets.unread_counts") }}')
+                    .then(res => res.json())
+                    .then(data => {
+                        if (data && typeof data.total_unread !== 'undefined') {
+                            window.updateSidebarUnreadBadge(data.total_unread);
+                        }
+                    })
+                    .catch(err => console.error('Error fetching unread count:', err));
+            };
 
-        // Run initial load and set 3-second interval
-        window.pollSidebarUnread();
-        setInterval(window.pollSidebarUnread, 3000);
+            // Run initial load and set 3-second interval
+            window.pollSidebarUnread();
+            setInterval(window.pollSidebarUnread, 3000);
         @endauth
     </script>
     @stack('modals')

@@ -98,6 +98,7 @@ class TicketController extends Controller
         // Auto assign to Guru BK of the class
         $class = auth()->user()->student->class;
         $validated['teacher_id'] = $class->teacher_id ?? null; // Can be null if admin hasn't assigned
+        $validated['class_id'] = $class->id ?? null;
 
         $validated['student_id'] = auth()->user()->student->id;
         $validated['anonymous'] = $request->has('anonymous');

@@ -56,7 +56,7 @@ class JurnalExport implements FromCollection, WithHeadings, WithMapping
             $no++,
             $note->created_at->format('d/m/Y'),
             $note->ticket->student->user->name ?? '-',
-            $note->ticket->student->class->name ?? '-',
+            $note->ticket->class->name ?? $note->ticket->student->class->name ?? '-',
             $note->teacher->user->name ?? '-',
             $note->title . "\n" . $note->masalah,
             $note->tindakan,
