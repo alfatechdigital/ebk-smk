@@ -12,8 +12,10 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         // Enable SQLite WAL mode for better concurrency
-        DB::statement('PRAGMA journal_mode=WAL;');
-        DB::statement('PRAGMA synchronous=NORMAL;');
-        DB::statement('PRAGMA cache_size=10000;');
+        if (DB::getDriverName() === 'sqlite') {
+            DB::statement('PRAGMA journal_mode=WAL;');
+            DB::statement('PRAGMA synchronous=NORMAL;');
+            DB::statement('PRAGMA cache_size=10000;');
+        }
     }
 }
