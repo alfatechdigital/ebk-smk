@@ -130,29 +130,42 @@
             <form method="POST" action="{{ route('login') }}" style="width:100%">
                 @csrf
                 <div class="form-group" style="margin-bottom: 16px;">
-                    <label style="display: block; margin-bottom: 6px; font-weight: 500; font-size: 14px;">Email / NIS</label>
-                    <input type="text" name="email" placeholder="Masukkan email atau NIS..." value="{{ old('email') }}"
+                    <label style="display: block; margin-bottom: 6px; font-weight: 500; font-size: 14px;">NIS / Email</label>
+                    <input type="text" name="email" placeholder="Masukkan NIS atau email..." value="{{ old('email') }}"
                         style="width: 100%; box-sizing: border-box;" required autofocus>
                 </div>
                 <div class="form-group" style="margin-bottom: 20px;">
                     <label
                         style="display: block; margin-bottom: 6px; font-weight: 500; font-size: 14px;">Password</label>
-                    <input type="password" name="password" placeholder="••••••••"
-                        style="width: 100%; box-sizing: border-box;" required>
+                    <div style="position: relative; width: 100%;">
+                        <input type="password" name="password" id="password-input" placeholder="Masukkan password..."
+                            style="width: 100%; box-sizing: border-box; padding-right: 40px;" required>
+                        <button type="button" onclick="togglePasswordVisibility()" 
+                            style="position: absolute; right: 12px; top: 50%; transform: translateY(-50%); border: none; background: transparent; color: var(--muted); cursor: pointer; padding: 0; display: flex; align-items: center; justify-content: center; width: 24px; height: 24px; font-size: 14px; z-index: 10;">
+                            <i class="fas fa-eye" id="password-toggle-icon"></i>
+                        </button>
+                    </div>
                 </div>
                 <button type="submit" class="btn-login"
                     style="width: 100%; justify-content: center; display: flex; align-items: center; gap: 8px;"><i
                         class="fas fa-sign-in-alt"></i> Masuk</button>
             </form>
-
-            <div class="login-hint" style="width: 100%; box-sizing: border-box; text-align: center;">
-                <b style="color: var(--charcoal);">Demo Accounts:</b><br>
-                <span style="color: var(--slate); font-family: monospace;">admin@ebk.id · guru@ebk.id ·
-                    2024003 (NIS Siswa)</span><br>
-                Password: <b style="color: var(--teal);">password</b>
-            </div>
         </div>
     </div>
+
+    <script>
+        function togglePasswordVisibility() {
+            const passwordInput = document.getElementById('password-input');
+            const toggleIcon = document.getElementById('password-toggle-icon');
+            if (passwordInput.type === 'password') {
+                passwordInput.type = 'text';
+                toggleIcon.className = 'fas fa-eye-slash';
+            } else {
+                passwordInput.type = 'password';
+                toggleIcon.className = 'fas fa-eye';
+            }
+        }
+    </script>
 </body>
 
 </html>

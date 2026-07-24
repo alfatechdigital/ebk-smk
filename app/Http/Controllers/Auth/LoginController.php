@@ -47,7 +47,7 @@ class LoginController extends Controller
 
         if (!$user || !Auth::attempt(['email' => $user->email, 'password' => $credentials['password']], $request->boolean('remember'))) {
             throw ValidationException::withMessages([
-                'email' => __('auth.failed'),
+                'email' => 'NIS/Email atau password salah.',
             ]);
         }
 

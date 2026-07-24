@@ -192,8 +192,8 @@
                 <div class="dropdown-menu-content" id="actions-dropdown-{{ $ticket->id }}"
                     style="display: none; position: absolute; right: 0; top: calc(100% + 5px); background: white; border: 1px solid #e2e8f0; border-radius: 8px; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05); z-index: 100; min-width: 170px; overflow: hidden; text-align: left;">
                     <a href="#"
-                        style="display: flex; align-items: center; gap: 8px; padding: 10px 14px; font-size: 13px; color: #d97706; text-decoration: none; transition: background 0.2s; white-space: nowrap;"
-                        onmouseover="this.style.background='#fffbeb'" onmouseout="this.style.background='transparent'"
+                        style="display: flex; align-items: center; gap: 8px; padding: 10px 14px; font-size: 13px; color: #059669; text-decoration: none; transition: background 0.2s; white-space: nowrap;"
+                        onmouseover="this.style.background='#f0fdf4'" onmouseout="this.style.background='transparent'"
                         onclick="event.preventDefault(); closeAllDropdowns(); openSelesaiModal('{{ $ticket->id }}', '{{ addslashes($ticket->title) }}', '{{ addslashes($ticket->description) }}')">
                         <i class="fas fa-check-circle" style="width: 14px;"></i> Selesaikan Konsultasi
                     </a>

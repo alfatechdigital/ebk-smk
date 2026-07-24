@@ -316,8 +316,8 @@
                                 style="font-size: 10px; transition: transform 0.2s;"></i>
                         </button>
                         <div id="inline-actions-container" class="inline-actions-buttons">
-                            <button type="button" id="detail-selesai-btn" class="btn btn-gold"
-                                style="display: inline-flex; align-items: center; gap: 4px; margin: 0; padding: 6px 12px; font-size: 12px; white-space: nowrap;">
+                            <button type="button" id="detail-selesai-btn" class="btn"
+                                style="display: inline-flex; align-items: center; gap: 4px; margin: 0; padding: 6px 12px; font-size: 12px; background-color: #059669; border: none; color: white; white-space: nowrap;">
                                 <i class="fas fa-check-circle"></i> Selesaikan Konsultasi
                             </button>
                             <button type="button" id="detail-cancel-btn" class="btn btn-danger"

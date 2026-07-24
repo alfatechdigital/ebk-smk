@@ -9,22 +9,22 @@
 }
 
 :root {
-  --teal: #0d7c66;
-  --teal-light: #1aab8a;
-  --teal-dark: #085e4d;
-  --cream: #f7f3ee;
-  --cream-dark: #ede7dc;
-  --charcoal: #1c2b2b;
-  --slate: #3d5454;
-  --muted: #7a9090;
-  --gold: #c8923a;
-  --gold-light: #e8b86d;
-  --danger: #c0392b;
+  --teal: #005bb7;
+  --teal-light: #3b82f6;
+  --teal-dark: #003366;
+  --cream: #f8fafc;
+  --cream-dark: #e2e8f0;
+  --charcoal: #0f172a;
+  --slate: #475569;
+  --muted: #64748b;
+  --gold: #d97706;
+  --gold-light: #f59e0b;
+  --danger: #ef4444;
   --sidebar-w: 260px;
   --radius: 14px;
   --radius-sm: 8px;
-  --shadow: 0 4px 24px rgba(13, 124, 102, 0.10);
-  --shadow-md: 0 8px 40px rgba(13, 124, 102, 0.15);
+  --shadow: 0 4px 24px rgba(0, 91, 183, 0.08);
+  --shadow-md: 0 8px 40px rgba(0, 91, 183, 0.12);
 }
 
 *,
@@ -51,7 +51,7 @@ body {
 
 .login-art {
   flex: 1;
-  background: linear-gradient(135deg, var(--teal-dark) 0%, var(--teal) 50%, #1aab8a 100%);
+  background: linear-gradient(135deg, var(--teal-dark) 0%, var(--teal) 50%, var(--teal-light) 100%);
   display: flex;
   flex-direction: column;
   align-items: center;

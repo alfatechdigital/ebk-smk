@@ -5,14 +5,14 @@
     <title>Jurnal Kegiatan BK</title>
     <style>
         body { font-family: 'DejaVu Sans', sans-serif; font-size: 11px; color: #333; margin: 30px; }
-        .header { text-align: center; border-bottom: 2px solid #0d7c66; padding-bottom: 12px; margin-bottom: 20px; }
-        h1 { font-size: 18px; color: #0d7c66; margin: 0 0 5px 0; }
+        .header { text-align: center; border-bottom: 2px solid #005bb7; padding-bottom: 12px; margin-bottom: 20px; }
+        h1 { font-size: 18px; color: #005bb7; margin: 0 0 5px 0; }
         h2 { font-size: 14px; color: #333; margin: 0 0 10px 0; }
         .meta-info { width: 100%; margin-bottom: 20px; }
         .meta-info td { padding: 4px; vertical-align: top; }
         .table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
         .table th, .table td { border: 1px solid #ddd; padding: 8px; text-align: left; vertical-align: top; }
-        .table th { background: #f7f3ee; color: #0d7c66; font-weight: bold; }
+        .table th { background: #f1f5f9; color: #005bb7; font-weight: bold; }
         .footer { margin-top: 40px; text-align: right; font-size: 10px; color: #777; }
         .signature { margin-top: 50px; float: right; width: 200px; text-align: center; }
         .signature .line { border-top: 1px solid #333; margin-top: 50px; padding-top: 4px; }

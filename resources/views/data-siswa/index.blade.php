@@ -177,7 +177,7 @@
 @push('modals')
 @if(auth()->user()->isAdmin())
 {{-- Modal Tambah Siswa --}}
-<div class="modal-overlay" id="modal-tambah-siswa">
+<div class="modal-overlay @if($errors->any() && !old('form_action')) open @endif" id="modal-tambah-siswa">
     <div class="modal" style="max-height: 90vh; overflow-y: auto;">
         <div class="modal-header">
             <h3>Tambah Siswa Baru</h3>
@@ -199,12 +199,6 @@
             </div>
 
             <div class="field-group">
-                <label>Nomor HP</label>
-                <input type="text" name="no_hp" placeholder="Nomor HP siswa (misal: 08123456789)" value="{{ old('no_hp') }}">
-                @error('no_hp')<span style="color:var(--danger);font-size:12px;margin-top:4px;display:block;">{{ $message }}</span>@enderror
-            </div>
-
-            <div class="field-group">
                 <label>Jenis Kelamin</label>
                 <select name="jenis_kelamin">
                     <option value="">— Pilih Jenis Kelamin —</option>
@@ -212,18 +206,6 @@
                     <option value="P" {{ old('jenis_kelamin') == 'P' ? 'selected' : '' }}>Perempuan (P)</option>
                 </select>
                 @error('jenis_kelamin')<span style="color:var(--danger);font-size:12px;margin-top:4px;display:block;">{{ $message }}</span>@enderror
-            </div>
-
-            <div class="field-group">
-                <label>Email</label>
-                <input type="email" name="email" placeholder="Alamat email siswa" required value="{{ old('email') }}">
-                @error('email')<span style="color:var(--danger);font-size:12px;margin-top:4px;display:block;">{{ $message }}</span>@enderror
-            </div>
-
-            <div class="field-group">
-                <label>Password</label>
-                <input type="password" name="password" placeholder="Password login" required minlength="6">
-                @error('password')<span style="color:var(--danger);font-size:12px;margin-top:4px;display:block;">{{ $message }}</span>@enderror
             </div>
 
             <div class="field-group">
@@ -237,6 +219,24 @@
                 @error('class_id')<span style="color:var(--danger);font-size:12px;margin-top:4px;display:block;">{{ $message }}</span>@enderror
             </div>
 
+            <div class="field-group">
+                <label>Nomor HP <span style="color:var(--muted);font-weight:normal;">(Opsional)</span></label>
+                <input type="text" name="no_hp" placeholder="Nomor HP siswa (misal: 08123456789)" value="{{ old('no_hp') }}">
+                @error('no_hp')<span style="color:var(--danger);font-size:12px;margin-top:4px;display:block;">{{ $message }}</span>@enderror
+            </div>
+
+            <div class="field-group">
+                <label>Email <span style="color:var(--muted);font-weight:normal;">(Opsional)</span></label>
+                <input type="email" name="email" placeholder="Alamat email siswa" value="{{ old('email') }}">
+                @error('email')<span style="color:var(--danger);font-size:12px;margin-top:4px;display:block;">{{ $message }}</span>@enderror
+            </div>
+
+            <div class="field-group">
+                <label>Password</label>
+                <input type="password" name="password" placeholder="Password login" required minlength="6">
+                @error('password')<span style="color:var(--danger);font-size:12px;margin-top:4px;display:block;">{{ $message }}</span>@enderror
+            </div>
+
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" onclick="closeModal('modal-tambah-siswa')">Batal</button>
                 <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Simpan Data</button>
@@ -247,31 +247,32 @@
 @endif
 
 {{-- Modal Edit Siswa --}}
-<div class="modal-overlay" id="modal-edit-siswa">
+<div class="modal-overlay @if($errors->any() && old('form_action')) open @endif" id="modal-edit-siswa">
     <div class="modal" style="max-height: 90vh; overflow-y: auto;">
         <div class="modal-header">
             <h3>Edit Data Siswa</h3>
             <button class="modal-close" onclick="closeModal('modal-edit-siswa')">✕</button>
         </div>
-        <form method="POST" id="form-edit-siswa">
+        <form method="POST" id="form-edit-siswa" action="{{ old('form_action') }}">
             @csrf
             @method('PUT')
+            <input type="hidden" name="form_action" id="edit-form-action" value="{{ old('form_action') }}">
             
             <div class="field-group">
                 <label>Nama Lengkap</label>
-                <input type="text" name="name" id="edit-name" required>
+                <input type="text" name="name" id="edit-name" required value="{{ old('name') }}">
                 @error('name')<span style="color:var(--danger);font-size:12px;margin-top:4px;display:block;">{{ $message }}</span>@enderror
             </div>
             
             <div class="field-group">
                 <label>NIS (Nomor Induk Siswa)</label>
-                <input type="text" name="nis" id="edit-nis" required>
+                <input type="text" name="nis" id="edit-nis" required value="{{ old('nis') }}">
                 @error('nis')<span style="color:var(--danger);font-size:12px;margin-top:4px;display:block;">{{ $message }}</span>@enderror
             </div>
 
             <div class="field-group">
-                <label>Nomor HP</label>
-                <input type="text" name="no_hp" id="edit-no-hp">
+                <label>Nomor HP <span style="color:var(--muted);font-weight:normal;">(Opsional)</span></label>
+                <input type="text" name="no_hp" id="edit-no-hp" value="{{ old('no_hp') }}">
                 @error('no_hp')<span style="color:var(--danger);font-size:12px;margin-top:4px;display:block;">{{ $message }}</span>@enderror
             </div>
 
@@ -279,15 +280,15 @@
                 <label>Jenis Kelamin</label>
                 <select name="jenis_kelamin" id="edit-gender">
                     <option value="">— Pilih Jenis Kelamin —</option>
-                    <option value="L">Laki-laki (L)</option>
-                    <option value="P">Perempuan (P)</option>
+                    <option value="L" {{ old('jenis_kelamin') === 'L' ? 'selected' : '' }}>Laki-laki (L)</option>
+                    <option value="P" {{ old('jenis_kelamin') === 'P' ? 'selected' : '' }}>Perempuan (P)</option>
                 </select>
                 @error('jenis_kelamin')<span style="color:var(--danger);font-size:12px;margin-top:4px;display:block;">{{ $message }}</span>@enderror
             </div>
 
             <div class="field-group">
-                <label>Email</label>
-                <input type="email" name="email" id="edit-email" required>
+                <label>Email <span style="color:var(--muted);font-weight:normal;">(Opsional)</span></label>
+                <input type="email" name="email" id="edit-email" value="{{ old('email') }}">
                 @error('email')<span style="color:var(--danger);font-size:12px;margin-top:4px;display:block;">{{ $message }}</span>@enderror
             </div>
 
@@ -302,7 +303,7 @@
                 <select name="class_id" id="edit-class-id" required>
                     <option value="">Pilih kelas...</option>
                     @foreach($classes as $c)
-                        <option value="{{ $c->id }}">{{ $c->name }}</option>
+                        <option value="{{ $c->id }}" {{ old('class_id') == $c->id ? 'selected' : '' }}>{{ $c->name }}</option>
                     @endforeach
                 </select>
                 @error('class_id')<span style="color:var(--danger);font-size:12px;margin-top:4px;display:block;">{{ $message }}</span>@enderror
@@ -422,6 +423,23 @@
         </div>
     </div>
 </div>
+
+@if(session('success'))
+<div class="modal-overlay open" id="modal-success-notification">
+    <div class="modal" style="max-width: 450px; text-align: center; padding: 24px;">
+        <div style="font-size: 3rem; color: var(--success, #10b981); margin-bottom: 15px;">
+            <i class="fa-solid fa-circle-check"></i>
+        </div>
+        <h3 style="font-size: 1.25rem; font-weight: 700; color: var(--charcoal); margin: 0;">Berhasil!</h3>
+        <p style="color: #64748b; font-size: 0.9rem; margin-top: 10px; line-height: 1.5;">
+            {{ session('success') }}
+        </p>
+        <div class="modal-footer" style="justify-content: center; border-top: none; padding-top: 20px; margin-top: 10px;">
+            <button type="button" class="btn btn-primary" onclick="closeModal('modal-success-notification')" style="margin: 0; min-width: 120px;">Tutup</button>
+        </div>
+    </div>
+</div>
+@endif
 @endpush
 
 @push('scripts')
@@ -449,6 +467,7 @@
     
     function openEditSiswaModal(student) {
         document.getElementById('form-edit-siswa').action = '/data-siswa/' + student.id;
+        document.getElementById('edit-form-action').value = '/data-siswa/' + student.id;
         document.getElementById('edit-name').value = student.user.name;
         document.getElementById('edit-nis').value = student.nis;
         document.getElementById('edit-no-hp').value = student.no_hp || '';
@@ -514,14 +533,7 @@
         });
     });
 
-    @if ($errors->any())
-        // Auto-open edit modal if there were errors on fields like password/email for edit
-        if(window.location.hash === '#edit') {
-            openModal('modal-edit-siswa');
-        } else {
-            openModal('modal-tambah-siswa');
-        }
-    @endif
+
 
     // Real-time search script
     const searchInput = document.getElementById('search-input');

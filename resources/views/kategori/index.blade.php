@@ -11,7 +11,7 @@
         <button class="btn btn-primary" onclick="openTambahKategori()"><i class="fas fa-plus"></i> Tambah Kategori</button>
     </div>
 
-    @php $fallbackColors = ['#0d7c66', '#c8923a', '#3d5454', '#7c5cbf', '#c0392b', '#2c3e50']; @endphp
+    @php $fallbackColors = ['#005bb7', '#0284c7', '#059669', '#f97316', '#8b5cf6', '#6366f1']; @endphp
 
     <div class="grid-3">
         @forelse ($services as $i => $s)
@@ -140,7 +140,7 @@
                 @csrf
                 <input type="hidden" name="_method" id="kat-method" value="POST">
                 <input type="hidden" name="icon" id="kat-icon-value" value="fa-user">
-                <input type="hidden" name="color" id="kat-color-value" value="#0d7c66">
+                <input type="hidden" name="color" id="kat-color-value" value="#005bb7">
 
                 <div class="field-group">
                     <label>Nama Kategori</label>
@@ -169,8 +169,8 @@
                 <div class="field-group">
                     <label>Pilih Warna</label>
                     <div class="color-picker-grid" id="color-picker">
-                        @foreach(['#0d7c66', '#059669', '#0284c7', '#7c3aed', '#c8923a', '#d97706', '#c0392b', '#e11d48', '#3d5454', '#475569', '#1e3a5f', '#92400e'] as $clr)
-                            <div class="color-swatch {{ $clr === '#0d7c66' ? 'selected' : '' }}" data-color="{{ $clr }}"
+                        @foreach(['#005bb7', '#0284c7', '#06b6d4', '#059669', '#84cc16', '#eab308', '#f97316', '#ef4444', '#ec4899', '#8b5cf6', '#6366f1', '#475569'] as $clr)
+                            <div class="color-swatch {{ $clr === '#005bb7' ? 'selected' : '' }}" data-color="{{ $clr }}"
                                 style="background:{{ $clr }}" onclick="selectColor('{{ $clr }}')" title="{{ $clr }}"></div>
                         @endforeach
                     </div>
@@ -284,7 +284,7 @@
             document.getElementById('kat-desc').value = '';
             document.getElementById('kat-active').value = '1';
             selectIcon('fa-user');
-            selectColor('#0d7c66');
+            selectColor('#005bb7');
             openModal('modal-kategori');
         }
 
@@ -297,7 +297,7 @@
             document.getElementById('kat-desc').value = desc;
             document.getElementById('kat-active').value = active ? '1' : '0';
             selectIcon(icon || 'fa-user');
-            selectColor(color || '#0d7c66');
+            selectColor(color || '#005bb7');
             openModal('modal-kategori');
         }
 

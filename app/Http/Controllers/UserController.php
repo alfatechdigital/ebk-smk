@@ -170,7 +170,7 @@ class UserController extends Controller
     {
         $validated = $request->validate([
             'name'          => 'required|string|max:255',
-            'email'         => 'required|email|unique:users,email',
+            'email'         => $request->role === 'siswa' ? 'nullable|email|unique:users,email' : 'required|email|unique:users,email',
             'password'      => 'required|string|min:6',
             'role'          => 'required|in:admin,guru,siswa',
             'nis_nip'       => 'nullable|string',
@@ -187,9 +187,11 @@ class UserController extends Controller
             ]);
         }
 
+        $email = $validated['email'] ?? (($request->nis_nip ?? uniqid()) . '@siswa.ebk.id');
+
         $user = User::create([
             'name'          => $validated['name'],
-            'email'         => $validated['email'],
+            'email'         => $email,
             'password'      => Hash::make($validated['password']),
             'role'          => $validated['role'],
             'no_hp'         => $validated['no_hp'] ?? null,
@@ -218,7 +220,7 @@ class UserController extends Controller
     {
         $validated = $request->validate([
             'name'          => 'required|string|max:255',
-            'email'         => 'required|email|unique:users,email,'.$user->id,
+            'email'         => $request->role === 'siswa' ? 'nullable|email|unique:users,email,'.$user->id : 'required|email|unique:users,email,'.$user->id,
             'role'          => 'required|in:admin,guru,siswa',
             'password'      => 'nullable|string|min:6',
             'class_id'      => 'nullable|exists:classes,id',
@@ -236,9 +238,11 @@ class UserController extends Controller
             ]);
         }
 
+        $email = $validated['email'] ?? (($request->nis_nip ?? $user->student?->nis ?? uniqid()) . '@siswa.ebk.id');
+
         $updateData = [
             'name'          => $validated['name'],
-            'email'         => $validated['email'],
+            'email'         => $email,
             'role'          => $validated['role'],
             'no_hp'         => $validated['no_hp'] ?? null,
             'jenis_kelamin' => $validated['jenis_kelamin'] ?? null,

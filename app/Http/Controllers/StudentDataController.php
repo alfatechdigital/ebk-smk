@@ -44,7 +44,7 @@ class StudentDataController extends Controller
 
         $validated = $request->validate([
             'name'          => 'required|string|max:255',
-            'email'         => 'required|email|unique:users,email',
+            'email'         => 'nullable|email|unique:users,email',
             'password'      => 'required|string|min:6',
             'class_id'      => 'required|exists:classes,id',
             'nis'           => 'required|string|unique:students,nis',
@@ -55,9 +55,11 @@ class StudentDataController extends Controller
             'email.unique' => 'Email sudah terdaftar di sistem. Harap gunakan email lain.',
         ]);
 
+        $email = $validated['email'] ?? ($validated['nis'] . '@siswa.ebk.id');
+
         $user = User::create([
             'name'          => $validated['name'],
-            'email'         => $validated['email'],
+            'email'         => $email,
             'password'      => Hash::make($validated['password']),
             'role'          => 'siswa',
             'no_hp'         => $validated['no_hp'] ?? null,
@@ -80,7 +82,7 @@ class StudentDataController extends Controller
         
         $validated = $request->validate([
             'name'          => 'required|string|max:255',
-            'email'         => 'required|email|unique:users,email,' . $user->id,
+            'email'         => 'nullable|email|unique:users,email,' . $user->id,
             'password'      => 'nullable|string|min:6',
             'class_id'      => 'required|exists:classes,id',
             'nis'           => 'required|string|unique:students,nis,' . $student->id,
@@ -91,9 +93,11 @@ class StudentDataController extends Controller
             'email.unique' => 'Email sudah terdaftar di sistem. Harap gunakan email lain.',
         ]);
 
+        $email = $validated['email'] ?? ($validated['nis'] . '@siswa.ebk.id');
+
         $userData = [
             'name'          => $validated['name'],
-            'email'         => $validated['email'],
+            'email'         => $email,
             'no_hp'         => $validated['no_hp'] ?? null,
             'jenis_kelamin' => $validated['jenis_kelamin'] ?? null,
         ];

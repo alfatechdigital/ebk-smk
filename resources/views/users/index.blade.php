@@ -63,16 +63,25 @@
 @endpush
 
 @section('content')
+    @php
+        $currentRole = request('role', 'siswa');
+        $roleLabels = [
+            'admin' => 'Admin',
+            'guru'  => 'Guru BK',
+            'siswa' => 'Siswa',
+        ];
+        $activeLabel = $roleLabels[$currentRole] ?? 'User';
+    @endphp
     <div class="page-header-row">
         <div class="page-header">
-            <h2>Manajemen {{ ucfirst(request('role', 'Pengguna')) }}</h2>
-            <p>Kelola data {{ request('role') }} sistem secara spesifik.</p>
+            <h2>Manajemen {{ $activeLabel }}</h2>
+            <p>Kelola data {{ strtolower($activeLabel) }} sistem secara spesifik.</p>
         </div>
         <div style="display: flex; gap: 8px; align-items: center;">
             @if(request('role') === 'siswa' || !request('role'))
                 <button class="btn btn-secondary" onclick="openImportModal()" style="background: #ffffff; color: var(--slate); border: 1px solid #cbd5e1; font-weight: 500;"><i class="fas fa-file-excel" style="color: #10b981; margin-right: 4px;"></i> Import Siswa</button>
             @endif
-            <button class="btn btn-primary" onclick="openAddModal()"><i class="fas fa-plus"></i> Tambah User</button>
+            <button class="btn btn-primary" onclick="openAddModal()"><i class="fas fa-plus"></i> Tambah {{ $activeLabel }}</button>
             @if(request('role') === 'siswa')
                 <div class="dropdown" style="position: relative; display: inline-block;">
                     <button class="btn btn-secondary" onclick="toggleActionDropdown(event, this)" style="background: #ffffff; color: var(--slate); border: 1px solid #cbd5e1; padding: 9px 14px; margin: 0; display: inline-flex; align-items: center; justify-content: center;">
@@ -266,63 +275,69 @@
 @endsection
 
 @push('modals')
-    <div class="modal-overlay" id="modal-user">
+    <div class="modal-overlay @if($errors->any() && !session('success_modal')) open @endif" id="modal-user">
         <div class="modal" style="max-width: 800px; width: 95%;">
             <div class="modal-header">
-                <h3 id="user-modal-title">Tambah User</h3>
+                <h3 id="user-modal-title">{{ old('_method') === 'PUT' ? 'Edit ' . $activeLabel : 'Tambah ' . $activeLabel }}</h3>
                 <button class="modal-close" onclick="closeModal('modal-user')">✕</button>
             </div>
-            <form method="POST" id="user-form" action="{{ route('users.store') }}">
+            <form method="POST" id="user-form" action="{{ old('form_action', route('users.store')) }}">
                 @csrf
-                <input type="hidden" name="_method" id="user-method" value="POST">
-                <input type="hidden" name="role" id="user-role" value="{{ request('role', 'siswa') }}">
+                <input type="hidden" name="_method" id="user-method" value="{{ old('_method', 'POST') }}">
+                <input type="hidden" name="form_action" id="user-form-action" value="{{ old('form_action', route('users.store')) }}">
+                <input type="hidden" name="role" id="user-role" value="{{ old('role', request('role', 'siswa')) }}">
 
                 <div class="field-group">
                     <label>Nama Lengkap</label>
-                    <input type="text" name="name" id="user-name" required>
+                    <input type="text" name="name" id="user-name" required value="{{ old('name') }}">
+                    @error('name')<span style="color:var(--danger);font-size:12px;margin-top:4px;display:block;">{{ $message }}</span>@enderror
                 </div>
 
                 <div class="field-group">
-                    <label>NIS / NIP</label>
-                    <input type="text" name="nis_nip" id="user-nis">
-                </div>
-
-                <div class="field-group">
-                    <label>No. HP</label>
-                    <input type="text" name="no_hp" id="user-nohp" placeholder="Contoh: 08123456789">
+                    <label id="user-nis-label">{{ old('role', request('role', 'siswa')) === 'siswa' ? 'NIS' : 'NIP' }}</label>
+                    <input type="text" name="nis_nip" id="user-nis" value="{{ old('nis_nip') }}">
+                    @error('nis_nip')<span style="color:var(--danger);font-size:12px;margin-top:4px;display:block;">{{ $message }}</span>@enderror
                 </div>
 
                 <div class="field-group">
                     <label>Jenis Kelamin</label>
                     <select name="jenis_kelamin" id="user-gender">
                         <option value="">— Pilih Jenis Kelamin —</option>
-                        <option value="L">Laki-laki (L)</option>
-                        <option value="P">Perempuan (P)</option>
+                        <option value="L" {{ old('jenis_kelamin') === 'L' ? 'selected' : '' }}>Laki-laki (L)</option>
+                        <option value="P" {{ old('jenis_kelamin') === 'P' ? 'selected' : '' }}>Perempuan (P)</option>
                     </select>
+                    @error('jenis_kelamin')<span style="color:var(--danger);font-size:12px;margin-top:4px;display:block;">{{ $message }}</span>@enderror
                 </div>
 
-                <div id="container-class-siswa-row" style="margin-bottom: 15px;">
-                    <div class="field-group" id="container-class-siswa" style="width: 100%; margin-bottom: 0;">
+                <div id="container-class-siswa-row" style="margin-bottom: 15px; display: {{ old('role', request('role', 'siswa')) === 'siswa' ? 'flex' : 'none' }};">
+                    <div class="field-group" id="container-class-siswa" style="width: 100%; margin-bottom: 0; display: {{ old('role', request('role', 'siswa')) === 'siswa' ? 'block' : 'none' }};">
                         <label>Kelas Siswa</label>
                         <select name="class_id" id="user-class-siswa">
                             <option value="">— Pilih Kelas —</option>
                             @foreach ($classes as $c)
-                                <option value="{{ $c->id }}">{{ $c->name }}</option>
+                                <option value="{{ $c->id }}" {{ old('class_id') == $c->id ? 'selected' : '' }}>{{ $c->name }}</option>
                             @endforeach
                         </select>
+                        @error('class_id')<span style="color:var(--danger);font-size:12px;margin-top:4px;display:block;">{{ $message }}</span>@enderror
                     </div>
                 </div>
 
-
-
                 <div class="field-group">
-                    <label>Email</label>
-                    <input type="email" name="email" id="user-email" required>
+                    <label>No. HP <span style="color:var(--muted);font-weight:normal;">(Opsional)</span></label>
+                    <input type="text" name="no_hp" id="user-nohp" placeholder="Contoh: 08123456789" value="{{ old('no_hp') }}">
+                    @error('no_hp')<span style="color:var(--danger);font-size:12px;margin-top:4px;display:block;">{{ $message }}</span>@enderror
                 </div>
 
                 <div class="field-group">
-                    <label>Password (Kosongkan jika tidak diubah)</label>
+                    <label id="user-email-label">Email <span style="color:var(--muted);font-weight:normal;">(Opsional)</span></label>
+                    <input type="email" name="email" id="user-email" value="{{ old('email') }}">
+                    @error('email')<span style="color:var(--danger);font-size:12px;margin-top:4px;display:block;">{{ $message }}</span>@enderror
+                </div>
+
+                <div class="field-group">
+                    <label id="user-password-label">{{ old('_method') === 'PUT' ? 'Password (Kosongkan jika tidak diubah)' : 'Password' }}</label>
                     <input type="password" name="password" id="user-password" minlength="6" placeholder="Minimal 6 karakter">
+                    @error('password')<span style="color:var(--danger);font-size:12px;margin-top:4px;display:block;">{{ $message }}</span>@enderror
                 </div>
 
                 <div class="modal-footer">
@@ -351,18 +366,19 @@
                 </div>
                 <a href="/template.xlsx" class="btn btn-primary"><i class="fas fa-download"></i>Unduh Template</a>
                 <div
-                    style="margin-top: 15px; font-size: 0.9rem; color: #64748b; background: #f0fdf4; padding: 12px; border-radius: 8px; border: 1px solid #bbf7d0;">
-                    <p style="margin-bottom: 8px; font-weight: 600; color: #166534;"><i class="fas fa-info-circle"></i>
-                        Panduan Format Excel (Baris Pertama)</p>
-                    <ul style="margin-left: 20px; list-style-type: disc;">
-                        <li><strong>nis</strong> : Nomor Induk Siswa (Wajib untuk pencocokan update/insert)</li>
-                        <li><strong>nama</strong> : Nama lengkap siswa</li>
-                        <li><strong>jenis_kelamin</strong> : Jenis Kelamin (L atau P)</li>
-                        <li><strong>kelas</strong> : Nama kelas (misal: X IPA 1)</li>
-                        <li><strong>email</strong> : Alamat email aktif siswa</li>
-                        <li><strong>nomor_hp</strong> : Nomor HP atau WhatsApp siswa</li>
-                        <li><strong>password</strong> : Password login baru (Opsional, bawaan: password123)</li>
-                    </ul>
+                    style="margin-top: 15px; font-size: 0.9rem; color: #475569; background: #eff6ff; padding: 12px; border-radius: 8px; border: 1px solid #bfdbfe;">
+                    <p style="margin-bottom: 8px; font-weight: 600; color: #1e3a8a;"><i class="fas fa-info-circle"></i>
+                        Panduan Proses Import Data:</p>
+                    <ol style="margin-left: 20px; line-height: 1.5;">
+                        <li>Pastikan seluruh <strong>Data Kelas</strong> sudah diatur/ditambahkan di menu Data Kelas sebelum melakukan import.</li>
+                        <li>Unduh template file Excel melalui tombol <strong>"Unduh Template"</strong> di atas.</li>
+                        <li>Buka file template tersebut dan isi data siswa baru sesuai kolom yang disediakan.</li>
+                        <li>Pastikan nama kelas di kolom <strong>kelas</strong> sesuai dengan nama kelas yang terdaftar di sistem.</li>
+                        <li>Pastikan kolom <strong>nis</strong>, <strong>nama</strong>, <strong>jenis_kelamin</strong> (L/P), dan <strong>email</strong> terisi dengan benar.</li>
+                        <li>Simpan file Excel tersebut setelah selesai diisi.</li>
+                        <li>Pilih file Excel yang telah disimpan menggunakan kolom input file di atas.</li>
+                        <li>Klik tombol <strong>"Import"</strong> di bawah untuk memulai proses unggah data siswa.</li>
+                    </ol>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" onclick="closeModal('modal-import')">Batal</button>
@@ -547,26 +563,6 @@
     </div>
     @endif
 
-    @if($errors->any())
-    <div class="modal-overlay open" id="modal-validation-errors">
-        <div class="modal" style="max-width: 450px; text-align: center; padding: 24px;">
-            <div style="font-size: 3rem; color: var(--danger); margin-bottom: 15px;">
-                <i class="fa-solid fa-circle-xmark"></i>
-            </div>
-            <h3 style="font-size: 1.25rem; font-weight: 700; color: var(--charcoal); margin: 0;">Gagal Menyimpan Data</h3>
-            <div style="color: #ef4444; font-size: 0.95rem; margin-top: 15px; text-align: center; padding: 12px; background: #fef2f2; border: 1px solid #fca5a5; border-radius: 6px;">
-                <ul style="margin: 0; padding: 0; list-style: none; line-height: 1.6;">
-                    @foreach ($errors->all() as $error)
-                        <li>{{ $error }}</li>
-                    @endforeach
-                </ul>
-            </div>
-            <div class="modal-footer" style="justify-content: center; border-top: none; padding-top: 20px; margin-top: 10px;">
-                <button type="button" class="btn btn-danger" onclick="closeModal('modal-validation-errors')" style="margin: 0; background: var(--danger); border-color: var(--danger); color: #fff; min-width: 120px;">Tutup</button>
-            </div>
-        </div>
-    </div>
-    @endif
 
     @if(session('success_modal'))
     <div class="modal-overlay open" id="modal-success-notification">
@@ -684,13 +680,19 @@
             const role = document.getElementById('user-role').value;
             const siswaUI = document.getElementById('container-class-siswa');
             const siswaRow = document.getElementById('container-class-siswa-row');
+            const emailInput = document.getElementById('user-email');
+            const emailLabel = document.getElementById('user-email-label');
 
             if (role === 'siswa') {
                 siswaUI.style.display = 'block';
                 if (siswaRow) siswaRow.style.display = 'flex';
+                if (emailInput) emailInput.removeAttribute('required');
+                if (emailLabel) emailLabel.innerHTML = 'Email <span style="color:var(--muted);font-weight:normal;">(Opsional)</span>';
             } else {
                 siswaUI.style.display = 'none';
                 if (siswaRow) siswaRow.style.display = 'none';
+                if (emailInput) emailInput.setAttribute('required', 'required');
+                if (emailLabel) emailLabel.innerHTML = 'Email';
             }
         }
 
@@ -699,19 +701,28 @@
         }
 
         function openAddModal() {
-            document.getElementById('user-modal-title').textContent = 'Tambah User';
+            let role = "{{ request('role', 'siswa') }}";
+            let roleLabel = role === 'admin' ? 'Admin' : (role === 'guru' ? 'Guru BK' : 'Siswa');
+            document.getElementById('user-modal-title').textContent = 'Tambah ' + roleLabel;
+            document.getElementById('user-nis-label').textContent = role === 'siswa' ? 'NIS' : 'NIP';
+            document.getElementById('user-password-label').textContent = 'Password';
             document.getElementById('user-form').action = "{{ route('users.store') }}";
+            document.getElementById('user-form-action').value = "{{ route('users.store') }}";
             document.getElementById('user-method').value = 'POST';
             document.getElementById('user-form').reset();
             document.getElementById('user-password').setAttribute('required', 'required');
-            document.getElementById('user-role').value = "{{ request('role', 'siswa') }}";
+            document.getElementById('user-role').value = role;
             toggleRoleUI();
             openModal('modal-user');
         }
 
         function editUser(id, name, email, role, nis, classId, teacherClasses, noHp, gender) {
-            document.getElementById('user-modal-title').textContent = 'Edit User';
+            let roleLabel = role === 'admin' ? 'Admin' : (role === 'guru' ? 'Guru BK' : 'Siswa');
+            document.getElementById('user-modal-title').textContent = 'Edit ' + roleLabel;
+            document.getElementById('user-nis-label').textContent = role === 'siswa' ? 'NIS' : 'NIP';
+            document.getElementById('user-password-label').textContent = 'Password (Kosongkan jika tidak diubah)';
             document.getElementById('user-form').action = '/users/' + id;
+            document.getElementById('user-form-action').value = '/users/' + id;
             document.getElementById('user-method').value = 'PUT';
             document.getElementById('user-name').value = name;
             document.getElementById('user-email').value = email;

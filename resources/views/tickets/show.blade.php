@@ -122,7 +122,7 @@
             
             @if(auth()->user()->isGuru() && $ticket->status !== 'selesai')
             <div style="border-top: 1px solid #eee; padding-top: 16px; margin-top: 8px;">
-                <button type="button" class="btn btn-gold" style="width: 100%; justify-content: center; padding: 10px;" onclick="openSelesaiModal('{{ $ticket->id }}', '{{ addslashes($ticket->title) }}', '{{ addslashes($ticket->description) }}')">
+                <button type="button" class="btn" style="width: 100%; justify-content: center; padding: 10px; background-color: #059669; border: none; color: white;" onclick="openSelesaiModal('{{ $ticket->id }}', '{{ addslashes($ticket->title) }}', '{{ addslashes($ticket->description) }}')">
                     <i class="fas fa-check-double"></i> Selesaikan Konsultasi
                 </button>
             </div>
