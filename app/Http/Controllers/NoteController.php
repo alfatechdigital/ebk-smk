@@ -28,14 +28,14 @@ class NoteController extends Controller
                   ->whereYear('created_at', date('Y', strtotime($request->month)));
         }
 
-        if ($request->filled('student_id')) {
+        if ($request->filled('student_name')) {
             $query->whereHas('ticket', function($q) use ($request) {
-                $q->where('student_id', $request->student_id);
+                $q->where('student_name', $request->student_name);
             });
         }
 
         if ($request->filled('class_id')) {
-            $query->whereHas('ticket.student', function($q) use ($request) {
+            $query->whereHas('ticket', function($q) use ($request) {
                 $q->where('class_id', $request->class_id);
             });
         }
@@ -53,14 +53,31 @@ class NoteController extends Controller
 
         $notes = $query->latest()->paginate($perPage)->withQueryString();
         
-        // Students for dropdown
-        $students = Student::whereHas('tickets', function($q) use ($teacher) {
-            if ($teacher) $q->where('teacher_id', $teacher->id);
-        })->with('user')->get();
+        // Unique student names from tickets in counseling notes
+        $studentNames = \App\Models\Ticket::whereIn('id', function($subQuery) use ($teacher) {
+                $subQuery->select('ticket_id')
+                    ->from('counseling_notes')
+                    ->when($teacher, function($q) use ($teacher) {
+                        $q->where('teacher_id', $teacher->id);
+                    });
+            })
+            ->whereNotNull('student_name')
+            ->distinct()
+            ->orderBy('student_name')
+            ->pluck('student_name');
 
-        // Classes for dropdown
-        $classes = \App\Models\SchoolClass::when($teacher, function($q) use ($teacher) {
-            $q->where('teacher_id', $teacher->id);
+        // Classes for dropdown from tickets in counseling notes
+        $classes = \App\Models\SchoolClass::whereIn('id', function($query) use ($teacher) {
+            $query->select('class_id')
+                ->from('tickets')
+                ->whereIn('id', function($subQuery) use ($teacher) {
+                    $subQuery->select('ticket_id')
+                        ->from('counseling_notes')
+                        ->when($teacher, function($q) use ($teacher) {
+                            $q->where('teacher_id', $teacher->id);
+                        });
+                })
+                ->whereNotNull('class_id');
         })->get();
 
         // Services for dropdown
@@ -73,7 +90,7 @@ class NoteController extends Controller
             });
         })->with(['user', 'class'])->get();
 
-        return view('catatan.index', compact('notes', 'students', 'classes', 'services', 'allStudents'));
+        return view('catatan.index', compact('notes', 'studentNames', 'classes', 'services', 'allStudents'));
     }
 
     public function exportRekapPdf(Request $request)
@@ -91,14 +108,14 @@ class NoteController extends Controller
                   ->whereYear('created_at', date('Y', strtotime($request->month)));
         }
 
-        if ($request->filled('student_id')) {
+        if ($request->filled('student_name')) {
             $query->whereHas('ticket', function($q) use ($request) {
-                $q->where('student_id', $request->student_id);
+                $q->where('student_name', $request->student_name);
             });
         }
 
         if ($request->filled('class_id')) {
-            $query->whereHas('ticket.student', function($q) use ($request) {
+            $query->whereHas('ticket', function($q) use ($request) {
                 $q->where('class_id', $request->class_id);
             });
         }
@@ -112,7 +129,7 @@ class NoteController extends Controller
         $notes = $query->oldest()->get();
 
         if ($request->query('format') === 'word') {
-            $student = $request->filled('student_id') ? Student::with('user')->find($request->student_id) : null;
+            $student = $request->filled('student_name') ? $request->student_name : null;
             
             $month = 'Semua Bulan';
             if ($request->filled('date')) {
@@ -128,7 +145,7 @@ class NoteController extends Controller
                 ->header('Content-Disposition', 'attachment; filename="Rekap_Catatan_Konseling.docx"');
         }
 
-        $student = $request->filled('student_id') ? Student::with('user')->find($request->student_id) : null;
+        $student = $request->filled('student_name') ? $request->student_name : null;
         
         $month = 'Semua Bulan';
         if ($request->filled('date')) {

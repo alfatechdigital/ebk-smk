@@ -74,7 +74,51 @@
         </div>
     @endif
 
-    <div class="grid-2">
+    @if(auth()->user()->isAdmin())
+        <!-- Daftar Guru BK & Kelas Diampu -->
+        <div class="card">
+            <div class="card-header">
+                <div>
+                    <div class="card-title">Daftar Guru BK & Kelas Binaannya</div>
+                    <div class="card-subtitle">Daftar guru bimbingan konseling dan kelas yang diampu masing-masing</div>
+                </div>
+            </div>
+            <div class="table-wrap">
+                <table>
+                    <thead>
+                        <tr>
+                            <th style="width: 60px; text-align: center;">No</th>
+                            <th>Nama Guru BK</th>
+                            <th>NIP</th>
+                            <th>Kelas Diampu</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @forelse ($teachers as $i => $teacher)
+                            <tr>
+                                <td style="text-align: center;">{{ $i + 1 }}</td>
+                                <td><strong>{{ $teacher->user?->name ?? '-' }}</strong></td>
+                                <td>{{ $teacher->nip ?? '-' }}</td>
+                                <td>
+                                    @forelse($teacher->classes as $class)
+                                        <span class="badge badge-outline" style="border: 1px solid var(--teal); color: var(--teal); background: #f0fdfa; margin-right: 4px; display: inline-block; margin-bottom: 4px;">
+                                            <i class="fas fa-chalkboard-teacher" style="margin-right: 4px;"></i>{{ $class->name }}
+                                        </span>
+                                    @empty
+                                        <span class="text-muted" style="font-style: italic; font-size: 0.85rem;">Belum mengampu kelas</span>
+                                    @endforelse
+                                </td>
+                            </tr>
+                        @empty
+                            <tr>
+                                <td colspan="4" class="text-muted" style="text-align:center">Belum ada data Guru BK</td>
+                            </tr>
+                        @endforelse
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    @else
         <!-- Recent Tickets -->
         <div class="card">
             <div class="card-header">
@@ -90,6 +134,7 @@
                             <th>ID</th>
                             <th>Siswa</th>
                             <th>Layanan</th>
+                            <th>Tanggal & Waktu</th>
                             <th>Status</th>
                         </tr>
                     </thead>
@@ -99,50 +144,25 @@
                                 <td>{{ $ticket->code }}</td>
                                 <td>
                                     @if(auth()->user()->isSiswa())
-                                        {{ $ticket->anonymous ? 'Kamu (Anonim)' : $ticket->student?->user?->name ?? '-' }}
+                                        {{ $ticket->anonymous ? 'Kamu (Anonim)' : $ticket->student_name ?? $ticket->student?->user?->name ?? '-' }}
                                     @else
-                                        {{ $ticket->student?->user?->name ?? '-' }}
+                                        {{ $ticket->student_name ?? $ticket->student?->user?->name ?? '-' }}
                                         @if($ticket->anonymous) <span class="badge badge-warning"
                                         style="font-size:9px;padding:2px 6px;margin-left:4px">Anonim</span> @endif
                                     @endif
                                 </td>
                                 <td>{{ $ticket->service?->name ?? '-' }}</td>
+                                <td>{{ $ticket->created_at->format('d M Y, H:i') }}</td>
                                 <td><span class="badge {{ $ticket->status_badge }}">{{ $ticket->status_label }}</span></td>
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="4" class="text-muted" style="text-align:center">Belum ada tiket</td>
+                                <td colspan="5" class="text-muted" style="text-align:center">Belum ada tiket</td>
                             </tr>
                         @endforelse
                     </tbody>
                 </table>
             </div>
         </div>
-
-        <!-- Activity -->
-        <div class="card">
-            <div class="card-header">
-                <div class="card-title">Aktivitas Terkini</div>
-            </div>
-            <div style="display:flex;flex-direction:column;gap:14px">
-                @forelse ($activities as $act)
-                    <div style="display:flex;gap:12px;align-items:flex-start">
-                        <div
-                            style="width:32px;height:32px;background:rgba(13,124,102,0.1);border-radius:50%;display:flex;align-items:center;justify-content:center;color:var(--teal);font-size:13px;flex-shrink:0">
-                            <i class="{{ $act['icon'] }}"></i>
-                        </div>
-                        <div>
-                            <p style="font-size:13px;font-weight:600;color:var(--charcoal)">{{ $act['text'] }}</p>
-                            <p class="text-muted">{{ $act['time'] }}</p>
-                        </div>
-                    </div>
-                @empty
-                    <div class="empty-state">
-                        <i class="fas fa-bell-slash"></i>
-                        <p>Belum ada aktivitas</p>
-                    </div>
-                @endforelse
-            </div>
-        </div>
-    </div>
+    @endif
 @endsection

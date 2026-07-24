@@ -27,6 +27,7 @@ class DashboardController extends Controller
         $recentTickets = collect();
         $assignedGuru = null;
         $classActivities = collect();
+        $teachers = collect();
 
         if ($user->isAdmin()) {
             $stats['total_siswa'] = Student::count();
@@ -34,6 +35,7 @@ class DashboardController extends Controller
             $stats['diproses'] = Ticket::where('status', 'diproses')->count();
             $stats['total_konsultasi'] = $stats['menunggu'] + $stats['diproses'];
             $recentTickets = Ticket::with(['student.user', 'service'])->latest()->take(5)->get();
+            $teachers = Teacher::with(['user', 'classes'])->get();
         } elseif ($user->isGuru()) {
             $teacherId = $user->teacher->id;
             // Total siswa in classes mentored by this Guru
@@ -64,7 +66,7 @@ class DashboardController extends Controller
 
         $activities = $this->getActivities($user);
 
-        return view('dashboard', compact('stats', 'recentTickets', 'assignedGuru', 'classActivities', 'activities'));
+        return view('dashboard', compact('stats', 'recentTickets', 'assignedGuru', 'classActivities', 'activities', 'teachers'));
     }
 
     private function getActivities(User $user): array

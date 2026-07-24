@@ -19,7 +19,7 @@ class StudentDataController extends Controller
         $user = auth()->user();
         $teacher = $user->teacher;
 
-        $students = Student::with(['user', 'class', 'tickets'])
+        $students = Student::with(['user', 'class.teacher.user', 'tickets'])
             ->when($user->role === 'guru' && $teacher, function ($q) use ($teacher) {
                 $q->whereIn('class_id', $teacher->classes->pluck('id'));
             })
@@ -38,6 +38,10 @@ class StudentDataController extends Controller
 
     public function store(Request $request)
     {
+        if (auth()->user()->role !== 'admin') {
+            abort(403, 'Unauthorized action.');
+        }
+
         $validated = $request->validate([
             'name'          => 'required|string|max:255',
             'email'         => 'required|email|unique:users,email',

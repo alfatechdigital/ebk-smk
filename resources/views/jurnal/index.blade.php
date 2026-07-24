@@ -43,7 +43,7 @@
                     </td>
                     <td>
                         <strong>{{ $j->ticket->code }}</strong><br>
-                        {{ $j->ticket->student->user->name }}
+                        {{ $j->ticket->student_name ?? $j->ticket->student->user->name }}
                     </td>
                     <td>
                         <div style="font-weight:600;margin-bottom:4px">{{ $j->counselingNote->title ?? 'Tanpa Judul' }}</div>

@@ -33,7 +33,8 @@ class TicketController extends Controller
             );
 
         if ($user->role === 'guru' && $user->teacher) {
-            $q->where('teacher_id', $user->teacher->id);
+            $q->where('teacher_id', $user->teacher->id)
+              ->where('status', '!=', 'selesai');
         } elseif ($user->role === 'siswa' && $user->student) {
             $q->where('student_id', $user->student->id);
         }
@@ -55,6 +56,7 @@ class TicketController extends Controller
         if ($request->search) {
             $q->where(function($query) use ($request) {
                 $query->where('title', 'like', '%'.$request->search.'%')
+                      ->orWhere('student_name', 'like', '%'.$request->search.'%')
                       ->orWhereHas('student.user', function($u) use ($request) {
                           $u->where('name', 'like', '%'.$request->search.'%');
                       });
@@ -80,6 +82,14 @@ class TicketController extends Controller
 
     public function create()
     {
+        $user = auth()->user();
+        if ($user->isSiswa()) {
+            $class = $user->student?->class;
+            if (!$class || !$class->teacher_id) {
+                return redirect()->route('tickets.index')->with('error', 'Guru BK belum ditugaskan untuk kelas Anda. Anda belum dapat mengajukan konsultasi.');
+            }
+        }
+
         $teachers = Teacher::with('user')->get();
         $services = Service::where('is_active', true)->get();
         return view('tickets.create', compact('teachers', 'services'));
@@ -87,6 +97,14 @@ class TicketController extends Controller
 
     public function store(Request $request)
     {
+        $user = auth()->user();
+        if ($user->isSiswa()) {
+            $class = $user->student?->class;
+            if (!$class || !$class->teacher_id) {
+                return redirect()->route('tickets.index')->with('error', 'Guru BK belum ditugaskan untuk kelas Anda. Anda belum dapat mengajukan konsultasi.');
+            }
+        }
+
         $validated = $request->validate([
             'service_id' => 'required|exists:services,id',
             'title' => 'required|string|max:255',
@@ -101,6 +119,7 @@ class TicketController extends Controller
         $validated['class_id'] = $class->id ?? null;
 
         $validated['student_id'] = auth()->user()->student->id;
+        $validated['student_name'] = auth()->user()->name;
         $validated['anonymous'] = $request->has('anonymous');
         
         $ticket = Ticket::create($validated);
@@ -191,7 +210,8 @@ class TicketController extends Controller
         
         $q = Ticket::query();
         if ($user->role === 'guru' && $user->teacher) {
-            $q->where('teacher_id', $user->teacher->id);
+            $q->where('teacher_id', $user->teacher->id)
+              ->where('status', '!=', 'selesai');
         } elseif ($user->role === 'siswa' && $user->student) {
             $q->where('student_id', $user->student->id);
         }
@@ -237,6 +257,7 @@ class TicketController extends Controller
         if ($request->search) {
             $newTicketsQuery->where(function($query) use ($request) {
                 $query->where('title', 'like', '%'.$request->search.'%')
+                      ->orWhere('student_name', 'like', '%'.$request->search.'%')
                       ->orWhereHas('student.user', function($u) use ($request) {
                           $u->where('name', 'like', '%'.$request->search.'%');
                       });
@@ -260,10 +281,18 @@ class TicketController extends Controller
         ->where('sender_id', '!=', $userId)
         ->count();
         
+        $totalWaiting = 0;
+        if ($user->role === 'guru' && $user->teacher) {
+            $totalWaiting = Ticket::where('teacher_id', $user->teacher->id)
+                ->where('status', 'menunggu')
+                ->count();
+        }
+        
         return response()->json([
             'updates' => $updates,
             'new_tickets' => $newTicketsHtml,
-            'total_unread' => $totalUnread
+            'total_unread' => $totalUnread,
+            'total_waiting' => $totalWaiting
         ]);
     }
 

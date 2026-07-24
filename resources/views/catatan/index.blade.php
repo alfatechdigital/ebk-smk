@@ -65,10 +65,10 @@
                 <option value="{{ $s->id }}" {{ request('service_id') == $s->id ? 'selected' : '' }}>{{ $s->name }}</option>
             @endforeach
         </select>
-        <select name="student_id" id="student-select" onchange="this.form.submit()">
+        <select name="student_name" id="student-select" onchange="this.form.submit()">
             <option value="">Semua Siswa</option>
-            @foreach($students as $s)
-                <option value="{{ $s->id }}" {{ request('student_id') == $s->id ? 'selected' : '' }}>{{ $s->user->name }}</option>
+            @foreach($studentNames as $name)
+                <option value="{{ $name }}" {{ request('student_name') == $name ? 'selected' : '' }}>{{ $name }}</option>
             @endforeach
         </select>
         <div style="margin-left: auto; display: flex; align-items: center; gap: 12px;">
@@ -118,7 +118,7 @@
                     <div class="siswa" style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
                         <i class="fas fa-user-circle" style="color: var(--slate); font-size: 13px;"></i>
                         <span
-                            style="font-size: 13px; color: var(--slate); font-weight: 600;">{{ $note->ticket?->student?->user?->name ?? 'Anonim' }}
+                            style="font-size: 13px; color: var(--slate); font-weight: 600;">{{ $note->ticket?->student_name ?? $note->ticket?->student?->user?->name ?? 'Anonim' }}
                             · {{ $note->ticket?->class?->name ?? $note->ticket?->student?->class?->name ?? '' }}</span>
                         @if($note->ticket?->service)
                             <span class="badge"
@@ -140,11 +140,11 @@
                     <button class="btn btn-secondary btn-sm"
                         style="background: var(--teal); color: white; border-color: var(--teal); margin: 0; display: inline-flex; align-items: center; gap: 4px; padding: 6px 12px; font-size: 12px; font-weight: 600;"
                         title="Detail Catatan" onclick="openNoteDetailModal(this)"
-                        data-nama="{{ $note->ticket?->student?->user?->name ?? 'Anonim' }}"
+                        data-nama="{{ $note->ticket?->student_name ?? $note->ticket?->student?->user?->name ?? 'Anonim' }}"
                         data-kelas="{{ $note->ticket?->class?->name ?? $note->ticket?->student?->class?->name ?? '-' }}"
                         data-layanan="{{ $note->ticket?->service?->name ?? '-' }}"
                         data-layanan-color="{{ $note->ticket?->service?->color ?? 'var(--teal)' }}"
-                        data-layanan-icon="{{ $note->ticket?->service?->icon ?? 'fas fa-tag' }}"
+                        data-layanan-icon="fas {{ str_starts_with($note->ticket?->service?->icon ?? 'fa-tag', 'fas ') ? Str::after($note->ticket->service->icon, 'fas ') : ($note->ticket?->service?->icon ?? 'fa-tag') }}"
                         data-guru="{{ $note->teacher?->user?->name ?? '-' }}"
                         data-tanggal="{{ $note->created_at->translatedFormat('d M Y') }}" data-title="{{ $note->title }}"
                         data-masalah="{{ $note->masalah }}" data-tindakan="{{ $note->tindakan }}"
@@ -215,7 +215,7 @@
                                 ->get();
                         @endphp
                         @foreach($teacherTickets as $t)
-                            <option value="{{ $t->id }}">{{ $t->code }} - {{ $t->student?->user?->name ?? 'Anonim' }}</option>
+                            <option value="{{ $t->id }}">{{ $t->code }} - {{ $t->student_name ?? $t->student?->user?->name ?? 'Anonim' }}</option>
                         @endforeach
                     </select>
                 </div>

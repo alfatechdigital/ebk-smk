@@ -59,6 +59,8 @@ Route::middleware('auth')->group(function () {
     // ── Admin only ──
     Route::middleware('role:admin')->group(function () {
         Route::post('/users/import', [UserController::class, 'import'])->name('users.import');
+        Route::post('/users/promote-classes', [UserController::class, 'promoteClasses'])->name('users.promote-classes');
+        Route::post('/users/delete-graduated', [UserController::class, 'deleteGraduated'])->name('users.delete-graduated');
         Route::resource('users', UserController::class)->except(['show','create','edit']);
         Route::get('/users', [UserController::class, 'index'])->name('users.index');
         Route::resource('kelas', ClassController::class)->parameters(['kelas' => 'kelas'])->except(['show','create','edit']);
@@ -73,8 +75,8 @@ Route::middleware('auth')->group(function () {
         Route::get('/jurnal/rekap', [JournalController::class, 'exportPdf'])->name('jurnal.rekap');
     });
 
-    // Kategori Layanan (Admin & Guru BK)
-    Route::middleware('role:admin,guru')->group(function () {
+    // Kategori Layanan (Admin)
+    Route::middleware('role:admin')->group(function () {
         Route::resource('kategori', ServiceController::class)->except(['show','create','edit']);
         Route::get('/kategori', [ServiceController::class, 'index'])->name('kategori.index');
     });
@@ -89,3 +91,15 @@ Route::middleware('auth')->group(function () {
     Route::put('/data-siswa/{student}', [App\Http\Controllers\StudentDataController::class, 'update'])->name('data-siswa.update');
     Route::delete('/data-siswa/{student}', [App\Http\Controllers\StudentDataController::class, 'destroy'])->name('data-siswa.destroy');
 });
+
+// Fallback route to serve storage files if symbolic link is not supported/missing
+Route::get('storage/{path}', function ($path) {
+    $path = storage_path('app/public/' . $path);
+    if (!Illuminate\Support\Facades\File::exists($path)) {
+        abort(404);
+    }
+    $response = response()->file($path);
+    $response->prepare(request());
+    return $response;
+})->where('path', '.*');
+

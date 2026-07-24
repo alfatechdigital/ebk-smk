@@ -54,6 +54,11 @@
     .dropdown-menu button.delete-btn:hover {
         background: #fef2f2;
     }
+    @media (min-width: 768px) {
+        .table-wrap {
+            overflow: visible !important;
+        }
+    }
 </style>
 @endpush
 
@@ -63,7 +68,9 @@
         <h2>Data Siswa</h2>
         <p>Daftar seluruh siswa yang terdaftar</p>
     </div>
-    <button class="btn btn-primary" onclick="openModal('modal-tambah-siswa')"><i class="fas fa-plus"></i> Tambah Siswa</button>
+    @if(auth()->user()->isAdmin())
+        <button class="btn btn-primary" onclick="openModal('modal-tambah-siswa')"><i class="fas fa-plus"></i> Tambah Siswa</button>
+    @endif
 </div>
 
 <form class="filter-bar" method="GET">
@@ -92,8 +99,7 @@
                     <th>Nama</th>
                     <th style="text-align: center;">JK</th>
                     <th>Kelas</th>
-                    <th>No. HP</th>
-                    <th>Email</th>
+                    <th>Guru BK</th>
                     <th style="text-align: center;">Total Konsultasi</th>
                     <th style="text-align: center;">Status</th>
                     <th style="text-align: center;">Aksi</th>
@@ -107,10 +113,15 @@
                     <td>{{ $s->user->name }}</td>
                     <td style="text-align: center;">{{ $s->user->jenis_kelamin ?? '-' }}</td>
                     <td>{{ $s->class?->name ?? '-' }}</td>
-                    <td>{{ $s->user->no_hp ?? $s->no_hp ?? '-' }}</td>
-                    <td>{{ $s->user->email }}</td>
+                    <td>{{ $s->class?->teacher?->user?->name ?? '-' }}</td>
                     <td style="text-align: center;">{{ $s->tickets->count() }}</td>
-                    <td style="text-align: center;"><span class="badge {{ $s->user->is_active?'badge-success':'badge-danger' }}">{{ $s->user->is_active?'Aktif':'Nonaktif' }}</span></td>
+                    <td style="text-align: center;">
+                        @if($s->user->is_active)
+                            <span class="badge badge-success">Aktif</span>
+                        @else
+                            <span class="badge badge-info">Lulus</span>
+                        @endif
+                    </td>
                     <td style="text-align: center;">
                         <div class="action-dropdown-container">
                             <button class="btn btn-primary btn-sm" style="display: inline-flex; align-items: center; gap: 4px;" title="Detail Siswa" onclick="openDetailSiswaModal({{ json_encode([
@@ -120,7 +131,8 @@
                                 'gender' => $s->user->jenis_kelamin === 'L' ? 'Laki-laki' : ($s->user->jenis_kelamin === 'P' ? 'Perempuan' : '-'),
                                 'phone' => $s->user->no_hp ?? $s->no_hp ?? '-',
                                 'email' => $s->user->email,
-                                'status' => $s->user->is_active ? 'Aktif' : 'Nonaktif',
+                                'status' => $s->user->is_active ? 'Aktif' : 'Lulus',
+                                'guru_bk' => $s->class?->teacher?->user?->name ?? '-',
                                 'total_tickets' => $s->tickets->count(),
                                 'active_tickets' => $s->tickets->where('status', '!=', 'resolved')->count(),
                                 'resolved_tickets' => $s->tickets->where('status', 'resolved')->count()
@@ -163,6 +175,7 @@
 @endsection
 
 @push('modals')
+@if(auth()->user()->isAdmin())
 {{-- Modal Tambah Siswa --}}
 <div class="modal-overlay" id="modal-tambah-siswa">
     <div class="modal" style="max-height: 90vh; overflow-y: auto;">
@@ -231,6 +244,7 @@
         </form>
     </div>
 </div>
+@endif
 
 {{-- Modal Edit Siswa --}}
 <div class="modal-overlay" id="modal-edit-siswa">
@@ -279,7 +293,7 @@
 
             <div class="field-group">
                 <label>Password (Kosongkan jika tidak diubah)</label>
-                <input type="password" name="password" placeholder="Password login baru (minimal 6 karakter)">
+                <input type="password" name="password" id="edit-password" minlength="6" placeholder="Password login baru (minimal 6 karakter)">
                 @error('password')<span style="color:var(--danger);font-size:12px;margin-top:4px;display:block;">{{ $message }}</span>@enderror
             </div>
 
@@ -364,6 +378,10 @@
                     <span style="font-size: 0.95rem; color: #334155; font-weight: 500;" id="detail-class">XI IPA 2</span>
                 </div>
                 <div style="display: flex; flex-direction: column; gap: 4px;">
+                    <span style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; color: #94a3b8; font-weight: 600;">Guru BK</span>
+                    <span style="font-size: 0.95rem; color: #334155; font-weight: 500;" id="detail-gurubk">-</span>
+                </div>
+                <div style="display: flex; flex-direction: column; gap: 4px;">
                     <span style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; color: #94a3b8; font-weight: 600;">Jenis Kelamin</span>
                     <span style="font-size: 0.95rem; color: #334155; font-weight: 500;" id="detail-gender">Laki-laki</span>
                 </div>
@@ -437,6 +455,7 @@
         document.getElementById('edit-gender').value = student.user.jenis_kelamin || '';
         document.getElementById('edit-email').value = student.user.email;
         document.getElementById('edit-class-id').value = student.class_id;
+        document.getElementById('edit-password').value = '';
         openModal('modal-edit-siswa');
     }
 
@@ -450,6 +469,7 @@
         document.getElementById('detail-name').textContent = student.name;
         document.getElementById('detail-nis-badge').textContent = 'NIS: ' + student.nis;
         document.getElementById('detail-class').textContent = student.class;
+        document.getElementById('detail-gurubk').textContent = student.guru_bk;
         document.getElementById('detail-gender').textContent = student.gender;
         document.getElementById('detail-phone').textContent = student.phone;
         document.getElementById('detail-email').textContent = student.email;
@@ -460,6 +480,8 @@
         statusSpan.classList.add('badge');
         if (student.status === 'Aktif') {
             statusSpan.classList.add('badge-success');
+        } else if (student.status === 'Lulus') {
+            statusSpan.classList.add('badge-info');
         } else {
             statusSpan.classList.add('badge-danger');
         }
@@ -473,12 +495,17 @@
 
     window.toggleActionDropdown = function(event, button) {
         event.stopPropagation();
-        document.querySelectorAll('.dropdown-menu').forEach(menu => {
-            if (menu !== button.nextElementSibling) {
-                menu.classList.remove('show');
+        const menu = button.nextElementSibling;
+        
+        document.querySelectorAll('.dropdown-menu').forEach(m => {
+            if (m !== menu) {
+                m.classList.remove('show');
             }
         });
-        button.nextElementSibling.classList.toggle('show');
+
+        if (menu) {
+            menu.classList.toggle('show');
+        }
     };
 
     document.addEventListener('click', function() {

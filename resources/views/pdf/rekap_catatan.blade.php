@@ -134,7 +134,7 @@
                     <td style="text-align: center;">{{ $index + 1 }}</td>
                     <td style="text-align: center;">{{ $note->created_at->translatedFormat('d M Y') }}</td>
                     <td>
-                        {{ $note->ticket->student->user->name ?? 'Anonim' }}<br>
+                        {{ $note->ticket->student_name ?? $note->ticket->student->user->name ?? 'Anonim' }}<br>
                         {{ $note->ticket->class->name ?? $note->ticket->student->class->name ?? '-' }}
                     </td>
                     <td>{{ $note->ticket->service->name ?? '-' }}</td>

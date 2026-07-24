@@ -25,10 +25,27 @@ class LoginController extends Controller
             'password' => ['required', 'string'],
         ]);
 
-        // Allow login with email or NIP (stored in name field for demo)
-        $user = User::where('email', $credentials['email'])->first();
+        $loginIdentifier = $credentials['email'];
 
-        if (!$user || !Auth::attempt(['email' => $credentials['email'], 'password' => $credentials['password']], $request->boolean('remember'))) {
+        // 1. Try to find user by email first
+        $user = User::where('email', $loginIdentifier)->first();
+
+        if ($user && $user->role === 'siswa') {
+            // Student is trying to log in using email - DENIED!
+            throw ValidationException::withMessages([
+                'email' => 'Siswa wajib login menggunakan NIS, bukan email.',
+            ]);
+        }
+
+        // 2. If not found by email, try to find student by NIS
+        if (!$user) {
+            $student = \App\Models\Student::where('nis', $loginIdentifier)->first();
+            if ($student) {
+                $user = $student->user;
+            }
+        }
+
+        if (!$user || !Auth::attempt(['email' => $user->email, 'password' => $credentials['password']], $request->boolean('remember'))) {
             throw ValidationException::withMessages([
                 'email' => __('auth.failed'),
             ]);
@@ -36,7 +53,7 @@ class LoginController extends Controller
 
         $request->session()->regenerate();
 
-        return redirect()->intended(route('dashboard'));
+        return redirect()->route('dashboard');
     }
 
     public function logout(Request $request)

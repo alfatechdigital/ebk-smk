@@ -96,7 +96,6 @@
                         ['section' => 'Konseling'],
                         ['route' => 'data-siswa.index', 'icon' => 'fas fa-user-graduate', 'label' => 'Data Siswa'],
                         ['route' => 'tickets.index', 'icon' => 'fas fa-comments', 'label' => 'Layanan Konsultasi'],
-                        ['route' => 'kategori.index', 'icon' => 'fas fa-tags', 'label' => 'Kategori Layanan'],
                         ['section' => 'Laporan'],
                         ['route' => 'catatan.index', 'icon' => 'fas fa-clipboard-list', 'label' => 'Catatan Konseling'],
                     ],
@@ -149,12 +148,22 @@
                             <span
                                 style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ $item['label'] }}</span>
                             @if($item['route'] === 'tickets.index')
-                                <span class="sidebar-unread-badge"
-                                    style="display: none; position: relative; width: 20px; height: 20px; align-items: center; justify-content: center; flex-shrink: 0; margin-left: auto;">
-                                    <i class="fas fa-comment" style="font-size: 15px; color: currentColor; opacity: 0.7;"></i>
-                                    <span class="count"
-                                        style="position: absolute; top: -4px; right: -6px; background: #ef4444; color: white; border-radius: 50%; width: 14px; height: 14px; font-size: 8px; font-weight: 700; display: flex; align-items: center; justify-content: center; line-height: 1; border: 1px solid white;">0</span>
-                                </span>
+                                <div class="sidebar-badges-container" style="display: flex; align-items: center; gap: 8px; margin-left: auto;">
+                                    @if(auth()->user()->isGuru())
+                                        <span class="sidebar-waiting-badge"
+                                             style="display: none; position: relative; width: 20px; height: 20px; align-items: center; justify-content: center; flex-shrink: 0;" title="Tiket Menunggu">
+                                             <i class="fas fa-clock" style="font-size: 15px; color: currentColor; opacity: 0.7;"></i>
+                                             <span class="count"
+                                                 style="position: absolute; top: -4px; right: -6px; background: #f59e0b; color: white; border-radius: 50%; width: 14px; height: 14px; font-size: 8px; font-weight: 700; display: flex; align-items: center; justify-content: center; line-height: 1; border: 1px solid white;">0</span>
+                                         </span>
+                                    @endif
+                                    <span class="sidebar-unread-badge"
+                                         style="display: none; position: relative; width: 20px; height: 20px; align-items: center; justify-content: center; flex-shrink: 0;">
+                                         <i class="fas fa-comment" style="font-size: 15px; color: currentColor; opacity: 0.7;"></i>
+                                         <span class="count"
+                                             style="position: absolute; top: -4px; right: -6px; background: #ef4444; color: white; border-radius: 50%; width: 14px; height: 14px; font-size: 8px; font-weight: 700; display: flex; align-items: center; justify-content: center; line-height: 1; border: 1px solid white;">0</span>
+                                     </span>
+                                </div>
                             @endif
                         </span>
                     </a>
@@ -292,17 +301,32 @@
             });
         };
 
-        window.updateSidebarUnreadBadge = function (count) {
+        window.updateSidebarUnreadBadge = function (count, waitingCount) {
             const badge = document.querySelector('.sidebar-unread-badge');
             if (badge) {
-                if (count > 0) {
+                const c = count || 0;
+                if (c > 0) {
                     const countSpan = badge.querySelector('.count');
                     if (countSpan) {
-                        countSpan.textContent = count > 99 ? '99+' : count;
+                        countSpan.textContent = c > 99 ? '99+' : c;
                     }
                     badge.style.display = 'inline-flex';
                 } else {
                     badge.style.display = 'none';
+                }
+            }
+
+            const waitingBadge = document.querySelector('.sidebar-waiting-badge');
+            if (waitingBadge) {
+                const w = waitingCount || 0;
+                if (w > 0) {
+                    const countSpan = waitingBadge.querySelector('.count');
+                    if (countSpan) {
+                        countSpan.textContent = w > 99 ? '99+' : w;
+                    }
+                    waitingBadge.style.display = 'inline-flex';
+                } else {
+                    waitingBadge.style.display = 'none';
                 }
             }
         };
@@ -316,8 +340,8 @@
                 fetch('{{ route("tickets.unread_counts") }}')
                     .then(res => res.json())
                     .then(data => {
-                        if (data && typeof data.total_unread !== 'undefined') {
-                            window.updateSidebarUnreadBadge(data.total_unread);
+                        if (data) {
+                            window.updateSidebarUnreadBadge(data.total_unread, data.total_waiting);
                         }
                     })
                     .catch(err => console.error('Error fetching unread count:', err));

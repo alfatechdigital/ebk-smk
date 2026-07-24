@@ -50,7 +50,7 @@
             <tr>
                 <td>{{ $i + 1 }}</td>
                 <td>{{ $j->created_at->format('d/m/Y') }}<br><small>{{ $j->created_at->format('H:i') }}</small></td>
-                <td>{{ $j->ticket->student->user->name }}</td>
+                <td>{{ $j->ticket->student_name ?? $j->ticket->student->user->name }}</td>
                 <td>{{ $j->counselingNote->teacher->user->name ?? '-' }}</td>
                 <td>
                     <strong>{{ $j->counselingNote->title ?? 'Tanpa Judul' }}</strong><br>

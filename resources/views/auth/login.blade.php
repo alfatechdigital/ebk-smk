@@ -130,9 +130,8 @@
             <form method="POST" action="{{ route('login') }}" style="width:100%">
                 @csrf
                 <div class="form-group" style="margin-bottom: 16px;">
-                    <label style="display: block; margin-bottom: 6px; font-weight: 500; font-size: 14px;">Email /
-                        Username</label>
-                    <input type="text" name="email" placeholder="Masukkan email..." value="{{ old('email') }}"
+                    <label style="display: block; margin-bottom: 6px; font-weight: 500; font-size: 14px;">Email / NIS</label>
+                    <input type="text" name="email" placeholder="Masukkan email atau NIS..." value="{{ old('email') }}"
                         style="width: 100%; box-sizing: border-box;" required autofocus>
                 </div>
                 <div class="form-group" style="margin-bottom: 20px;">
@@ -149,7 +148,7 @@
             <div class="login-hint" style="width: 100%; box-sizing: border-box; text-align: center;">
                 <b style="color: var(--charcoal);">Demo Accounts:</b><br>
                 <span style="color: var(--slate); font-family: monospace;">admin@ebk.id · guru@ebk.id ·
-                    siswa@ebk.id</span><br>
+                    2024003 (NIS Siswa)</span><br>
                 Password: <b style="color: var(--teal);">password</b>
             </div>
         </div>

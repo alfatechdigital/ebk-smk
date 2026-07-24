@@ -149,7 +149,7 @@
         <tr>
             <td class="label">Nama Siswa</td>
             <td>:</td>
-            <td>{{ $note->ticket->anonymous ? 'Anonim' : ($note->ticket->student->user->name ?? '-') }}</td>
+            <td>{{ $note->ticket->anonymous ? 'Anonim' : ($note->ticket->student_name ?? $note->ticket->student->user->name ?? '-') }}</td>
         </tr>
         <tr>
             <td class="label">Kelas</td>

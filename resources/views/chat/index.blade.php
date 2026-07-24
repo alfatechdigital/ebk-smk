@@ -64,7 +64,7 @@
                                 @if(auth()->user()->isSiswa())
                                     {{ $active->teacher->user->name ?? 'Guru BK' }}
                                 @else
-                                    {{ $active->student->user->name ?? '-' }}
+                                    {{ $active->student_name ?? $active->student->user->name ?? '-' }}
                                 @endif
                             </h4>
                             @if(!auth()->user()->isSiswa())
@@ -120,25 +120,25 @@
                                 </div>
                             @elseif($msg->type === 'image')
                                 <div class="msg-bubble" style="flex-direction: column; align-items: stretch;">
-                                    <img src="{{ $msg->file_url }}" class="msg-img" style="max-width: 100%; border-radius: 8px;"
-                                        alt="Image">
+                                    <img src="{{ $msg->file_url }}" class="msg-img" style="max-width: 280px; width: 100%; height: auto; border-radius: 8px; cursor: pointer;"
+                                        alt="Image" onclick="openLightbox('{{ $msg->file_url }}')">
                                     @if($msg->content)
                                     <div class="msg-text" style="margin-top:4px;">{!! nl2br(e($msg->content)) !!}</div>@endif
                                     <span class="msg-time-waba"
                                         style="display:block; text-align:right; margin-top:2px;">{{ $msg->created_at->format('H:i') }}</span>
                                 </div>
                             @elseif($msg->type === 'audio')
-                                <div class="msg-bubble" style="flex-direction: column; align-items: stretch; padding:8px;">
-                                    <audio controls src="{{ $msg->file_url }}" style="height:36px;max-width:220px"></audio>
+                                <div class="msg-bubble" style="display: flex; flex-direction: column; align-items: stretch; padding: 8px; width: 280px; max-width: 100%;">
+                                    <audio controls src="{{ $msg->file_url }}" style="height: 36px; width: 100%; display: block;"></audio>
                                     <span class="msg-time-waba"
-                                        style="display:block; text-align:right; margin-top:2px;">{{ $msg->created_at->format('H:i') }}</span>
+                                        style="display:block; text-align:right; margin-top:4px;">{{ $msg->created_at->format('H:i') }}</span>
                                 </div>
                             @elseif($msg->type === 'video')
-                                <div class="msg-bubble" style="flex-direction: column; align-items: stretch; padding:8px;">
+                                <div class="msg-bubble" style="display: flex; flex-direction: column; align-items: stretch; padding: 8px; width: 280px; max-width: 100%;">
                                     <video controls src="{{ $msg->file_url }}"
-                                        style="max-width:220px; border-radius: var(--radius-sm);"></video>
+                                        style="width: 100%; border-radius: var(--radius-sm); display: block;"></video>
                                     <span class="msg-time-waba"
-                                        style="display:block; text-align:right; margin-top:2px;">{{ $msg->created_at->format('H:i') }}</span>
+                                        style="display:block; text-align:right; margin-top:4px;">{{ $msg->created_at->format('H:i') }}</span>
                                 </div>
                             @else
                                 <div class="msg-bubble">
@@ -159,15 +159,25 @@
                         style="margin: 0; padding: 12px 15px; display: flex; align-items: flex-end; gap: 8px;">
                         @csrf
 
-                        {{-- Attachment Button --}}
-                        <label for="file-input" style="cursor: pointer; margin-bottom: 8px; padding: 5px; color: #666;">
-                            <i class="fa-solid fa-paperclip"></i>
+                        {{-- Attachment Button (Image Only, supports HEIC) --}}
+                        <label for="file-input" style="cursor: pointer; margin-bottom: 8px; padding: 5px; color: #666;" title="Kirim Foto">
+                            <i class="fa-solid fa-image" style="font-size: 1.2rem;"></i>
                         </label>
-                        <input type="file" name="file" id="file-input" style="display:none" onchange="handleFileSelect()">
+                        <input type="file" name="file" id="file-input" accept="image/*, .heic, .heif" style="display:none" onchange="handleFileSelect()">
 
                         {{-- Input Textarea --}}
                         <textarea name="content" placeholder="Ketik pesan..." id="msg-input" rows="1"
                             style="flex-grow: 1; resize: none; border: 1px solid #e0e0e0; border-radius: 20px; padding: 8px 15px; min-height: 40px; max-height: 120px; overflow-y: auto; line-height: 1.5; outline: none; transition: border 0.2s;"></textarea>
+
+                        {{-- Voice Note Preview Area --}}
+                        <div id="voice-preview-container" style="display: none; flex-grow: 1; align-items: center; gap: 8px; background: #f3f4f6; border: 1px solid #e5e7eb; border-radius: 20px; padding: 5px 12px; min-height: 40px;">
+                            <button type="button" id="btn-delete-voice" style="color: var(--danger); border: none; background: none; font-size: 1.1rem; cursor: pointer; padding: 0 4px; display: flex; align-items: center;" title="Hapus rekaman">
+                                <i class="fa-solid fa-trash"></i>
+                            </button>
+                            <audio id="voice-preview" controls style="flex-grow: 1; height: 32px; outline: none;"></audio>
+                        </div>
+
+
 
                         {{-- Dynamic Action Button (Mic / Send / Loading) --}}
                         <div id="action-wrapper" style="margin-bottom: 5px;">
@@ -347,6 +357,34 @@
                     // Capture FormData before disabling input elements to avoid null/ignored values
                     const formData = new FormData(this);
 
+                    // If a voice note is recorded, append it to the FormData
+                    if (window.recordedAudioBlob) {
+                        formData.delete('file');
+                        formData.append('file', window.recordedAudioBlob, `voicenote.${window.recordedExtension}`);
+                    }
+
+                    // If an image is selected, append it to the FormData
+                    if (window.selectedImageBlob) {
+                        formData.delete('file');
+                        formData.append('file', window.selectedImageBlob, window.selectedImageName);
+
+                        // Force update content with the value from image-upload-caption input
+                        const captionEl = document.getElementById('image-upload-caption');
+                        if (captionEl) {
+                            formData.set('content', captionEl.value);
+                        }
+                    }
+
+                    const overlayBtnSend = document.getElementById('overlay-btn-send');
+                    const overlayBtnLoading = document.getElementById('overlay-btn-loading');
+                    const overlayCaption = document.getElementById('image-upload-caption');
+
+                    if (window.selectedImageBlob) {
+                        if (overlayBtnSend) overlayBtnSend.style.display = 'none';
+                        if (overlayBtnLoading) overlayBtnLoading.style.display = 'flex';
+                        if (overlayCaption) overlayCaption.disabled = true;
+                    }
+
                     if (btnSend) btnSend.style.display = 'none';
                     if (btnLoading) btnLoading.style.display = 'block';
                     if (msgInput) msgInput.disabled = true;
@@ -364,17 +402,27 @@
                             return res.json();
                         })
                         .then(data => {
-                            if (msgInput) {
-                                msgInput.value = '';
-                                msgInput.disabled = false;
-                                msgInput.style.height = 'auto';
-                                msgInput.focus();
-                            }
-                            const fileInput = document.getElementById('file-input');
-                            if (fileInput) fileInput.value = '';
+                            if (window.recordedAudioBlob) {
+                                if (typeof window.resetVoiceNotePreview === 'function') {
+                                    window.resetVoiceNotePreview();
+                                }
+                            } else if (window.selectedImageBlob) {
+                                if (typeof window.resetImagePreview === 'function') {
+                                    window.resetImagePreview();
+                                }
+                            } else {
+                                if (msgInput) {
+                                    msgInput.value = '';
+                                    msgInput.disabled = false;
+                                    msgInput.style.height = 'auto';
+                                    msgInput.focus();
+                                }
+                                const fileInput = document.getElementById('file-input');
+                                if (fileInput) fileInput.value = '';
 
-                            if (btnSend) btnSend.style.display = 'none';
-                            if (btnRecord) btnRecord.style.display = 'block';
+                                if (btnSend) btnSend.style.display = 'none';
+                                if (btnRecord) btnRecord.style.display = 'block';
+                            }
                             if (btnLoading) btnLoading.style.display = 'none';
 
                             // Langsung ambil pesan baru
@@ -385,65 +433,175 @@
                         .catch(err => {
                             console.error(err);
                             alert('Gagal mengirim pesan. Silakan coba lagi.');
-                            if (msgInput) msgInput.disabled = false;
                             if (btnLoading) btnLoading.style.display = 'none';
-                            if (msgInput && msgInput.value.trim().length > 0) {
+                            
+                            if (window.recordedAudioBlob) {
                                 if (btnSend) btnSend.style.display = 'block';
+                            } else if (window.selectedImageBlob) {
+                                if (overlayBtnSend) overlayBtnSend.style.display = 'flex';
+                                if (overlayBtnLoading) overlayBtnLoading.style.display = 'none';
+                                if (overlayCaption) overlayCaption.disabled = false;
                             } else {
-                                if (btnRecord) btnRecord.style.display = 'block';
+                                if (msgInput) msgInput.disabled = false;
+                                if (msgInput && msgInput.value.trim().length > 0) {
+                                    if (btnSend) btnSend.style.display = 'block';
+                                } else {
+                                    if (btnRecord) btnRecord.style.display = 'block';
+                                }
                             }
                         });
                 });
             }
 
-            // 3. Handle File (Upload instan via AJAX)
+            // 3. Handle File (Upload instan via AJAX dengan Kompresi Gambar)
+            window.selectedImageBlob = null;
+            window.selectedImageName = '';
+
+            function compressImage(file, quality, maxWidth, maxHeight, callback) {
+                const img = new Image();
+                const objectUrl = URL.createObjectURL(file);
+                img.src = objectUrl;
+                img.onload = function () {
+                    let width = img.width;
+                    let height = img.height;
+
+                    if (width > height) {
+                        if (width > maxWidth) {
+                            height = Math.round((height * maxWidth) / width);
+                            width = maxWidth;
+                        }
+                    } else {
+                        if (height > maxHeight) {
+                            width = Math.round((width * maxHeight) / height);
+                            height = maxHeight;
+                        }
+                    }
+
+                    const canvas = document.createElement('canvas');
+                    canvas.width = width;
+                    canvas.height = height;
+
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0, width, height);
+
+                    canvas.toBlob(function (blob) {
+                        URL.revokeObjectURL(objectUrl);
+                        callback(blob);
+                    }, 'image/jpeg', quality);
+                };
+                img.onerror = function () {
+                    URL.revokeObjectURL(objectUrl);
+                    console.error('Failed to load image for compression');
+                };
+            }
+
+            window.resetImagePreview = function () {
+                window.selectedImageBlob = null;
+                window.selectedImageRawFile = null;
+                window.selectedImageName = '';
+
+                const overlay = document.getElementById('image-upload-preview-overlay');
+                if (overlay) overlay.style.display = 'none';
+
+                const previewImg = document.getElementById('image-upload-preview-img');
+                if (previewImg && previewImg.src.startsWith('blob:')) {
+                    URL.revokeObjectURL(previewImg.src);
+                    previewImg.src = '';
+                }
+
+                const overlayBtnSend = document.getElementById('overlay-btn-send');
+                const overlayBtnLoading = document.getElementById('overlay-btn-loading');
+                const overlayCaption = document.getElementById('image-upload-caption');
+                if (overlayBtnSend) overlayBtnSend.style.display = 'flex';
+                if (overlayBtnLoading) overlayBtnLoading.style.display = 'none';
+                if (overlayCaption) {
+                    overlayCaption.disabled = false;
+                    overlayCaption.value = '';
+                }
+
+                const fileInput = document.getElementById('file-input');
+                if (fileInput) fileInput.value = '';
+
+                const inputEl = document.getElementById('msg-input');
+                if (inputEl) {
+                    inputEl.placeholder = 'Ketik pesan...';
+                    inputEl.disabled = false;
+                    inputEl.value = '';
+                }
+
+                const btnRecord = document.getElementById('btn-record');
+                if (btnRecord) btnRecord.style.display = 'block';
+
+                const btnSend = document.getElementById('btn-send');
+                if (btnSend) btnSend.style.display = 'none';
+            };
+
+            function showImagePreview(fileObj, originalName) {
+                if (btnLoading) btnLoading.style.display = 'none';
+
+                window.selectedImageRawFile = fileObj;
+                
+                const lastDotIndex = originalName.lastIndexOf('.');
+                const nameWithoutExtension = lastDotIndex !== -1 ? originalName.substring(0, lastDotIndex) : originalName;
+                window.selectedImageName = nameWithoutExtension + '.jpg';
+
+                const previewImg = document.getElementById('image-upload-preview-img');
+                if (previewImg) {
+                    previewImg.src = URL.createObjectURL(fileObj);
+                }
+
+                const overlay = document.getElementById('image-upload-preview-overlay');
+                if (overlay) {
+                    overlay.style.display = 'flex';
+                }
+            }
+
             window.handleFileSelect = function () {
                 if (!chatForm) return;
 
-                // Capture FormData before disabling input elements to avoid null/ignored values
-                const formData = new FormData(chatForm);
+                const fileInput = document.getElementById('file-input');
+                if (!fileInput || !fileInput.files || fileInput.files.length === 0) return;
 
-                if (btnRecord) btnRecord.style.display = 'none';
-                if (btnSend) btnSend.style.display = 'none';
-                if (btnLoading) btnLoading.style.display = 'block';
-                if (msgInput) msgInput.disabled = true;
+                const file = fileInput.files[0];
+                const fileName = file.name.toLowerCase();
+                const isHeic = fileName.endsWith('.heic') || fileName.endsWith('.heif') || file.type === 'image/heic' || file.type === 'image/heif';
 
-                fetch(chatForm.action, {
-                    method: 'POST',
-                    body: formData,
-                    headers: {
-                        'X-Requested-With': 'XMLHttpRequest',
-                        'Accept': 'application/json'
-                    }
-                })
-                    .then(res => {
-                        if (!res.ok) throw new Error('Failed to upload file');
-                        return res.json();
-                    })
-                    .then(data => {
-                        if (msgInput) {
-                            msgInput.value = '';
-                            msgInput.disabled = false;
-                            msgInput.style.height = 'auto';
-                        }
-                        const fileInput = document.getElementById('file-input');
-                        if (fileInput) fileInput.value = '';
+                if (isHeic) {
+                    if (btnRecord) btnRecord.style.display = 'none';
+                    if (btnSend) btnSend.style.display = 'none';
+                    if (btnLoading) btnLoading.style.display = 'block';
+                    if (msgInput) msgInput.disabled = true;
 
-                        if (btnSend) btnSend.style.display = 'none';
-                        if (btnRecord) btnRecord.style.display = 'block';
+                    if (typeof heic2any === 'function') {
+                        heic2any({
+                            blob: file,
+                            toType: 'image/jpeg',
+                            quality: 0.6
+                        })
+                        .then(function (convertedBlob) {
+                            showImagePreview(convertedBlob, file.name);
+                        })
+                        .catch(function (err) {
+                            console.error('HEIC conversion failed:', err);
+                            if (btnLoading) btnLoading.style.display = 'none';
+                            if (btnRecord) btnRecord.style.display = 'block';
+                            if (msgInput) msgInput.disabled = false;
+                            alert('Gagal memproses berkas HEIC.');
+                        });
+                    } else {
                         if (btnLoading) btnLoading.style.display = 'none';
-
-                        if (typeof window.fetchNewMessages === 'function') {
-                            window.fetchNewMessages();
-                        }
-                    })
-                    .catch(err => {
-                        console.error(err);
-                        alert('Gagal mengirim file. Pastikan ukuran file tidak melebihi 10MB.');
+                        if (btnRecord) btnRecord.style.display = 'block';
                         if (msgInput) msgInput.disabled = false;
-                        if (btnLoading) btnLoading.style.display = 'none';
-                        if (btnRecord) btnRecord.style.display = 'block';
-                    });
+                        alert('Pustaka konverter HEIC belum termuat.');
+                    }
+                } else if (file.type.startsWith('image/')) {
+                    showImagePreview(file, file.name);
+                } else {
+                    if (btnLoading) btnLoading.style.display = 'none';
+                    if (btnRecord) btnRecord.style.display = 'block';
+                    if (msgInput) msgInput.disabled = false;
+                    alert('Hanya diperbolehkan mengirim gambar/foto.');
+                }
             }
 
             // 4. Scroll ke bawah
@@ -481,6 +639,7 @@
 @push('scripts')
     <script src="https://js.pusher.com/8.2.0/pusher.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/laravel-echo@1.15.3/dist/echo.iife.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/heic2any@0.0.4/dist/heic2any.min.js"></script>
 
     <script>
         {
@@ -605,11 +764,11 @@
                                         const nl2br = (str) => escapeHtml(str).replace(/\n/g, '<br>');
                                         contentHtml = `<div class="msg-bubble"><span class="msg-text">${nl2br(msg.content)}</span><span class="msg-time-waba">${msg.time}</span></div>`;
                                     } else if (msg.type === 'image') {
-                                        contentHtml = `<div class="msg-bubble" style="flex-direction:column;align-items:stretch;"><img src="${msg.file_url}" class="msg-img" alt="Image" style="max-width:100%;border-radius:8px;">${msg.content ? '<div class="msg-text" style="margin-top:4px;">' + msg.content + '</div>' : ''}<span class="msg-time-waba" style="display:block;text-align:right;margin-top:2px;">${msg.time}</span></div>`;
+                                        contentHtml = `<div class="msg-bubble" style="flex-direction:column;align-items:stretch;"><img src="${msg.file_url}" class="msg-img" alt="Image" style="max-width:280px;width:100%;height:auto;border-radius:8px;cursor:pointer;" onclick="openLightbox('${msg.file_url}')">${msg.content ? '<div class="msg-text" style="margin-top:4px;">' + msg.content + '</div>' : ''}<span class="msg-time-waba" style="display:block;text-align:right;margin-top:2px;">${msg.time}</span></div>`;
                                     } else if (msg.type === 'audio') {
-                                        contentHtml = `<div class="msg-bubble" style="flex-direction:column;align-items:stretch;padding:8px;"><audio controls src="${msg.file_url}" style="height:36px;max-width:220px"></audio><span class="msg-time-waba" style="display:block;text-align:right;margin-top:2px;">${msg.time}</span></div>`;
+                                        contentHtml = `<div class="msg-bubble" style="display: flex; flex-direction: column; align-items: stretch; padding: 8px; width: 280px; max-width: 100%;"><audio controls src="${msg.file_url}" style="height: 36px; width: 100%; display: block;"></audio><span class="msg-time-waba" style="display:block; text-align:right; margin-top:4px;">${msg.time}</span></div>`;
                                     } else if (msg.type === 'video') {
-                                        contentHtml = `<div class="msg-bubble" style="flex-direction:column;align-items:stretch;padding:8px;"><video controls src="${msg.file_url}" style="max-width:220px;border-radius:var(--radius-sm);"></video><span class="msg-time-waba" style="display:block;text-align:right;margin-top:2px;">${msg.time}</span></div>`;
+                                        contentHtml = `<div class="msg-bubble" style="display: flex; flex-direction: column; align-items: stretch; padding: 8px; width: 280px; max-width: 100%;"><video controls src="${msg.file_url}" style="width: 100%; border-radius: var(--radius-sm); display: block;"></video><span class="msg-time-waba" style="display:block; text-align:right; margin-top:4px;">${msg.time}</span></div>`;
                                     } else {
                                         contentHtml = `<div class="msg-bubble"><a href="${msg.file_url}" target="_blank" style="color:inherit;text-decoration:none;"><i class="fa-solid fa-file"></i> ${msg.file_name}</a><span class="msg-time-waba">${msg.time}</span></div>`;
                                     }
@@ -656,7 +815,68 @@
                 // Voice Note Recording
                 let mediaRecorder;
                 let audioChunks = [];
+                let recordSeconds = 0;
+                let recordTimer = null;
                 const btnRecord = document.getElementById('btn-record');
+
+                // Global variables on window to share across script tags
+                window.recordedAudioBlob = null;
+                window.recordedMimeType = '';
+                window.recordedExtension = '';
+
+                function formatTime(seconds) {
+                    const mins = Math.floor(seconds / 60);
+                    const secs = seconds % 60;
+                    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+                }
+
+                function stopRecordTimer() {
+                    if (recordTimer) {
+                        clearInterval(recordTimer);
+                        recordTimer = null;
+                    }
+                    const inputEl = document.getElementById('msg-input');
+                    if (inputEl) {
+                        inputEl.placeholder = 'Ketik pesan...';
+                        inputEl.disabled = false;
+                    }
+                }
+
+                window.resetVoiceNotePreview = function () {
+                    window.recordedAudioBlob = null;
+                    window.recordedMimeType = '';
+                    window.recordedExtension = '';
+
+                    const previewEl = document.getElementById('voice-preview');
+                    if (previewEl) previewEl.src = '';
+
+                    const fileLabel = document.querySelector('label[for="file-input"]');
+                    if (fileLabel) fileLabel.style.display = 'inline-block';
+
+                    const inputEl = document.getElementById('msg-input');
+                    if (inputEl) {
+                        inputEl.style.display = 'block';
+                        inputEl.placeholder = 'Ketik pesan...';
+                        inputEl.disabled = false;
+                        inputEl.value = '';
+                    }
+
+                    const previewContainer = document.getElementById('voice-preview-container');
+                    if (previewContainer) previewContainer.style.display = 'none';
+
+                    const btnRecord = document.getElementById('btn-record');
+                    if (btnRecord) btnRecord.style.display = 'block';
+
+                    const btnSend = document.getElementById('btn-send');
+                    if (btnSend) btnSend.style.display = 'none';
+                };
+
+                const btnDeleteVoice = document.getElementById('btn-delete-voice');
+                if (btnDeleteVoice) {
+                    btnDeleteVoice.addEventListener('click', () => {
+                        window.resetVoiceNotePreview();
+                    });
+                }
 
                 if (btnRecord) {
                     btnRecord.addEventListener('click', async () => {
@@ -667,8 +887,33 @@
 
                         if (!mediaRecorder || mediaRecorder.state === 'inactive') {
                             try {
+                                // Detect supported MIME type dynamically
+                                let mimeType = 'audio/webm';
+                                let extension = 'webm';
+                                let options = {};
+
+                                if (typeof MediaRecorder.isTypeSupported === 'function') {
+                                    if (MediaRecorder.isTypeSupported('audio/webm')) {
+                                        options = { mimeType: 'audio/webm' };
+                                        mimeType = 'audio/webm';
+                                        extension = 'webm';
+                                    } else if (MediaRecorder.isTypeSupported('audio/ogg')) {
+                                        options = { mimeType: 'audio/ogg' };
+                                        mimeType = 'audio/ogg';
+                                        extension = 'ogg';
+                                    } else if (MediaRecorder.isTypeSupported('audio/mp4')) {
+                                        options = { mimeType: 'audio/mp4' };
+                                        mimeType = 'audio/mp4';
+                                        extension = 'mp4';
+                                    } else if (MediaRecorder.isTypeSupported('audio/aac')) {
+                                        options = { mimeType: 'audio/aac' };
+                                        mimeType = 'audio/aac';
+                                        extension = 'aac';
+                                    }
+                                }
+
                                 const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-                                mediaRecorder = new MediaRecorder(stream);
+                                mediaRecorder = new MediaRecorder(stream, options);
                                 audioChunks = [];
 
                                 mediaRecorder.ondataavailable = e => {
@@ -676,60 +921,159 @@
                                 };
 
                                 mediaRecorder.onstop = () => {
-                                    const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
-                                    const formData = new FormData(document.getElementById('chat-form'));
-                                    formData.append('file', audioBlob, 'voicenote.webm');
+                                    stopRecordTimer();
+                                    stream.getTracks().forEach(track => track.stop());
 
-                                    btnRecord.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
-                                    btnRecord.style.color = 'var(--muted)';
+                                    window.recordedAudioBlob = new Blob(audioChunks, { type: mimeType });
+                                    window.recordedMimeType = mimeType;
+                                    window.recordedExtension = extension;
 
-                                    fetch('{{ route("chat.send", $active) }}', {
-                                        method: 'POST',
-                                        body: formData,
-                                        headers: {
-                                            'X-Requested-With': 'XMLHttpRequest',
-                                            'Accept': 'application/json'
-                                        }
-                                    }).then(res => {
-                                        if (res.ok) {
-                                            document.getElementById('msg-input').placeholder = 'Ketik pesan...';
-                                            document.getElementById('msg-input').disabled = false;
-                                            window.fetchNewMessages();
-                                        } else {
-                                            alert('Gagal mengirim Voice Note');
-                                        }
-                                    }).catch(err => {
-                                        console.error(err);
-                                        alert('Gagal mengirim Voice Note');
-                                    }).finally(() => {
-                                        btnRecord.innerHTML = '<i class="fa-solid fa-microphone"></i>';
-                                        btnRecord.style.color = 'var(--teal)';
-                                    });
+                                    const previewEl = document.getElementById('voice-preview');
+                                    if (previewEl) {
+                                        previewEl.src = URL.createObjectURL(window.recordedAudioBlob);
+                                    }
+
+                                    const fileLabel = document.querySelector('label[for="file-input"]');
+                                    if (fileLabel) fileLabel.style.display = 'none';
+
+                                    const inputEl = document.getElementById('msg-input');
+                                    if (inputEl) inputEl.style.display = 'none';
+
+                                    const previewContainer = document.getElementById('voice-preview-container');
+                                    if (previewContainer) previewContainer.style.display = 'flex';
+
+                                    if (btnRecord) btnRecord.style.display = 'none';
+                                    const btnSend = document.getElementById('btn-send');
+                                    if (btnSend) btnSend.style.display = 'block';
                                 };
 
                                 mediaRecorder.start();
                                 btnRecord.innerHTML = '<i class="fa-solid fa-stop"></i>';
                                 btnRecord.style.color = 'var(--danger)';
-                                document.getElementById('msg-input').placeholder = 'Merekam...';
+                                
+                                recordSeconds = 0;
+                                document.getElementById('msg-input').placeholder = `Merekam... (${formatTime(recordSeconds)})`;
                                 document.getElementById('msg-input').disabled = true;
+                                recordTimer = setInterval(() => {
+                                    recordSeconds++;
+                                    document.getElementById('msg-input').placeholder = `Merekam... (${formatTime(recordSeconds)})`;
+                                }, 1000);
 
                             } catch (err) {
                                 alert('Gagal mengakses mikrofon: ' + err.message);
+                                stopRecordTimer();
                             }
                         } else {
                             mediaRecorder.stop();
-                            mediaRecorder.stream.getTracks().forEach(track => track.stop());
-                            document.getElementById('msg-input').placeholder = 'Ketik pesan...';
-                            document.getElementById('msg-input').disabled = false;
                         }
                     });
                 }
             @endif
+
+            // Lightbox functions
+            window.openLightbox = function (src) {
+                const overlay = document.getElementById('lightbox-overlay');
+                const img = document.getElementById('lightbox-img');
+                const downloadLink = document.getElementById('lightbox-download');
+                if (overlay && img && downloadLink) {
+                    img.src = src;
+                    downloadLink.href = src;
+                    
+                    const fileName = src.substring(src.lastIndexOf('/') + 1) || 'gambar.jpg';
+                    downloadLink.setAttribute('download', fileName);
+
+                    overlay.style.display = 'flex';
+                }
+            };
+
+            window.closeLightbox = function () {
+                const overlay = document.getElementById('lightbox-overlay');
+                if (overlay) {
+                    overlay.style.display = 'none';
+                }
+            };
+
+            // Image Preview Overlay Functions
+            window.cancelImageUpload = function () {
+                window.resetImagePreview();
+            };
+
+            window.submitImageUpload = function () {
+                const overlayBtnSend = document.getElementById('overlay-btn-send');
+                const overlayBtnLoading = document.getElementById('overlay-btn-loading');
+                const overlayCaption = document.getElementById('image-upload-caption');
+
+                if (overlayBtnSend) overlayBtnSend.style.display = 'none';
+                if (overlayBtnLoading) overlayBtnLoading.style.display = 'flex';
+                if (overlayCaption) overlayCaption.disabled = true;
+
+                if (window.selectedImageRawFile) {
+                    compressImage(window.selectedImageRawFile, 0.7, 1280, 1280, function (compressedBlob) {
+                        window.selectedImageBlob = compressedBlob;
+
+                        const currentForm = document.getElementById('chat-form');
+                        if (currentForm) {
+                            if (typeof currentForm.requestSubmit === 'function') {
+                                currentForm.requestSubmit();
+                            } else {
+                                const event = new Event('submit', { cancelable: true, bubbles: true });
+                                currentForm.dispatchEvent(event);
+                            }
+                        }
+                    });
+                }
+            };
+
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape') {
+                    window.closeLightbox();
+                    window.cancelImageUpload();
+                }
+            });
     }
     </script>
 @endpush
 
 @push('modals')
+    {{-- WhatsApp-style Fullscreen Image Upload Preview Overlay --}}
+    <div class="modal-overlay" id="image-upload-preview-overlay" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.95); z-index: 9999; flex-direction: column; justify-content: space-between; padding: 20px;">
+        {{-- Top Header --}}
+        <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+            <button type="button" onclick="cancelImageUpload()" style="background: none; border: none; color: var(--danger); font-size: 1rem; cursor: pointer; display: flex; align-items: center; gap: 8px; font-weight: 600;">
+                <i class="fa-solid fa-trash"></i> Hapus Foto
+            </button>
+            <span style="color: #fff; font-weight: 600; font-size: 1rem;">Kirim Foto</span>
+            <div style="width: 80px;"></div> {{-- Spacer to balance --}}
+        </div>
+
+        {{-- Center Image --}}
+        <div style="flex-grow: 1; display: flex; justify-content: center; align-items: center; max-height: 65%; overflow: hidden; padding: 10px;">
+            <img id="image-upload-preview-img" src="" style="max-width: 95%; max-height: 450px; object-fit: contain; border-radius: 8px; box-shadow: 0 4px 20px rgba(0,0,0,0.5);">
+        </div>
+
+        {{-- Bottom Input Area --}}
+        <div style="width: 100%; max-width: 600px; margin: 0 auto; display: flex; align-items: center; gap: 10px; background: rgba(255,255,255,0.1); border-radius: 30px; padding: 8px 15px;">
+            <input type="text" id="image-upload-caption" placeholder="Tambahkan keterangan..." style="flex-grow: 1; border: none; background: none; color: #fff; outline: none; padding: 5px 10px; font-size: 0.95rem;">
+            <button type="button" id="overlay-btn-send" onclick="submitImageUpload()" style="width: 40px; height: 40px; border-radius: 50%; background: var(--teal); border: none; color: #fff; display: flex; justify-content: center; align-items: center; cursor: pointer; font-size: 1.1rem; transition: transform 0.2s; flex-shrink: 0;" title="Kirim">
+                <i class="fa-solid fa-paper-plane"></i>
+            </button>
+            <button type="button" id="overlay-btn-loading" style="display: none; width: 40px; height: 40px; border-radius: 50%; background: #ccc; border: none; color: #fff; justify-content: center; align-items: center; cursor: not-allowed; font-size: 1.1rem; flex-shrink: 0;" disabled>
+                <i class="fa-solid fa-circle-notch fa-spin"></i>
+            </button>
+        </div>
+    </div>
+
+    {{-- Fullscreen Image Preview Lightbox --}}
+    <div class="modal-overlay" id="lightbox-overlay" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 9999; justify-content: center; align-items: center; flex-direction: column;">
+        <button onclick="closeLightbox()" style="position: absolute; top: 20px; right: 20px; background: none; border: none; color: #fff; font-size: 2rem; cursor: pointer; z-index: 10000;" title="Tutup">✕</button>
+        <img id="lightbox-img" src="" style="max-width: 90%; max-height: 80%; object-fit: contain; border-radius: 4px; box-shadow: 0 4px 20px rgba(0,0,0,0.5);">
+        <div style="margin-top: 20px; display: flex; gap: 15px;">
+            <a id="lightbox-download" href="" download style="background: var(--teal); color: #fff; text-decoration: none; padding: 10px 20px; border-radius: 20px; font-weight: 600; display: inline-flex; align-items: center; gap: 8px; font-size: 0.9rem; transition: background 0.2s;" title="Download Gambar">
+                <i class="fa-solid fa-download"></i> Download Gambar
+            </a>
+        </div>
+    </div>
+
     <div class="modal-overlay" id="modal-chat-detail">
         <div class="modal" style="max-width: 520px; padding: 24px; text-align: left;">
             <div class="modal-header" style="border-bottom: 1px solid #eee; padding-bottom: 12px; margin-bottom: 16px;">
@@ -755,7 +1099,7 @@
                             <label
                                 style="font-size: 0.7rem; color: #64748b; text-transform: uppercase; font-weight: 700; display: block; margin-bottom: 2px;">Siswa</label>
                             <div style="font-size: 0.9rem; font-weight: 700; color: #1e293b;">
-                                {{ $active->student->user->name ?? '-' }}
+                                {{ $active->student_name ?? $active->student->user->name ?? '-' }}
                             </div>
                         </div>
                         <div>
@@ -781,7 +1125,7 @@
                             @if($active->service)
                                 <span class="badge"
                                     style="background: {{ $active->service->color ?? 'var(--teal)' }}; color: #fff; font-size: 10px; padding: 2px 8px; border-radius: 4px; font-weight: 600; display: inline-flex; align-items: center; gap: 4px; margin-top: 2px;">
-                                    <i class="{{ $active->service->icon ?? 'fas fa-tag' }}"></i> {{ $active->service->name }}
+                                    <i class="fas {{ str_starts_with($active->service->icon ?? 'fa-tag', 'fas ') ? Str::after($active->service->icon, 'fas ') : ($active->service->icon ?? 'fa-tag') }}"></i> {{ $active->service->name }}
                                 </span>
                             @else
                                 <span style="font-size: 0.9rem; font-weight: 700; color: #1e293b;">-</span>

@@ -63,6 +63,11 @@ class ChatController extends Controller
             elseif (str_starts_with($mime, 'video/')) $type = 'video';
             elseif (str_starts_with($mime, 'audio/')) $type = 'audio';
 
+            // Override type to audio if the uploaded file is a voicenote
+            if (str_starts_with($file->getClientOriginalName(), 'voicenote.')) {
+                $type = 'audio';
+            }
+
             $path = $file->store("chat/{$ticket->id}", 'public');
             $data['type']      = $type;
             $data['file_path'] = $path;

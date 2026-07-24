@@ -14,7 +14,9 @@
             @endif
         </div>
         @if(auth()->user()->isSiswa())
-            <a href="{{ route('tickets.create') }}" class="btn btn-primary"><i class="fas fa-plus"></i> Ajukan Konsultasi</a>
+            @if(auth()->user()->student?->class && auth()->user()->student?->class?->teacher_id)
+                <a href="{{ route('tickets.create') }}" class="btn btn-primary"><i class="fas fa-plus"></i> Ajukan Konsultasi</a>
+            @endif
         @elseif(auth()->user()->isAdmin())
             <button class="btn btn-primary" onclick="openModal('modal-ticket')"><i class="fas fa-plus"></i> Tambah
                 Tiket</button>
@@ -22,8 +24,12 @@
     </div>
 
     @if(auth()->user()->isSiswa())
-        <div class="warning-box mb-20"><i class="fas fa-lock"></i><span>Semua konsultasi bersifat <b>rahasia</b>. Hanya kamu dan
-                Guru BK yang dapat melihat isi percakapan.</span></div>
+        @if(!auth()->user()->student?->class || !auth()->user()->student?->class?->teacher_id)
+            <div class="warning-box mb-20" style="background: #fef2f2; border: 1px solid #fca5a5; color: #b91c1c;"><i class="fas fa-exclamation-triangle" style="color: #ef4444;"></i><span>Guru BK belum ditugaskan untuk kelas Anda. Anda belum dapat mengajukan konsultasi baru. Silakan hubungi Administrator.</span></div>
+        @else
+            <div class="warning-box mb-20"><i class="fas fa-lock"></i><span>Semua konsultasi bersifat <b>rahasia</b>. Hanya kamu dan
+                    Guru BK yang dapat melihat isi percakapan.</span></div>
+        @endif
     @endif
 
     <!-- Filter -->
@@ -37,7 +43,9 @@
             <option value="">Semua Status</option>
             <option value="menunggu" {{ request('status') == 'menunggu' ? 'selected' : '' }}>Menunggu</option>
             <option value="diproses" {{ request('status') == 'diproses' ? 'selected' : '' }}>Diproses</option>
-            <option value="selesai" {{ request('status') == 'selesai' ? 'selected' : '' }}>Selesai</option>
+            @if(!auth()->user()->isGuru())
+                <option value="selesai" {{ request('status') == 'selesai' ? 'selected' : '' }}>Selesai</option>
+            @endif
             <option value="dibatalkan" {{ request('status') == 'dibatalkan' ? 'selected' : '' }}>Dibatalkan</option>
         </select>
         <select name="service" onchange="this.form.submit()">
@@ -788,7 +796,7 @@
                 .then(data => {
                     // Update sidebar unread badge
                     if (data.total_unread !== undefined && window.updateSidebarUnreadBadge) {
-                        window.updateSidebarUnreadBadge(data.total_unread);
+                        window.updateSidebarUnreadBadge(data.total_unread, data.total_waiting);
                     }
 
                     // Update existing tickets
