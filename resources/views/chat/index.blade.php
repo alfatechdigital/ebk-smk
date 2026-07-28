@@ -34,14 +34,18 @@
             margin-right: auto;
             flex-wrap: wrap;
         }
+
         .inline-actions-buttons {
             display: none;
             align-items: center;
             gap: 8px;
             flex-wrap: wrap;
         }
+
         @media (min-width: 768px) {
-            .inline-actions-group, .inline-actions-buttons {
+
+            .inline-actions-group,
+            .inline-actions-buttons {
                 flex-wrap: nowrap !important;
             }
         }
@@ -83,7 +87,9 @@
                             @if($active->service && !auth()->user()->isSiswa())
                                 <span class="badge"
                                     style="background: {{ $active->service->color ?? 'var(--teal)' }}; color: #fff; font-size: 9px; padding: 1px 6px; border-radius: 4px; display: inline-flex; align-items: center; gap: 4px; font-weight: 600;">
-                                    <i class="fas {{ str_starts_with($active->service->icon ?? 'fa-tag', 'fas ') ? Str::after($active->service->icon, 'fas ') : ($active->service->icon ?? 'fa-tag') }}"></i> {{ $active->service->name }}
+                                    <i
+                                        class="fas {{ str_starts_with($active->service->icon ?? 'fa-tag', 'fas ') ? Str::after($active->service->icon, 'fas ') : ($active->service->icon ?? 'fa-tag') }}"></i>
+                                    {{ $active->service->name }}
                                 </span>
                             @endif
                         </div>
@@ -100,6 +106,25 @@
                                 style="font-size: 12px; animation: pulse 1.5s infinite; flex-shrink: 0;"></i>
                             <span><strong>Sesi Konsultasi Anonim:</strong> Siswa mengajukan konsultasi ini secara anonim untuk
                                 menjaga kerahasiaan identitas aslinya.</span>
+                        </div>
+                    @endif
+                    @php
+                        $inst = \App\Models\Institute::first();
+                    @endphp
+                    @if($inst && $inst->media_expiry_days > 0)
+                        @php
+                            $expiryText = match ((int) $inst->media_expiry_days) {
+                                90 => '3 bulan',
+                                180 => '6 bulan',
+                                365 => '1 tahun',
+                                default => $inst->media_expiry_days . ' hari'
+                            };
+                        @endphp
+                        <div
+                            style="display: flex; align-items: center; gap: 6px; color: #475569; font-size: 11px; font-weight: 500; margin-top: 4px;">
+                            <i class="fas fa-clock" style="font-size: 11px; color: #64748b; flex-shrink: 0;"></i>
+                            <span>Media gambar & audio dalam chat ini akan terhapus otomatis setelah
+                                <strong>{{ $expiryText }}</strong> sejak chat dibuka.</span>
                         </div>
                     @endif
                 </div>
@@ -120,12 +145,17 @@
                         <div class="msg-body">
                             @if($msg->type === 'text')
                                 <div class="msg-bubble">
-                                    <span class="msg-text">{!! nl2br(e($msg->content)) !!}</span>
+                                    @if($msg->content === 'Media ini telah dihapus secara otomatis oleh sistem.' || $msg->content === 'Media/Berkas telah kedaluwarsa dan terhapus otomatis' || $msg->content === '[Media/Berkas telah kedaluwarsa dan terhapus otomatis]')
+                                        <span class="msg-text" style="font-style: italic; color: #94a3b8;">Media ini telah dihapus secara otomatis oleh sistem.</span>
+                                    @else
+                                        <span class="msg-text">{!! nl2br(e($msg->content)) !!}</span>
+                                    @endif
                                     <span class="msg-time-waba">{{ $msg->created_at->format('H:i') }}</span>
                                 </div>
                             @elseif($msg->type === 'image')
                                 <div class="msg-bubble" style="flex-direction: column; align-items: stretch;">
-                                    <img src="{{ $msg->file_url }}" class="msg-img" style="max-width: 280px; width: 100%; height: auto; border-radius: 8px; cursor: pointer;"
+                                    <img src="{{ $msg->file_url }}" class="msg-img"
+                                        style="max-width: 280px; width: 100%; height: auto; border-radius: 8px; cursor: pointer;"
                                         alt="Image" onclick="openLightbox('{{ $msg->file_url }}')">
                                     @if($msg->content)
                                     <div class="msg-text" style="margin-top:4px;">{!! nl2br(e($msg->content)) !!}</div>@endif
@@ -133,13 +163,16 @@
                                         style="display:block; text-align:right; margin-top:2px;">{{ $msg->created_at->format('H:i') }}</span>
                                 </div>
                             @elseif($msg->type === 'audio')
-                                <div class="msg-bubble" style="display: flex; flex-direction: column; align-items: stretch; padding: 8px; width: 280px; max-width: 100%;">
-                                    <audio controls src="{{ $msg->file_url }}" style="height: 36px; width: 100%; display: block;"></audio>
+                                <div class="msg-bubble"
+                                    style="display: flex; flex-direction: column; align-items: stretch; padding: 8px; width: 280px; max-width: 100%;">
+                                    <audio controls src="{{ $msg->file_url }}"
+                                        style="height: 36px; width: 100%; display: block;"></audio>
                                     <span class="msg-time-waba"
                                         style="display:block; text-align:right; margin-top:4px;">{{ $msg->created_at->format('H:i') }}</span>
                                 </div>
                             @elseif($msg->type === 'video')
-                                <div class="msg-bubble" style="display: flex; flex-direction: column; align-items: stretch; padding: 8px; width: 280px; max-width: 100%;">
+                                <div class="msg-bubble"
+                                    style="display: flex; flex-direction: column; align-items: stretch; padding: 8px; width: 280px; max-width: 100%;">
                                     <video controls src="{{ $msg->file_url }}"
                                         style="width: 100%; border-radius: var(--radius-sm); display: block;"></video>
                                     <span class="msg-time-waba"
@@ -165,18 +198,23 @@
                         @csrf
 
                         {{-- Attachment Button (Image Only, supports HEIC) --}}
-                        <label for="file-input" style="cursor: pointer; margin-bottom: 8px; padding: 5px; color: #666;" title="Kirim Foto">
+                        <label for="file-input" style="cursor: pointer; margin-bottom: 8px; padding: 5px; color: #666;"
+                            title="Kirim Foto">
                             <i class="fa-solid fa-image" style="font-size: 1.2rem;"></i>
                         </label>
-                        <input type="file" name="file" id="file-input" accept="image/*, .heic, .heif" style="display:none" onchange="handleFileSelect()">
+                        <input type="file" name="file" id="file-input" accept="image/*, .heic, .heif" style="display:none"
+                            onchange="handleFileSelect()">
 
                         {{-- Input Textarea --}}
                         <textarea name="content" placeholder="Ketik pesan..." id="msg-input" rows="1"
                             style="flex-grow: 1; resize: none; border: 1px solid #e0e0e0; border-radius: 20px; padding: 8px 15px; min-height: 40px; max-height: 120px; overflow-y: auto; line-height: 1.5; outline: none; transition: border 0.2s;"></textarea>
 
                         {{-- Voice Note Preview Area --}}
-                        <div id="voice-preview-container" style="display: none; flex-grow: 1; align-items: center; gap: 8px; background: #f3f4f6; border: 1px solid #e5e7eb; border-radius: 20px; padding: 5px 12px; min-height: 40px;">
-                            <button type="button" id="btn-delete-voice" style="color: var(--danger); border: none; background: none; font-size: 1.1rem; cursor: pointer; padding: 0 4px; display: flex; align-items: center;" title="Hapus rekaman">
+                        <div id="voice-preview-container"
+                            style="display: none; flex-grow: 1; align-items: center; gap: 8px; background: #f3f4f6; border: 1px solid #e5e7eb; border-radius: 20px; padding: 5px 12px; min-height: 40px;">
+                            <button type="button" id="btn-delete-voice"
+                                style="color: var(--danger); border: none; background: none; font-size: 1.1rem; cursor: pointer; padding: 0 4px; display: flex; align-items: center;"
+                                title="Hapus rekaman">
                                 <i class="fa-solid fa-trash"></i>
                             </button>
                             <audio id="voice-preview" controls style="flex-grow: 1; height: 32px; outline: none;"></audio>
@@ -206,7 +244,8 @@
                         @if($active->status === 'dibatalkan')
                             <i class="fa-solid fa-ban" style="color: #ef4444;"></i> Konsultasi ini telah dibatalkan.
                             @if($active->cancel_reason)
-                                <div style="margin-top: 6px; font-size: 0.85rem; color: #ef4444; background: #fef2f2; border: 1px solid #fecaca; padding: 8px 12px; border-radius: 6px; display: inline-block; text-align: left;">
+                                <div
+                                    style="margin-top: 6px; font-size: 0.85rem; color: #ef4444; background: #fef2f2; border: 1px solid #fecaca; padding: 8px 12px; border-radius: 6px; display: inline-block; text-align: left;">
                                     <strong>Alasan Pembatalan:</strong> {{ $active->cancel_reason }}
                                 </div>
                             @endif
@@ -439,7 +478,7 @@
                             console.error(err);
                             alert('Gagal mengirim pesan. Silakan coba lagi.');
                             if (btnLoading) btnLoading.style.display = 'none';
-                            
+
                             if (window.recordedAudioBlob) {
                                 if (btnSend) btnSend.style.display = 'block';
                             } else if (window.selectedImageBlob) {
@@ -545,7 +584,7 @@
                 if (btnLoading) btnLoading.style.display = 'none';
 
                 window.selectedImageRawFile = fileObj;
-                
+
                 const lastDotIndex = originalName.lastIndexOf('.');
                 const nameWithoutExtension = lastDotIndex !== -1 ? originalName.substring(0, lastDotIndex) : originalName;
                 window.selectedImageName = nameWithoutExtension + '.jpg';
@@ -583,16 +622,16 @@
                             toType: 'image/jpeg',
                             quality: 0.6
                         })
-                        .then(function (convertedBlob) {
-                            showImagePreview(convertedBlob, file.name);
-                        })
-                        .catch(function (err) {
-                            console.error('HEIC conversion failed:', err);
-                            if (btnLoading) btnLoading.style.display = 'none';
-                            if (btnRecord) btnRecord.style.display = 'block';
-                            if (msgInput) msgInput.disabled = false;
-                            alert('Gagal memproses berkas HEIC.');
-                        });
+                            .then(function (convertedBlob) {
+                                showImagePreview(convertedBlob, file.name);
+                            })
+                            .catch(function (err) {
+                                console.error('HEIC conversion failed:', err);
+                                if (btnLoading) btnLoading.style.display = 'none';
+                                if (btnRecord) btnRecord.style.display = 'block';
+                                if (msgInput) msgInput.disabled = false;
+                                alert('Gagal memproses berkas HEIC.');
+                            });
                     } else {
                         if (btnLoading) btnLoading.style.display = 'none';
                         if (btnRecord) btnRecord.style.display = 'block';
@@ -660,7 +699,7 @@
                 const modal = document.getElementById(id);
                 if (modal) modal.classList.remove('open');
             };
-            window.toggleInlineActions = function() {
+            window.toggleInlineActions = function () {
                 const container = document.getElementById('inline-actions-container');
                 const chevron = document.getElementById('actions-chevron');
                 if (container) {
@@ -677,7 +716,7 @@
                     }
                 }
             };
-            window.openSelesaiModal = function(id, title, description) {
+            window.openSelesaiModal = function (id, title, description) {
                 const idInput = document.getElementById('selesai-ticket-id');
                 const titleInput = document.getElementById('selesai-ticket-title');
                 const descInput = document.getElementById('selesai-ticket-description');
@@ -686,7 +725,7 @@
                 if (descInput) descInput.value = description;
                 openModal('modal-selesai');
             };
-            window.openConfirmSelesai = function() {
+            window.openConfirmSelesai = function () {
                 const tindakanVal = document.querySelector('#modal-selesai textarea[name=tindakan]');
                 if (tindakanVal && !tindakanVal.value.trim()) {
                     alert('Tindakan yang Dilakukan wajib diisi!');
@@ -695,10 +734,10 @@
                 }
                 openModal('modal-confirm-selesai');
             };
-            window.submitSelesaiForm = function() {
+            window.submitSelesaiForm = function () {
                 document.getElementById('form-selesai-konsultasi').submit();
             };
-            window.openConfirmCancelModal = function(id) {
+            window.openConfirmCancelModal = function (id) {
                 window._pendingCancelId = id;
                 const form = document.getElementById('form-cancel-ticket');
                 if (form) {
@@ -709,7 +748,7 @@
                 openModal('modal-cancel-ticket');
             };
             window.openCancelModal = window.openConfirmCancelModal;
-            window.openConfirmCancelSubmit = function() {
+            window.openConfirmCancelSubmit = function () {
                 const ta = document.querySelector('#form-cancel-ticket textarea[name=cancel_reason]');
                 if (!ta || !ta.value.trim()) {
                     if (ta) ta.focus();
@@ -717,7 +756,7 @@
                 }
                 openModal('modal-confirm-cancel');
             };
-            window.submitCancelForm = function() {
+            window.submitCancelForm = function () {
                 closeModal('modal-confirm-cancel');
                 document.getElementById('form-cancel-ticket').submit();
             };
@@ -767,7 +806,11 @@
                                             .replace(/>/g, '&gt;')
                                             .replace(/"/g, '&quot;');
                                         const nl2br = (str) => escapeHtml(str).replace(/\n/g, '<br>');
-                                        contentHtml = `<div class="msg-bubble"><span class="msg-text">${nl2br(msg.content)}</span><span class="msg-time-waba">${msg.time}</span></div>`;
+                                        if (msg.content === 'Media ini telah dihapus secara otomatis oleh sistem.' || msg.content === 'Media/Berkas telah kedaluwarsa dan terhapus otomatis' || msg.content === '[Media/Berkas telah kedaluwarsa dan terhapus otomatis]') {
+                                             contentHtml = `<div class="msg-bubble"><span class="msg-text" style="font-style: italic; color: #94a3b8;">Media ini telah dihapus secara otomatis oleh sistem.</span><span class="msg-time-waba">${msg.time}</span></div>`;
+                                         } else {
+                                             contentHtml = `<div class="msg-bubble"><span class="msg-text">${nl2br(msg.content)}</span><span class="msg-time-waba">${msg.time}</span></div>`;
+                                         }
                                     } else if (msg.type === 'image') {
                                         contentHtml = `<div class="msg-bubble" style="flex-direction:column;align-items:stretch;"><img src="${msg.file_url}" class="msg-img" alt="Image" style="max-width:280px;width:100%;height:auto;border-radius:8px;cursor:pointer;" onclick="openLightbox('${msg.file_url}')">${msg.content ? '<div class="msg-text" style="margin-top:4px;">' + msg.content + '</div>' : ''}<span class="msg-time-waba" style="display:block;text-align:right;margin-top:2px;">${msg.time}</span></div>`;
                                     } else if (msg.type === 'audio') {
@@ -779,16 +822,16 @@
                                     }
 
                                     const isAnonymousTicket = {{ ($active && $active->anonymous) ? 'true' : 'false' }};
-                                    const avatarContent = (isAnonymousTicket && msg.sender.role === 'siswa') 
-                                        ? '<i class="fas fa-user-secret"></i>' 
+                                    const avatarContent = (isAnonymousTicket && msg.sender.role === 'siswa')
+                                        ? '<i class="fas fa-user-secret"></i>'
                                         : msg.sender.initials;
 
                                     msgEl.innerHTML = `
-                                    <div class="msg-avatar" ${msg.is_me ? 'style="background:var(--teal-dark)"' : ''}>${avatarContent}</div>
-                                    <div class="msg-body">
-                                        ${contentHtml}
-                                    </div>
-                                `;
+                                            <div class="msg-avatar" ${msg.is_me ? 'style="background:var(--teal-dark)"' : ''}>${avatarContent}</div>
+                                            <div class="msg-body">
+                                                ${contentHtml}
+                                            </div>
+                                        `;
 
                                     if (msgsDiv) {
                                         msgsDiv.appendChild(msgEl);
@@ -960,7 +1003,7 @@
                                 mediaRecorder.start();
                                 btnRecord.innerHTML = '<i class="fa-solid fa-stop"></i>';
                                 btnRecord.style.color = 'var(--danger)';
-                                
+
                                 recordSeconds = 0;
                                 document.getElementById('msg-input').placeholder = `Merekam... (${formatTime(recordSeconds)})`;
                                 document.getElementById('msg-input').disabled = true;
@@ -988,7 +1031,7 @@
                 if (overlay && img && downloadLink) {
                     img.src = src;
                     downloadLink.href = src;
-                    
+
                     const fileName = src.substring(src.lastIndexOf('/') + 1) || 'gambar.jpg';
                     downloadLink.setAttribute('download', fileName);
 
@@ -1034,22 +1077,24 @@
                 }
             };
 
-            document.addEventListener('keydown', function(e) {
+            document.addEventListener('keydown', function (e) {
                 if (e.key === 'Escape') {
                     window.closeLightbox();
                     window.cancelImageUpload();
                 }
             });
-    }
+        }
     </script>
 @endpush
 
 @push('modals')
     {{-- WhatsApp-style Fullscreen Image Upload Preview Overlay --}}
-    <div class="modal-overlay" id="image-upload-preview-overlay" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.95); z-index: 9999; flex-direction: column; justify-content: space-between; padding: 20px;">
+    <div class="modal-overlay" id="image-upload-preview-overlay"
+        style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.95); z-index: 9999; flex-direction: column; justify-content: space-between; padding: 20px;">
         {{-- Top Header --}}
         <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
-            <button type="button" onclick="cancelImageUpload()" style="background: none; border: none; color: var(--danger); font-size: 1rem; cursor: pointer; display: flex; align-items: center; gap: 8px; font-weight: 600;">
+            <button type="button" onclick="cancelImageUpload()"
+                style="background: none; border: none; color: var(--danger); font-size: 1rem; cursor: pointer; display: flex; align-items: center; gap: 8px; font-weight: 600;">
                 <i class="fa-solid fa-trash"></i> Hapus Foto
             </button>
             <span style="color: #fff; font-weight: 600; font-size: 1rem;">Kirim Foto</span>
@@ -1057,28 +1102,42 @@
         </div>
 
         {{-- Center Image --}}
-        <div style="flex-grow: 1; display: flex; justify-content: center; align-items: center; max-height: 65%; overflow: hidden; padding: 10px;">
-            <img id="image-upload-preview-img" src="" style="max-width: 95%; max-height: 450px; object-fit: contain; border-radius: 8px; box-shadow: 0 4px 20px rgba(0,0,0,0.5);">
+        <div
+            style="flex-grow: 1; display: flex; justify-content: center; align-items: center; max-height: 65%; overflow: hidden; padding: 10px;">
+            <img id="image-upload-preview-img" src=""
+                style="max-width: 95%; max-height: 450px; object-fit: contain; border-radius: 8px; box-shadow: 0 4px 20px rgba(0,0,0,0.5);">
         </div>
 
         {{-- Bottom Input Area --}}
-        <div style="width: 100%; max-width: 600px; margin: 0 auto; display: flex; align-items: center; gap: 10px; background: rgba(255,255,255,0.1); border-radius: 30px; padding: 8px 15px;">
-            <input type="text" id="image-upload-caption" placeholder="Tambahkan keterangan..." style="flex-grow: 1; border: none; background: none; color: #fff; outline: none; padding: 5px 10px; font-size: 0.95rem;">
-            <button type="button" id="overlay-btn-send" onclick="submitImageUpload()" style="width: 40px; height: 40px; border-radius: 50%; background: var(--teal); border: none; color: #fff; display: flex; justify-content: center; align-items: center; cursor: pointer; font-size: 1.1rem; transition: transform 0.2s; flex-shrink: 0;" title="Kirim">
+        <div
+            style="width: 100%; max-width: 600px; margin: 0 auto; display: flex; align-items: center; gap: 10px; background: rgba(255,255,255,0.1); border-radius: 30px; padding: 8px 15px;">
+            <input type="text" id="image-upload-caption" placeholder="Tambahkan keterangan..."
+                style="flex-grow: 1; border: none; background: none; color: #fff; outline: none; padding: 5px 10px; font-size: 0.95rem;">
+            <button type="button" id="overlay-btn-send" onclick="submitImageUpload()"
+                style="width: 40px; height: 40px; border-radius: 50%; background: var(--teal); border: none; color: #fff; display: flex; justify-content: center; align-items: center; cursor: pointer; font-size: 1.1rem; transition: transform 0.2s; flex-shrink: 0;"
+                title="Kirim">
                 <i class="fa-solid fa-paper-plane"></i>
             </button>
-            <button type="button" id="overlay-btn-loading" style="display: none; width: 40px; height: 40px; border-radius: 50%; background: #ccc; border: none; color: #fff; justify-content: center; align-items: center; cursor: not-allowed; font-size: 1.1rem; flex-shrink: 0;" disabled>
+            <button type="button" id="overlay-btn-loading"
+                style="display: none; width: 40px; height: 40px; border-radius: 50%; background: #ccc; border: none; color: #fff; justify-content: center; align-items: center; cursor: not-allowed; font-size: 1.1rem; flex-shrink: 0;"
+                disabled>
                 <i class="fa-solid fa-circle-notch fa-spin"></i>
             </button>
         </div>
     </div>
 
     {{-- Fullscreen Image Preview Lightbox --}}
-    <div class="modal-overlay" id="lightbox-overlay" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 9999; justify-content: center; align-items: center; flex-direction: column;">
-        <button onclick="closeLightbox()" style="position: absolute; top: 20px; right: 20px; background: none; border: none; color: #fff; font-size: 2rem; cursor: pointer; z-index: 10000;" title="Tutup">✕</button>
-        <img id="lightbox-img" src="" style="max-width: 90%; max-height: 80%; object-fit: contain; border-radius: 4px; box-shadow: 0 4px 20px rgba(0,0,0,0.5);">
+    <div class="modal-overlay" id="lightbox-overlay"
+        style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 9999; justify-content: center; align-items: center; flex-direction: column;">
+        <button onclick="closeLightbox()"
+            style="position: absolute; top: 20px; right: 20px; background: none; border: none; color: #fff; font-size: 2rem; cursor: pointer; z-index: 10000;"
+            title="Tutup">✕</button>
+        <img id="lightbox-img" src=""
+            style="max-width: 90%; max-height: 80%; object-fit: contain; border-radius: 4px; box-shadow: 0 4px 20px rgba(0,0,0,0.5);">
         <div style="margin-top: 20px; display: flex; gap: 15px;">
-            <a id="lightbox-download" href="" download style="background: var(--teal); color: #fff; text-decoration: none; padding: 10px 20px; border-radius: 20px; font-weight: 600; display: inline-flex; align-items: center; gap: 8px; font-size: 0.9rem; transition: background 0.2s;" title="Download Gambar">
+            <a id="lightbox-download" href="" download
+                style="background: var(--teal); color: #fff; text-decoration: none; padding: 10px 20px; border-radius: 20px; font-weight: 600; display: inline-flex; align-items: center; gap: 8px; font-size: 0.9rem; transition: background 0.2s;"
+                title="Download Gambar">
                 <i class="fa-solid fa-download"></i> Download Gambar
             </a>
         </div>
@@ -1135,7 +1194,9 @@
                             @if($active->service)
                                 <span class="badge"
                                     style="background: {{ $active->service->color ?? 'var(--teal)' }}; color: #fff; font-size: 10px; padding: 2px 8px; border-radius: 4px; font-weight: 600; display: inline-flex; align-items: center; gap: 4px; margin-top: 2px;">
-                                    <i class="fas {{ str_starts_with($active->service->icon ?? 'fa-tag', 'fas ') ? Str::after($active->service->icon, 'fas ') : ($active->service->icon ?? 'fa-tag') }}"></i> {{ $active->service->name }}
+                                    <i
+                                        class="fas {{ str_starts_with($active->service->icon ?? 'fa-tag', 'fas ') ? Str::after($active->service->icon, 'fas ') : ($active->service->icon ?? 'fa-tag') }}"></i>
+                                    {{ $active->service->name }}
                                 </span>
                             @else
                                 <span style="font-size: 0.9rem; font-weight: 700; color: #1e293b;">-</span>
@@ -1153,7 +1214,8 @@
                     </div>
                     <div>
                         <label
-                            style="font-size: 0.7rem; color: #64748b; text-transform: uppercase; font-weight: 700; display: block; margin-bottom: 2px;">Tanggal Konseling</label>
+                            style="font-size: 0.7rem; color: #64748b; text-transform: uppercase; font-weight: 700; display: block; margin-bottom: 2px;">Tanggal
+                            Konseling</label>
                         <div style="font-size: 0.9rem; font-weight: 700; color: #1e293b;">
                             {{ $active->created_at->translatedFormat('d M Y') }}
                         </div>
@@ -1190,90 +1252,109 @@
                     <label
                         style="font-size: 0.75rem; color: #64748b; text-transform: uppercase; font-weight: 700; display: block; margin-bottom: 4px;">Deskripsi
                         Masalah</label>
-                    <div style="text-align: left; font-size: 0.9rem; color: #334155; background: #f8fafc; border-left: 4px solid var(--teal); padding: 12px; border-radius: 0 8px 8px 0; line-height: 1.5; white-space: pre-wrap; word-break: break-word;">{{ $active->description }}</div>
+                    <div
+                        style="text-align: left; font-size: 0.9rem; color: #334155; background: #f8fafc; border-left: 4px solid var(--teal); padding: 12px; border-radius: 0 8px 8px 0; line-height: 1.5; white-space: pre-wrap; word-break: break-word;">
+                        {{ $active->description }}</div>
                 </div>
             </div>
             <div class="modal-footer"
                 style="margin-top: 24px; padding-top: 12px; border-top: 1px solid #eee; display: flex; justify-content: flex-end; gap: 8px; position: relative;">
                 @if(auth()->user()->isGuru() && $active->status !== 'selesai' && $active->status !== 'dibatalkan')
                     <div id="detail-actions-wrapper" class="inline-actions-group" style="display: inline-flex;">
-                        <button type="button" id="btn-toggle-actions" class="btn btn-secondary" style="display: inline-flex; align-items: center; gap: 6px; margin: 0; padding: 6px 12px; font-size: 12px; white-space: nowrap;" onclick="toggleInlineActions()">
-                            <i class="fas fa-cogs"></i> Tindakan <i class="fas fa-chevron-right" id="actions-chevron" style="font-size: 10px; transition: transform 0.2s;"></i>
+                        <button type="button" id="btn-toggle-actions" class="btn btn-secondary"
+                            style="display: inline-flex; align-items: center; gap: 6px; margin: 0; padding: 6px 12px; font-size: 12px; white-space: nowrap;"
+                            onclick="toggleInlineActions()">
+                            <i class="fas fa-cogs"></i> Tindakan <i class="fas fa-chevron-right" id="actions-chevron"
+                                style="font-size: 10px; transition: transform 0.2s;"></i>
                         </button>
                         <div id="inline-actions-container" class="inline-actions-buttons">
-                            <button type="button" class="btn" style="display: inline-flex; align-items: center; gap: 4px; margin: 0; padding: 6px 12px; font-size: 12px; background-color: #059669; border: none; color: white; white-space: nowrap;" onclick="closeModal('modal-chat-detail'); openSelesaiModal('{{ $active->id }}', '{{ addslashes($active->title) }}', '{{ addslashes($active->description) }}')">
+                            <button type="button" class="btn"
+                                style="display: inline-flex; align-items: center; gap: 4px; margin: 0; padding: 6px 12px; font-size: 12px; background-color: #059669; border: none; color: white; white-space: nowrap;"
+                                onclick="closeModal('modal-chat-detail'); openSelesaiModal('{{ $active->id }}', '{{ addslashes($active->title) }}', '{{ addslashes($active->description) }}')">
                                 <i class="fas fa-check-circle"></i> Selesaikan Konsultasi
                             </button>
-                            <button type="button" class="btn btn-danger" style="display: inline-flex; align-items: center; gap: 4px; margin: 0; padding: 6px 12px; font-size: 12px; background-color: #ef4444; border: none; color: white; white-space: nowrap;" onclick="closeModal('modal-chat-detail'); openConfirmCancelModal('{{ $active->id }}')">
+                            <button type="button" class="btn btn-danger"
+                                style="display: inline-flex; align-items: center; gap: 4px; margin: 0; padding: 6px 12px; font-size: 12px; background-color: #ef4444; border: none; color: white; white-space: nowrap;"
+                                onclick="closeModal('modal-chat-detail'); openConfirmCancelModal('{{ $active->id }}')">
                                 <i class="fas fa-ban"></i> Batalkan Konsultasi
                             </button>
                         </div>
                     </div>
                 @endif
-                <button type="button" class="btn btn-secondary" onclick="closeModal('modal-chat-detail')" style="margin: 0;">Tutup</button>
+                <button type="button" class="btn btn-secondary" onclick="closeModal('modal-chat-detail')"
+                    style="margin: 0;">Tutup</button>
             </div>
         </div>
     </div>
 
     {{-- Modal Selesai & Buat Catatan --}}
     @if(auth()->user()->isGuru())
-    <div class="modal-overlay" id="modal-selesai">
-        <div class="modal" style="max-width: 600px; max-height: 90vh; overflow-y: auto; padding: 24px; text-align: left;">
-            <div class="modal-header" style="border-bottom: 1px solid #eee; padding-bottom: 15px; margin-bottom: 20px;">
-                <h3 style="font-size: 1.15rem; font-weight: 800; color: var(--charcoal); display: flex; align-items: center; gap: 8px; margin: 0;">
-                    <i class="fa-solid fa-circle-check" style="color: #059669;"></i> Selesaikan & Buat Catatan
-                </h3>
-                <button class="modal-close" onclick="closeModal('modal-selesai')">✕</button>
+        <div class="modal-overlay" id="modal-selesai">
+            <div class="modal" style="max-width: 600px; max-height: 90vh; overflow-y: auto; padding: 24px; text-align: left;">
+                <div class="modal-header" style="border-bottom: 1px solid #eee; padding-bottom: 15px; margin-bottom: 20px;">
+                    <h3
+                        style="font-size: 1.15rem; font-weight: 800; color: var(--charcoal); display: flex; align-items: center; gap: 8px; margin: 0;">
+                        <i class="fa-solid fa-circle-check" style="color: #059669;"></i> Selesaikan & Buat Catatan
+                    </h3>
+                    <button class="modal-close" onclick="closeModal('modal-selesai')">✕</button>
+                </div>
+                <form id="form-selesai-konsultasi" method="POST" action="{{ route('catatan.store') }}">
+                    @csrf
+                    <input type="hidden" name="ticket_id" id="selesai-ticket-id">
+                    <div class="field-group">
+                        <label>Topik Konsultasi</label>
+                        <input type="text" name="title" id="selesai-ticket-title" required>
+                    </div>
+                    <div class="field-group">
+                        <label>Masalah / Permasalahan</label>
+                        <textarea name="masalah" id="selesai-ticket-description" required></textarea>
+                    </div>
+                    <div class="field-group">
+                        <label>Tindakan yang Dilakukan (Solusi)</label>
+                        <textarea name="tindakan" placeholder="Tindakan, teknik, atau intervensi..." required></textarea>
+                    </div>
+                    <div class="field-group">
+                        <label>Kesimpulan (Opsional)</label>
+                        <textarea name="kesimpulan" placeholder="Kesimpulan sesi konseling..."></textarea>
+                    </div>
+                    <div class="modal-footer"
+                        style="justify-content: flex-end; gap: 10px; border-top: none; padding-top: 20px;">
+                        <button type="button" class="btn btn-secondary" onclick="closeModal('modal-selesai')">Batal</button>
+                        <button type="button" class="btn btn-primary" style="background: #059669; border: none; color: #fff;"
+                            onclick="openConfirmSelesai()"><i class="fa-solid fa-floppy-disk"></i> Simpan & Selesaikan</button>
+                    </div>
+                </form>
             </div>
-            <form id="form-selesai-konsultasi" method="POST" action="{{ route('catatan.store') }}">
-                @csrf
-                <input type="hidden" name="ticket_id" id="selesai-ticket-id">
-                <div class="field-group">
-                    <label>Topik Konsultasi</label>
-                    <input type="text" name="title" id="selesai-ticket-title" required>
-                </div>
-                <div class="field-group">
-                    <label>Masalah / Permasalahan</label>
-                    <textarea name="masalah" id="selesai-ticket-description" required></textarea>
-                </div>
-                <div class="field-group">
-                    <label>Tindakan yang Dilakukan (Solusi)</label>
-                    <textarea name="tindakan" placeholder="Tindakan, teknik, atau intervensi..." required></textarea>
-                </div>
-                <div class="field-group">
-                    <label>Kesimpulan (Opsional)</label>
-                    <textarea name="kesimpulan" placeholder="Kesimpulan sesi konseling..."></textarea>
-                </div>
-                <div class="modal-footer" style="justify-content: flex-end; gap: 10px; border-top: none; padding-top: 20px;">
-                    <button type="button" class="btn btn-secondary" onclick="closeModal('modal-selesai')">Batal</button>
-                    <button type="button" class="btn btn-primary" style="background: #059669; border: none; color: #fff;" onclick="openConfirmSelesai()"><i class="fa-solid fa-floppy-disk"></i> Simpan & Selesaikan</button>
-                </div>
-            </form>
         </div>
-    </div>
 
-    <div class="modal-overlay" id="modal-confirm-selesai" style="z-index: 1060;">
-        <div class="modal" style="max-width: 450px; text-align: center; padding: 24px;">
-            <div style="font-size: 3rem; color: #059669; margin-bottom: 15px;">
-                <i class="fa-solid fa-circle-question"></i>
-            </div>
-            <h3 style="font-size: 1.25rem; font-weight: 800; color: var(--charcoal); margin: 0 0 10px 0;">Selesaikan Konsultasi?</h3>
-            <p style="color: #64748b; font-size: 0.9rem; line-height: 1.5; margin: 0 0 24px 0;">
-                Apakah Anda yakin ingin menyelesaikan sesi bimbingan ini dan menyimpan catatan konseling? Sesi chat akan ditutup secara permanen.
-            </p>
-            <div style="display: flex; gap: 10px; justify-content: center; margin-top: 20px;">
-                <button type="button" class="btn btn-secondary" onclick="closeModal('modal-confirm-selesai')" style="margin: 0; padding: 10px 20px;">Batal</button>
-                <button type="button" class="btn btn-primary" onclick="submitSelesaiForm()" style="margin: 0; padding: 10px 20px; background: #059669; border: none; color: white;"><i class="fas fa-check-circle"></i> Ya, Selesaikan</button>
+        <div class="modal-overlay" id="modal-confirm-selesai" style="z-index: 1060;">
+            <div class="modal" style="max-width: 450px; text-align: center; padding: 24px;">
+                <div style="font-size: 3rem; color: #059669; margin-bottom: 15px;">
+                    <i class="fa-solid fa-circle-question"></i>
+                </div>
+                <h3 style="font-size: 1.25rem; font-weight: 800; color: var(--charcoal); margin: 0 0 10px 0;">Selesaikan
+                    Konsultasi?</h3>
+                <p style="color: #64748b; font-size: 0.9rem; line-height: 1.5; margin: 0 0 24px 0;">
+                    Apakah Anda yakin ingin menyelesaikan sesi bimbingan ini dan menyimpan catatan konseling? Sesi chat akan
+                    ditutup secara permanen.
+                </p>
+                <div style="display: flex; gap: 10px; justify-content: center; margin-top: 20px;">
+                    <button type="button" class="btn btn-secondary" onclick="closeModal('modal-confirm-selesai')"
+                        style="margin: 0; padding: 10px 20px;">Batal</button>
+                    <button type="button" class="btn btn-primary" onclick="submitSelesaiForm()"
+                        style="margin: 0; padding: 10px 20px; background: #059669; border: none; color: white;"><i
+                            class="fas fa-check-circle"></i> Ya, Selesaikan</button>
+                </div>
             </div>
         </div>
-    </div>
     @endif
 
     {{-- Step 1: Cancel reason form --}}
     <div class="modal-overlay" id="modal-cancel-ticket">
         <div class="modal" style="max-width: 500px; text-align: left; padding: 24px;">
             <div class="modal-header" style="border-bottom: 1px solid #eee; padding-bottom: 15px; margin-bottom: 20px;">
-                <h3 style="font-size: 1.15rem; font-weight: 800; color: var(--charcoal); display: flex; align-items: center; gap: 8px; margin: 0;">
+                <h3
+                    style="font-size: 1.15rem; font-weight: 800; color: var(--charcoal); display: flex; align-items: center; gap: 8px; margin: 0;">
                     <i class="fas fa-ban" style="color: #ef4444;"></i> Batalkan Konsultasi
                 </h3>
                 <button class="modal-close" onclick="closeModal('modal-cancel-ticket')">✕</button>
@@ -1282,12 +1363,19 @@
                 @csrf
                 <input type="hidden" name="status" value="dibatalkan">
                 <div class="field-group">
-                    <label style="font-weight: 700; font-size: 13px; color: var(--slate); display: block; margin-bottom: 6px;">Alasan Pembatalan</label>
-                    <textarea name="cancel_reason" placeholder="Jelaskan alasan pembatalan bimbingan/konsultasi ini..." required style="width: 100%; min-height: 100px; box-sizing: border-box;"></textarea>
+                    <label
+                        style="font-weight: 700; font-size: 13px; color: var(--slate); display: block; margin-bottom: 6px;">Alasan
+                        Pembatalan</label>
+                    <textarea name="cancel_reason" placeholder="Jelaskan alasan pembatalan bimbingan/konsultasi ini..."
+                        required style="width: 100%; min-height: 100px; box-sizing: border-box;"></textarea>
                 </div>
-                <div class="modal-footer" style="justify-content: flex-end; gap: 10px; border-top: none; padding-top: 20px; display: flex;">
-                    <button type="button" class="btn btn-secondary" onclick="closeModal('modal-cancel-ticket')">Batal</button>
-                    <button type="button" class="btn btn-danger" onclick="openConfirmCancelSubmit()" style="background: #ef4444; border: none; color: #fff;"><i class="fas fa-ban"></i> Batalkan Konsultasi</button>
+                <div class="modal-footer"
+                    style="justify-content: flex-end; gap: 10px; border-top: none; padding-top: 20px; display: flex;">
+                    <button type="button" class="btn btn-secondary"
+                        onclick="closeModal('modal-cancel-ticket')">Batal</button>
+                    <button type="button" class="btn btn-danger" onclick="openConfirmCancelSubmit()"
+                        style="background: #ef4444; border: none; color: #fff;"><i class="fas fa-ban"></i> Batalkan
+                        Konsultasi</button>
                 </div>
             </form>
         </div>
@@ -1299,13 +1387,17 @@
             <div style="font-size: 3rem; color: #ef4444; margin-bottom: 15px;">
                 <i class="fa-solid fa-circle-exclamation"></i>
             </div>
-            <h3 style="font-size: 1.25rem; font-weight: 800; color: var(--charcoal); margin: 0 0 10px 0;">Konfirmasi Pembatalan</h3>
+            <h3 style="font-size: 1.25rem; font-weight: 800; color: var(--charcoal); margin: 0 0 10px 0;">Konfirmasi
+                Pembatalan</h3>
             <p style="color: #64748b; font-size: 0.9rem; line-height: 1.5; margin: 0 0 24px 0;">
                 Apakah Anda yakin ingin membatalkan konsultasi ini? Tindakan ini tidak dapat dibatalkan.
             </p>
             <div style="display: flex; gap: 10px; justify-content: center; margin-top: 20px;">
-                <button type="button" class="btn btn-secondary" onclick="closeModal('modal-confirm-cancel')" style="margin: 0; padding: 10px 20px;">Kembali</button>
-                <button type="button" class="btn btn-danger" onclick="submitCancelForm()" style="margin: 0; padding: 10px 20px; background: #ef4444; border: none; color: white;"><i class="fas fa-ban"></i> Ya, Batalkan</button>
+                <button type="button" class="btn btn-secondary" onclick="closeModal('modal-confirm-cancel')"
+                    style="margin: 0; padding: 10px 20px;">Kembali</button>
+                <button type="button" class="btn btn-danger" onclick="submitCancelForm()"
+                    style="margin: 0; padding: 10px 20px; background: #ef4444; border: none; color: white;"><i
+                        class="fas fa-ban"></i> Ya, Batalkan</button>
             </div>
         </div>
     </div>

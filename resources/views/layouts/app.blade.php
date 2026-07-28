@@ -83,11 +83,11 @@
                         ['route' => 'dashboard', 'icon' => 'fas fa-th-large', 'label' => 'Dashboard'],
                         ['route' => 'profil.index', 'icon' => 'fas fa-user-circle', 'label' => 'Profil Saya'],
                         ['section' => 'Manajemen'],
+                        ['route' => 'kelas.index', 'icon' => 'fas fa-school', 'label' => 'Data Kelas'],
                         ['label' => 'Manajemen User', 'icon' => 'fas fa-users-cog', 'submenu' => $userSubmenu],
                         ['route' => 'kategori.index', 'icon' => 'fas fa-tags', 'label' => 'Kategori Layanan'],
-                        ['route' => 'kelas.index', 'icon' => 'fas fa-school', 'label' => 'Data Kelas'],
                         ['section' => 'Sistem'],
-                        ['route' => 'pengaturan.index', 'icon' => 'fas fa-cog', 'label' => 'Pengaturan Lembaga'],
+                        ['route' => 'pengaturan.index', 'icon' => 'fas fa-cog', 'label' => 'Pengaturan Sistem'],
                     ],
                     'guru' => [
                         ['section' => 'Utama'],

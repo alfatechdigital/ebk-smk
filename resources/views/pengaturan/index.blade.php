@@ -1,16 +1,16 @@
 @extends('layouts.app')
-@section('title', 'Pengaturan Lembaga')
-@section('page-title', 'Pengaturan Lembaga')
+@section('title', 'Pengaturan Sistem')
+@section('page-title', 'Pengaturan Sistem')
 
 @section('content')
     <div class="page-header">
-        <h2>Pengaturan Lembaga</h2>
+        <h2>Pengaturan Sistem</h2>
         <p>Konfigurasi informasi sekolah dan sistem</p>
     </div>
 
     <form method="POST" action="{{ route('pengaturan.update') }}">
         @csrf
-        <div class="card">
+        <div class="card mb-20">
             <div class="card-header">
                 <div class="card-title">Informasi Sekolah</div><button type="submit" class="btn btn-primary btn-sm"><i
                         class="fas fa-save"></i> Simpan</button>
@@ -27,6 +27,26 @@
             </div>
             <div class="field-group"><label>Kota/Kabupaten TTD Rekap</label><input type="text" name="kota_ttd"
                     value="{{ $institute->kota_ttd ?? '' }}" placeholder="Contoh: Malang"></div>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <div class="card-title">Pengaturan Media</div>
+            </div>
+            <div class="field-group">
+                <label>Hapus Otomatis Media Chat (Sejak chat dibuka)</label>
+                <select name="media_expiry_days">
+                    <option value="" {{ is_null($institute->media_expiry_days ?? null) ? 'selected' : '' }}>Jangan Hapus Otomatis</option>
+                    <option value="1" {{ (($institute->media_expiry_days ?? null) == 1) ? 'selected' : '' }}>1 Hari</option>
+                    <option value="3" {{ (($institute->media_expiry_days ?? null) == 3) ? 'selected' : '' }}>3 Hari</option>
+                    <option value="7" {{ (($institute->media_expiry_days ?? null) == 7) ? 'selected' : '' }}>7 Hari</option>
+                    <option value="15" {{ (($institute->media_expiry_days ?? null) == 15) ? 'selected' : '' }}>15 Hari</option>
+                    <option value="30" {{ (($institute->media_expiry_days ?? null) == 30) ? 'selected' : '' }}>30 Hari</option>
+                    <option value="90" {{ (($institute->media_expiry_days ?? null) == 90) ? 'selected' : '' }}>3 Bulan</option>
+                    <option value="180" {{ (($institute->media_expiry_days ?? null) == 180) ? 'selected' : '' }}>6 Bulan</option>
+                    <option value="365" {{ (($institute->media_expiry_days ?? null) == 365) ? 'selected' : '' }}>1 Tahun</option>
+                </select>
+            </div>
         </div>
     </form>
 

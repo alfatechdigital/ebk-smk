@@ -25,6 +25,7 @@ class InstitutionController extends Controller
             'kota_ttd'      => 'nullable|string',
             'tahun_ajaran'  => 'nullable|string',
             'semester'      => 'nullable|in:Ganjil,Genap',
+            'media_expiry_days' => 'nullable|integer|min:1',
         ]);
 
         Institute::updateOrCreate(['id' => 1], $validated);

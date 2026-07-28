@@ -11,10 +11,13 @@ class TicketMessage extends Model
 
     protected $fillable = [
         'ticket_id', 'sender_id', 'type', 'content',
-        'file_path', 'file_name', 'file_size', 'is_read'
+        'file_path', 'file_name', 'file_size', 'is_read', 'media_opened_at'
     ];
 
-    protected $casts = ['is_read' => 'boolean'];
+    protected $casts = [
+        'is_read' => 'boolean',
+        'media_opened_at' => 'datetime'
+    ];
 
     public function ticket()
     {
