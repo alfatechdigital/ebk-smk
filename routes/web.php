@@ -59,11 +59,14 @@ Route::middleware('auth')->group(function () {
     // ── Admin only ──
     Route::middleware('role:admin')->group(function () {
         Route::post('/users/import', [UserController::class, 'import'])->name('users.import');
+        Route::post('/users/import-check', [UserController::class, 'importCheck'])->name('users.import-check');
         Route::post('/users/promote-classes', [UserController::class, 'promoteClasses'])->name('users.promote-classes');
         Route::post('/users/delete-graduated', [UserController::class, 'deleteGraduated'])->name('users.delete-graduated');
         Route::resource('users', UserController::class)->except(['show','create','edit']);
         Route::get('/users', [UserController::class, 'index'])->name('users.index');
         Route::resource('kelas', ClassController::class)->parameters(['kelas' => 'kelas'])->except(['show','create','edit']);
+        Route::post('/kelas/import', [ClassController::class, 'import'])->name('kelas.import');
+        Route::post('/kelas/import-check', [ClassController::class, 'importCheck'])->name('kelas.import-check');
 
 
 

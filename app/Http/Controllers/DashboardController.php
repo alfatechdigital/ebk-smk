@@ -18,6 +18,9 @@ class DashboardController extends Controller
 
         $stats = [
             'total_siswa' => 0,
+            'total_siswa_x' => 0,
+            'total_siswa_xi' => 0,
+            'total_siswa_xii' => 0,
             'total_layanan' => \App\Models\Service::count(),
             'total_konsultasi' => 0,
             'menunggu' => 0,
@@ -31,6 +34,19 @@ class DashboardController extends Controller
 
         if ($user->isAdmin()) {
             $stats['total_siswa'] = Student::count();
+            $stats['total_siswa_x'] = Student::whereHas('class', function($q) {
+                $q->where('name', 'like', 'X %')
+                  ->where('name', 'not like', 'XI %')
+                  ->where('name', 'not like', 'XII %');
+            })->count();
+            $stats['total_siswa_xi'] = Student::whereHas('class', function($q) {
+                $q->where('name', 'like', 'XI %')
+                  ->where('name', 'not like', 'XII %');
+            })->count();
+            $stats['total_siswa_xii'] = Student::whereHas('class', function($q) {
+                $q->where('name', 'like', 'XII %');
+            })->count();
+
             $stats['menunggu'] = Ticket::where('status', 'menunggu')->count();
             $stats['diproses'] = Ticket::where('status', 'diproses')->count();
             $stats['total_konsultasi'] = $stats['menunggu'] + $stats['diproses'];

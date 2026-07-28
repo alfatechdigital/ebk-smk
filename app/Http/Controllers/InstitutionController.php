@@ -22,6 +22,7 @@ class InstitutionController extends Controller
             'phone'         => 'nullable|string',
             'email'         => 'nullable|email',
             'kepala_sekolah'=> 'nullable|string',
+            'kota_ttd'      => 'nullable|string',
             'tahun_ajaran'  => 'nullable|string',
             'semester'      => 'nullable|in:Ganjil,Genap',
         ]);

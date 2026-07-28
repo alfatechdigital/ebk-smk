@@ -5,7 +5,7 @@
     <span class="ticket-id"
         style="position: absolute; top: 8px; right: 20px; font-weight: 700; font-size: 11px; margin: 0; color: var(--slate); opacity: 0.7;"><span
             class="ticket-code-text">{{ $ticket->code }}</span> <span
-            style="font-weight: 500; margin-left: 6px; color: var(--muted);">({{ $ticket->created_at->format('d M Y - H:i') }})</span></span>
+            style="font-weight: 500; margin-left: 6px; color: var(--muted);">({{ $ticket->created_at->locale('id')->translatedFormat('d M Y - H:i') }})</span></span>
 
     {{-- Leftmost Side: Student Info, Pin and Favorite Buttons --}}
     <div class="ticket-student-col"
@@ -72,7 +72,7 @@
                     <div style="min-width: 0; display: flex; flex-direction: column; gap: 2px;">
                         <div
                             style="font-size: 10px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; line-height: 1;">
-                            {{ $ticket->class->name ?? $ticket->student?->class?->name ?? '-' }}</div>
+                            {{ $ticket->class_name ?? $ticket->class->name ?? $ticket->student?->class?->name ?? '-' }}</div>
                         <div style="font-size: 14px; font-weight: 600; color: var(--navy); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; line-height: 1.2;"
                             title="{{ $studentName }}">{{ $studentName }}</div>
 
@@ -205,6 +205,18 @@
                     </a>
                 </div>
             </div>
+        @endif
+
+        {{-- Delete Button for Guru BK on Cancelled Tickets --}}
+        @if(auth()->user()->isGuru() && $ticket->status === 'dibatalkan')
+            <button type="button"
+                onclick="openDeleteTicketModal('{{ $ticket->id }}', '{{ addslashes($ticket->title) }}')"
+                class="btn btn-sm"
+                style="padding: 6px 10px; font-size: 12px; margin: 0; background: transparent; border: 1px solid #fca5a5; color: #ef4444; display: inline-flex; align-items: center; gap: 4px; border-radius: 6px; cursor: pointer; transition: background 0.2s;"
+                onmouseover="this.style.background='#fef2f2'" onmouseout="this.style.background='transparent'"
+                title="Hapus Tiket">
+                <i class="fas fa-trash-alt"></i>
+            </button>
         @endif
     </div>
 

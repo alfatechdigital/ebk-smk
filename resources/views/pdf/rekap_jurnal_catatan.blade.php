@@ -88,13 +88,11 @@
 <body>
     <div class="kop-surat">
         <h2>{{ $institute->name ?? 'SMKN 2 SINGOSARI' }}</h2>
-        <p>NPSN: {{ $institute->npsn ?? '20566286' }}</p>
         <p>{{ $institute->address ?? 'JL. PERUSAHAAN NO.20 TUNJUNGTIRTO-SINGOSARI
 TUNJUNGTIRTO, Kec. Singosari
 Kab. Malang, Prov. Jawa Timur
 Kode Pos: 65153' }}</p>
-        <p>Telp. {{ $institute->phone ?? '03414345127' }} | Email: {{ $institute->email ?? 'smkn2.singosari@yahoo.co.id'
-            }}</p>
+        <p>Telp. {{ $institute->phone ?? '03414345127' }}</p>
     </div>
 
     <div class="judul">REKAP JURNAL KEGIATAN BIMBINGAN & KONSELING</div>
@@ -118,7 +116,7 @@ Kode Pos: 65153' }}</p>
                     <td style="text-align: center;">{{ $index + 1 }}</td>
                     <td>{{ $note->created_at->format('d/m/Y') }}</td>
                     <td>{{ $note->ticket->student_name ?? $note->ticket->student->user->name ?? '-' }}</td>
-                    <td>{{ $note->ticket->class->name ?? $note->ticket->student->class->name ?? '-' }}</td>
+                    <td>{{ $note->ticket->class_name ?? $note->ticket->class->name ?? $note->ticket->student->class->name ?? '-' }}</td>
                     <td>{{ $note->teacher->user->name ?? '-' }}</td>
                     <td><strong>{{ $note->title }}</strong><br>{{ $note->masalah }}</td>
                     <td>{{ $note->tindakan }}</td>
@@ -133,9 +131,22 @@ Kode Pos: 65153' }}</p>
         </tbody>
     </table>
 
+    @php
+        $location = 'Malang';
+        if (!empty($institute->kota_ttd)) {
+            $location = $institute->kota_ttd;
+        } elseif ($institute && $institute->address) {
+            $parts = explode(',', $institute->address);
+            if (count($parts) > 1) {
+                $locPart = trim($parts[count($parts) - 2]);
+                $location = preg_replace('/^(Kota|Kab\.|Kabupaten|Kec\.)\s+/i', '', $locPart);
+            }
+        }
+    @endphp
+
     <div class="signature-section">
         <div class="signature-left">
-            <p style="margin: 0;">{{ $institute->name ?? 'Nama Sekolah' }}, {{ now()->translatedFormat('d F Y') }}</p>
+            <p style="margin: 0;">{{ $location }}, {{ now()->translatedFormat('d F Y') }}</p>
         </div>
         <div class="signature-right">
             <p style="margin: 0;">Mengetahui,</p>

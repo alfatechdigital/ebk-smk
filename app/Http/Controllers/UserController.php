@@ -13,15 +13,60 @@ class UserController extends Controller
 {
     public function import(Request $request)
     {
+        ini_set('max_execution_time', 300);
+        set_time_limit(300);
+
+        $request->validate([
+            'file' => 'required|mimes:xlsx,xls,csv'
+        ]);
+
+        $forceUpdate = $request->boolean('force_update', false);
+
+        try {
+            \Maatwebsite\Excel\Facades\Excel::import(new \App\Imports\StudentsImport($forceUpdate), $request->file('file'));
+            return redirect()->route('users.index', ['role' => 'siswa', 'import_success' => '1']);
+        } catch (\Exception $e) {
+            return redirect()->route('users.index', ['role' => 'siswa', 'import_error' => $e->getMessage()]);
+        }
+    }
+
+    public function importCheck(Request $request)
+    {
+        ini_set('max_execution_time', 300);
+        set_time_limit(300);
+
         $request->validate([
             'file' => 'required|mimes:xlsx,xls,csv'
         ]);
 
         try {
-            \Maatwebsite\Excel\Facades\Excel::import(new \App\Imports\StudentsImport, $request->file('file'));
-            return back()->with('import_success', 'Seluruh data siswa berhasil diimport dengan sukses ke dalam database.');
+            $rows = \Maatwebsite\Excel\Facades\Excel::toCollection(new \App\Imports\StudentsImport, $request->file('file'))->first();
+            
+            $nisList = [];
+            foreach ($rows as $row) {
+                if (empty($row['nama'])) {
+                    continue;
+                }
+                $nis = !empty($row['nis']) ? trim($row['nis']) : null;
+                if ($nis) {
+                    $nisList[] = $nis;
+                }
+            }
+
+            $duplicateNisList = [];
+            if (!empty($nisList)) {
+                $duplicateNisList = \App\Models\Student::whereIn('nis', $nisList)->pluck('nis')->toArray();
+            }
+
+            return response()->json([
+                'has_duplicates' => count($duplicateNisList) > 0,
+                'duplicates_count' => count($duplicateNisList),
+                'duplicates' => $duplicateNisList
+            ]);
         } catch (\Exception $e) {
-            return back()->with('import_error', $e->getMessage());
+            return response()->json([
+                'error' => $e->getMessage()
+            ], 400);
         }
     }
 
@@ -159,7 +204,7 @@ class UserController extends Controller
             }
         }
 
-        $users = $q->paginate($request->per_page ?? 25)->withQueryString();
+        $users = $q->paginate($request->per_page ?? 25)->appends(request()->except(['import_success', 'import_error']));
         $classes = SchoolClass::orderBy('name')->get();
         $teachers = Teacher::with('user')->get();
 
@@ -187,7 +232,7 @@ class UserController extends Controller
             ]);
         }
 
-        $email = $validated['email'] ?? (($request->nis_nip ?? uniqid()) . '@siswa.ebk.id');
+        $email = $validated['email'] ?? null;
 
         $user = User::create([
             'name'          => $validated['name'],
@@ -238,7 +283,7 @@ class UserController extends Controller
             ]);
         }
 
-        $email = $validated['email'] ?? (($request->nis_nip ?? $user->student?->nis ?? uniqid()) . '@siswa.ebk.id');
+        $email = $validated['email'] ?? null;
 
         $updateData = [
             'name'          => $validated['name'],

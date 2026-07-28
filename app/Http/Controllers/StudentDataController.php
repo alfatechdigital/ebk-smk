@@ -55,7 +55,7 @@ class StudentDataController extends Controller
             'email.unique' => 'Email sudah terdaftar di sistem. Harap gunakan email lain.',
         ]);
 
-        $email = $validated['email'] ?? ($validated['nis'] . '@siswa.ebk.id');
+        $email = $validated['email'] ?? null;
 
         $user = User::create([
             'name'          => $validated['name'],
@@ -93,7 +93,7 @@ class StudentDataController extends Controller
             'email.unique' => 'Email sudah terdaftar di sistem. Harap gunakan email lain.',
         ]);
 
-        $email = $validated['email'] ?? ($validated['nis'] . '@siswa.ebk.id');
+        $email = $validated['email'] ?? null;
 
         $userData = [
             'name'          => $validated['name'],

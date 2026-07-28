@@ -117,6 +117,7 @@ class TicketController extends Controller
         $class = auth()->user()->student->class;
         $validated['teacher_id'] = $class->teacher_id ?? null; // Can be null if admin hasn't assigned
         $validated['class_id'] = $class->id ?? null;
+        $validated['class_name'] = $class->name ?? null;
 
         $validated['student_id'] = auth()->user()->student->id;
         $validated['student_name'] = auth()->user()->name;
@@ -174,8 +175,25 @@ class TicketController extends Controller
 
     public function destroy(Ticket $ticket)
     {
+        $user = Auth::user();
+
+        // Only Guru BK can delete tickets
+        if (!$user->isGuru()) {
+            abort(403, 'Hanya Guru BK yang dapat menghapus tiket.');
+        }
+
+        // Only cancelled tickets can be deleted
+        if ($ticket->status !== 'dibatalkan') {
+            return redirect()->route('tickets.index')->with('error', 'Hanya tiket yang sudah dibatalkan yang dapat dihapus.');
+        }
+
+        // Guru BK can only delete their own tickets
+        if ($ticket->teacher_id !== $user->teacher?->id) {
+            abort(403);
+        }
+
         $ticket->delete();
-        return redirect()->route('tickets.index')->with('success', 'Tiket dihapus.');
+        return redirect()->route('tickets.index')->with('success', 'Tiket berhasil dihapus.');
     }
 
     public function toggleFavorite(Ticket $ticket)

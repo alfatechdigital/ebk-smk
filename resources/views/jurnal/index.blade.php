@@ -38,7 +38,7 @@
                 @forelse($journals as $j)
                 <tr>
                     <td>
-                        {{ $j->created_at->format('d M Y') }}<br>
+                        {{ $j->created_at->locale('id')->translatedFormat('d M Y') }}<br>
                         <small class="text-muted">{{ $j->created_at->format('H:i') }}</small>
                     </td>
                     <td>

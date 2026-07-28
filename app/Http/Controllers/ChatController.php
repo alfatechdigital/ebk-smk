@@ -109,7 +109,12 @@ class ChatController extends Controller
             'content'   => $m->content,
             'file_url'  => $m->file_url,
             'file_name' => $m->file_name,
-            'sender'    => ['id' => $m->sender_id, 'name' => $m->sender->name, 'initials' => $m->sender->avatar_initials],
+            'sender'    => [
+                'id' => $m->sender_id,
+                'name' => $m->sender->name,
+                'initials' => $m->sender->avatar_initials,
+                'role' => $m->sender->role
+            ],
             'time'      => $m->created_at->format('H:i'),
             'is_me'     => $m->sender_id === Auth::id(),
         ]);

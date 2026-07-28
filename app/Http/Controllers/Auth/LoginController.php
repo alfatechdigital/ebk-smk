@@ -37,19 +37,23 @@ class LoginController extends Controller
             ]);
         }
 
-        // 2. If not found by email, try to find student by NIS
+        // 2. If not found by email, try to find student by NIS (allows full NIS or just prefix before '/')
         if (!$user) {
-            $student = \App\Models\Student::where('nis', $loginIdentifier)->first();
+            $student = \App\Models\Student::where('nis', $loginIdentifier)
+                ->orWhere('nis', 'like', $loginIdentifier . '/%')
+                ->first();
             if ($student) {
                 $user = $student->user;
             }
         }
 
-        if (!$user || !Auth::attempt(['email' => $user->email, 'password' => $credentials['password']], $request->boolean('remember'))) {
+        if (!$user || !\Illuminate\Support\Facades\Hash::check($credentials['password'], $user->password)) {
             throw ValidationException::withMessages([
                 'email' => 'NIS/Email atau password salah.',
             ]);
         }
+
+        Auth::login($user, $request->boolean('remember'));
 
         $request->session()->regenerate();
 

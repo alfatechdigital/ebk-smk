@@ -133,9 +133,9 @@ class NoteController extends Controller
             
             $month = 'Semua Bulan';
             if ($request->filled('date')) {
-                $month = date('d F Y', strtotime($request->date));
+                $month = \Carbon\Carbon::parse($request->date)->locale('id')->translatedFormat('d F Y');
             } elseif ($request->filled('month')) {
-                $month = date('F Y', strtotime($request->month));
+                $month = \Carbon\Carbon::parse($request->month)->locale('id')->translatedFormat('F Y');
             }
 
             $institute = \App\Models\Institute::first();
@@ -149,9 +149,9 @@ class NoteController extends Controller
         
         $month = 'Semua Bulan';
         if ($request->filled('date')) {
-            $month = date('d F Y', strtotime($request->date));
+            $month = \Carbon\Carbon::parse($request->date)->locale('id')->translatedFormat('d F Y');
         } elseif ($request->filled('month')) {
-            $month = date('F Y', strtotime($request->month));
+            $month = \Carbon\Carbon::parse($request->month)->locale('id')->translatedFormat('F Y');
         }
 
         $institute = \App\Models\Institute::first();

@@ -110,7 +110,9 @@
     @php
         \Carbon\Carbon::setLocale('id');
         $location = 'Malang'; // default fallback
-        if ($institute && $institute->address) {
+        if (!empty($institute->kota_ttd)) {
+            $location = $institute->kota_ttd;
+        } elseif ($institute && $institute->address) {
             $parts = explode(',', $institute->address);
             if (count($parts) > 1) {
                 $locPart = trim($parts[count($parts) - 2]);
@@ -121,9 +123,8 @@
 
     <div class="kop-surat">
         <h2>{{ $institute->name ?? 'SMKN 2 SINGOSARI' }}</h2>
-        <p>NPSN: {{ $institute->npsn ?? '20566286' }}</p>
         <p>{{ $institute->address ?? 'JL. PERUSAHAAN NO.20 TUNJUNGTIRTO-SINGOSARI, Kab. Malang, Prov. Jawa Timur' }}</p>
-        <p>Telp. {{ $institute->phone ?? '03414345127' }} | Email: {{ $institute->email ?? 'smkn2.singosari@yahoo.co.id' }}</p>
+        <p>Telp. {{ $institute->phone ?? '03414345127' }}</p>
     </div>
 
     <div class="judul">
@@ -149,12 +150,12 @@
         <tr>
             <td class="label">Nama Siswa</td>
             <td>:</td>
-            <td>{{ $note->ticket->anonymous ? 'Anonim' : ($note->ticket->student_name ?? $note->ticket->student->user->name ?? '-') }}</td>
+            <td>{{ $note->ticket->student_name ?? $note->ticket->student->user->name ?? '-' }}</td>
         </tr>
         <tr>
             <td class="label">Kelas</td>
             <td>:</td>
-            <td>{{ $note->ticket->class->name ?? $note->ticket->student->class->name ?? '-' }}</td>
+            <td>{{ $note->ticket->class_name ?? $note->ticket->class->name ?? $note->ticket->student->class->name ?? '-' }}</td>
         </tr>
         <tr>
             <td class="label">Guru Pembimbing</td>

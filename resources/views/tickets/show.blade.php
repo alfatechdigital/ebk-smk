@@ -7,15 +7,15 @@
     <div class="page-header" style="margin-bottom: 0;">
         <h2>Detail Konsultasi</h2>
         <p style="margin-top: 4px; color: var(--muted); font-size: 13px;">
-            Kode Tiket: <span style="font-weight: 700; color: var(--teal);">{{ $ticket->code }}</span> · Diajukan pada {{ $ticket->created_at->format('d M Y - H:i') }}
+            Kode Tiket: <span style="font-weight: 700; color: var(--teal);">{{ $ticket->code }}</span> · Diajukan pada {{ $ticket->created_at->locale('id')->translatedFormat('d M Y - H:i') }}
         </p>
     </div>
     <div style="flex-shrink: 0; text-align: right;">
         <span class="badge {{ $ticket->status_badge }}" style="padding: 6px 14px; font-size: 13px; border-radius: 6px;">{{ $ticket->status_label }}</span>
         @if($ticket->completed_at)
-            <div style="font-size: 11px; color: var(--muted); margin-top: 4px;">Selesai: {{ $ticket->completed_at->format('d M Y - H:i') }}</div>
+            <div style="font-size: 11px; color: var(--muted); margin-top: 4px;">Selesai: {{ $ticket->completed_at->locale('id')->translatedFormat('d M Y - H:i') }}</div>
         @elseif($ticket->cancelled_at)
-            <div style="font-size: 11px; color: #ef4444; margin-top: 4px;">Dibatalkan: {{ $ticket->cancelled_at->format('d M Y - H:i') }}</div>
+            <div style="font-size: 11px; color: #ef4444; margin-top: 4px;">Dibatalkan: {{ $ticket->cancelled_at->locale('id')->translatedFormat('d M Y - H:i') }}</div>
         @endif
     </div>
 </div>
@@ -53,7 +53,7 @@
                 <div>
                     <label style="font-size: 11px; font-weight: 700; color: var(--muted); text-transform: uppercase; display: block; margin-bottom: 2px;">Kelas</label>
                     <div style="font-size: 14px; font-weight: 600; color: var(--charcoal);">
-                        {{ $ticket->class->name ?? $ticket->student->class->name ?? '-' }}
+                        {{ $ticket->class_name ?? $ticket->class->name ?? $ticket->student->class->name ?? '-' }}
                     </div>
                 </div>
             @endif

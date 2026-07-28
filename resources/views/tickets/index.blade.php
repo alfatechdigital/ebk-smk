@@ -25,7 +25,9 @@
 
     @if(auth()->user()->isSiswa())
         @if(!auth()->user()->student?->class || !auth()->user()->student?->class?->teacher_id)
-            <div class="warning-box mb-20" style="background: #fef2f2; border: 1px solid #fca5a5; color: #b91c1c;"><i class="fas fa-exclamation-triangle" style="color: #ef4444;"></i><span>Guru BK belum ditugaskan untuk kelas Anda. Anda belum dapat mengajukan konsultasi baru. Silakan hubungi Administrator.</span></div>
+            <div class="warning-box mb-20" style="background: #fef2f2; border: 1px solid #fca5a5; color: #b91c1c;"><i
+                    class="fas fa-exclamation-triangle" style="color: #ef4444;"></i><span>Guru BK belum ditugaskan untuk kelas Anda.
+                    Anda belum dapat mengajukan konsultasi baru. Silakan hubungi Administrator.</span></div>
         @else
             <div class="warning-box mb-20"><i class="fas fa-lock"></i><span>Semua konsultasi bersifat <b>rahasia</b>. Hanya kamu dan
                     Guru BK yang dapat melihat isi percakapan.</span></div>
@@ -430,6 +432,38 @@
         </div>
     </div>
 
+    {{-- Modal Hapus Tiket (hanya untuk Guru BK pada tiket dibatalkan) --}}
+    <div class="modal-overlay" id="modal-delete-ticket">
+        <div class="modal" style="max-width: 420px; text-align: center; padding: 24px;">
+            <div style="font-size: 3rem; color: #ef4444; margin-bottom: 15px;">
+                <i class="fas fa-trash-alt"></i>
+            </div>
+            <h3 style="font-size: 1.2rem; font-weight: 800; color: var(--charcoal); margin: 0 0 10px 0;">Hapus Tiket?</h3>
+            <p style="color: #64748b; font-size: 0.9rem; margin-bottom: 6px; line-height: 1.5;">
+                Anda akan menghapus tiket konsultasi:
+            </p>
+            <p id="delete-ticket-title" style="font-weight: 700; color: #1e293b; font-size: 0.95rem; margin-bottom: 16px;">
+            </p>
+            <p style="color: #ef4444; font-size: 0.82rem; font-weight: 600;">
+                <i class="fas fa-exclamation-triangle"></i> Setelah dihapus, tiket akan hilang dari akun Guru BK dan akun
+                siswa secara permanen. Tindakan ini tidak dapat dibatalkan.
+            </p>
+            <form id="form-delete-ticket" method="POST" action="">
+                @csrf
+                @method('DELETE')
+                <div class="modal-footer"
+                    style="justify-content: center; gap: 10px; border-top: none; padding-top: 20px; display: flex;">
+                    <button type="button" class="btn btn-secondary"
+                        onclick="closeModal('modal-delete-ticket')">Batal</button>
+                    <button type="submit" class="btn"
+                        style="background: #ef4444; border: none; color: #fff; display: inline-flex; align-items: center; gap: 6px;">
+                        <i class="fas fa-trash-alt"></i> Ya, Hapus Tiket
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     {{-- Step 2: Confirm before submit --}}
     <div class="modal-overlay" id="modal-confirm-cancel" style="z-index: 1060;">
         <div class="modal" style="max-width: 450px; text-align: center; padding: 24px;">
@@ -623,6 +657,15 @@
 
         // Alias
         window.openCancelModal = window.openConfirmCancelModal;
+
+        // Delete cancelled ticket modal
+        window.openDeleteTicketModal = function (id, title) {
+            const form = document.getElementById('form-delete-ticket');
+            const titleEl = document.getElementById('delete-ticket-title');
+            if (form) form.action = '/tickets/' + id;
+            if (titleEl) titleEl.textContent = title;
+            openModal('modal-delete-ticket');
+        };
 
         // After filling reason, show confirm modal
         window.openConfirmCancelSubmit = function () {

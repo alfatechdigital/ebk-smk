@@ -109,7 +109,7 @@
             <div class="catatan-item">
                 <div class="catatan-date">
                     <div class="day">{{ $note->created_at->format('d') }}</div>
-                    <div class="month">{{ $note->created_at->format('M') }}</div>
+                    <div class="month">{{ $note->created_at->locale('id')->translatedFormat('M') }}</div>
                     <div style="font-size: 10px; font-weight: 700; opacity: 0.8; margin-top: 2px; line-height: 1;">
                         {{ $note->created_at->format('Y') }}</div>
                 </div>
@@ -119,7 +119,7 @@
                         <i class="fas fa-user-circle" style="color: var(--slate); font-size: 13px;"></i>
                         <span
                             style="font-size: 13px; color: var(--slate); font-weight: 600;">{{ $note->ticket?->student_name ?? $note->ticket?->student?->user?->name ?? 'Anonim' }}
-                            · {{ $note->ticket?->class?->name ?? $note->ticket?->student?->class?->name ?? '' }}</span>
+                            · {{ $note->ticket?->class_name ?? $note->ticket?->class?->name ?? $note->ticket?->student?->class?->name ?? '' }}</span>
                         @if($note->ticket?->service)
                             <span class="badge"
                                 style="background: {{ $note->ticket->service->color ?? 'var(--teal)' }}; color: #fff; font-size: 10px; padding: 2px 8px; border-radius: 4px; display: inline-flex; align-items: center; gap: 4px; font-weight: 600; line-height: 1.2;">

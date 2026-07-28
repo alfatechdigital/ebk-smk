@@ -47,7 +47,7 @@ class ClassController extends Controller
             $perPage = 15;
         }
 
-        $classes = $q->paginate($perPage)->withQueryString();
+        $classes = $q->paginate($perPage)->appends(request()->except(['import_success', 'import_error']));
         $teachers = Teacher::with('user')->get();
 
         return view('kelas.index', compact('classes', 'teachers'));
@@ -96,5 +96,64 @@ class ClassController extends Controller
     {
         $kelas->delete();
         return back()->with('success', 'Kelas berhasil dihapus.');
+    }
+
+    public function import(Request $request)
+    {
+        ini_set('max_execution_time', 300);
+        set_time_limit(300);
+
+        $request->validate([
+            'file' => 'required|mimes:xlsx,xls,csv'
+        ]);
+
+        $forceUpdate = $request->boolean('force_update', false);
+
+        try {
+            \Maatwebsite\Excel\Facades\Excel::import(new \App\Imports\ClassesImport($forceUpdate), $request->file('file'));
+            return redirect()->route('kelas.index', ['import_success' => '1']);
+        } catch (\Exception $e) {
+            return redirect()->route('kelas.index', ['import_error' => $e->getMessage()]);
+        }
+    }
+
+    public function importCheck(Request $request)
+    {
+        ini_set('max_execution_time', 300);
+        set_time_limit(300);
+
+        $request->validate([
+            'file' => 'required|mimes:xlsx,xls,csv'
+        ]);
+
+        try {
+            $rows = \Maatwebsite\Excel\Facades\Excel::toCollection(new \App\Imports\ClassesImport, $request->file('file'))->first();
+            
+            $classNameList = [];
+            foreach ($rows as $row) {
+                if (empty($row['kelas'])) {
+                    continue;
+                }
+                $className = trim($row['kelas']);
+                if ($className) {
+                    $classNameList[] = $className;
+                }
+            }
+
+            $duplicateClassList = [];
+            if (!empty($classNameList)) {
+                $duplicateClassList = SchoolClass::whereIn('name', $classNameList)->pluck('name')->toArray();
+            }
+
+            return response()->json([
+                'has_duplicates' => count($duplicateClassList) > 0,
+                'duplicates_count' => count($duplicateClassList),
+                'duplicates' => $duplicateClassList
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'error' => $e->getMessage()
+            ], 500);
+        }
     }
 }

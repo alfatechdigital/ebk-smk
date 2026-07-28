@@ -95,8 +95,8 @@
             <thead>
                 <tr>
                     <th style="width: 60px; text-align: center;">No</th>
-                    <th>NIS</th>
                     <th>Nama</th>
+                    <th>NIS</th>
                     <th style="text-align: center;">JK</th>
                     <th>Kelas</th>
                     <th>Guru BK</th>
@@ -109,8 +109,8 @@
                 @forelse ($students as $i => $s)
                 <tr>
                     <td style="text-align: center;">{{ $students->firstItem() + $i }}</td>
-                    <td>{{ $s->nis ?? '-' }}</td>
                     <td>{{ $s->user->name }}</td>
+                    <td>{{ $s->nis ?? '-' }}</td>
                     <td style="text-align: center;">{{ $s->user->jenis_kelamin ?? '-' }}</td>
                     <td>{{ $s->class?->name ?? '-' }}</td>
                     <td>{{ $s->class?->teacher?->user?->name ?? '-' }}</td>
@@ -123,7 +123,7 @@
                         @endif
                     </td>
                     <td style="text-align: center;">
-                        <div class="action-dropdown-container">
+                        <div style="display: inline-flex; align-items: center; gap: 6px; justify-content: center;">
                             <button class="btn btn-primary btn-sm" style="display: inline-flex; align-items: center; gap: 4px;" title="Detail Siswa" onclick="openDetailSiswaModal({{ json_encode([
                                 'name' => $s->user->name,
                                 'nis' => $s->nis ?? '-',
@@ -138,29 +138,17 @@
                                 'resolved_tickets' => $s->tickets->where('status', 'resolved')->count()
                             ]) }})"><i class="fas fa-eye"></i> Detail</button>
 
-                            <div class="dropdown">
-                                <button class="btn btn-secondary btn-sm" onclick="toggleActionDropdown(event, this)">
-                                    <i class="fas fa-ellipsis-v"></i>
-                                </button>
-                                <div class="dropdown-menu">
-                                    <button type="button" onclick="openEditSiswaModal({{ json_encode([
-                                        'id' => $s->id,
-                                        'nis' => $s->nis,
-                                        'no_hp' => $s->user->no_hp ?? $s->no_hp,
-                                        'class_id' => $s->class_id,
-                                        'user' => [
-                                            'name' => $s->user->name,
-                                            'email' => $s->user->email,
-                                            'jenis_kelamin' => $s->user->jenis_kelamin
-                                        ]
-                                    ]) }})">
-                                        <i class="fas fa-edit" style="color: #f59e0b;"></i> Edit
-                                    </button>
-                                    <button type="button" class="delete-btn" onclick="openDeleteSiswaModal({{ $s->id }})">
-                                        <i class="fas fa-trash" style="color: var(--danger);"></i> Hapus
-                                    </button>
-                                </div>
-                            </div>
+                            <button class="btn btn-secondary btn-sm" style="display: inline-flex; align-items: center; gap: 4px; background: #ffffff; border: 1px solid #cbd5e1; color: var(--slate);" title="Edit Siswa" onclick="openEditSiswaModal({{ json_encode([
+                                'id' => $s->id,
+                                'nis' => $s->nis,
+                                'no_hp' => $s->user->no_hp ?? $s->no_hp,
+                                'class_id' => $s->class_id,
+                                'user' => [
+                                    'name' => $s->user->name,
+                                    'email' => $s->user->email,
+                                    'jenis_kelamin' => $s->user->jenis_kelamin
+                                ]
+                            ]) }})"><i class="fas fa-edit" style="color: #f59e0b;"></i> Edit</button>
                         </div>
                     </td>
                 </tr>
@@ -472,7 +460,7 @@
         document.getElementById('edit-nis').value = student.nis;
         document.getElementById('edit-no-hp').value = student.no_hp || '';
         document.getElementById('edit-gender').value = student.user.jenis_kelamin || '';
-        document.getElementById('edit-email').value = student.user.email;
+        document.getElementById('edit-email').value = student.user.email || '';
         document.getElementById('edit-class-id').value = student.class_id;
         document.getElementById('edit-password').value = '';
         openModal('modal-edit-siswa');
@@ -491,7 +479,7 @@
         document.getElementById('detail-gurubk').textContent = student.guru_bk;
         document.getElementById('detail-gender').textContent = student.gender;
         document.getElementById('detail-phone').textContent = student.phone;
-        document.getElementById('detail-email').textContent = student.email;
+        document.getElementById('detail-email').textContent = student.email || '-';
         document.getElementById('detail-status').textContent = student.status;
         
         const statusSpan = document.getElementById('detail-status');

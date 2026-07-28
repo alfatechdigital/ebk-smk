@@ -11,7 +11,7 @@ class Institute extends Model
 
     protected $fillable = [
         'name', 'npsn', 'address', 'phone', 'email',
-        'kepala_sekolah', 'logo_path', 'tahun_ajaran', 'semester'
+        'kepala_sekolah', 'kota_ttd', 'logo_path', 'tahun_ajaran', 'semester'
     ];
 
     public function classes()

@@ -47,7 +47,7 @@ class JournalController extends Controller
 
         $journals = $query->oldest()->get();
         $teacher = $request->filled('teacher_id') ? Teacher::with('user')->find($request->teacher_id) : null;
-        $month = $request->filled('month') ? date('F Y', strtotime($request->month)) : 'Semua Bulan';
+        $month = $request->filled('month') ? \Carbon\Carbon::parse($request->month)->locale('id')->translatedFormat('F Y') : 'Semua Bulan';
 
         $pdf = Pdf::loadView('pdf.rekap_jurnal', compact('journals', 'teacher', 'month'));
         return $pdf->download('Jurnal_Kegiatan_BK.pdf');

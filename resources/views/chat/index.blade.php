@@ -111,7 +111,12 @@
                 @foreach ($messages as $msg)
                     <div class="msg {{ $msg->sender_id === auth()->id() ? 'sent' : 'received' }}" data-id="{{ $msg->id }}">
                         <div class="msg-avatar" @if($msg->sender_id === auth()->id()) style="background:var(--teal-dark)" @endif>
-                            {{ $msg->sender->avatar_initials }}</div>
+                            @if($active->anonymous && $msg->sender->role === 'siswa')
+                                <i class="fas fa-user-secret"></i>
+                            @else
+                                {{ $msg->sender->avatar_initials }}
+                            @endif
+                        </div>
                         <div class="msg-body">
                             @if($msg->type === 'text')
                                 <div class="msg-bubble">
@@ -773,8 +778,13 @@
                                         contentHtml = `<div class="msg-bubble"><a href="${msg.file_url}" target="_blank" style="color:inherit;text-decoration:none;"><i class="fa-solid fa-file"></i> ${msg.file_name}</a><span class="msg-time-waba">${msg.time}</span></div>`;
                                     }
 
+                                    const isAnonymousTicket = {{ ($active && $active->anonymous) ? 'true' : 'false' }};
+                                    const avatarContent = (isAnonymousTicket && msg.sender.role === 'siswa') 
+                                        ? '<i class="fas fa-user-secret"></i>' 
+                                        : msg.sender.initials;
+
                                     msgEl.innerHTML = `
-                                    <div class="msg-avatar" ${msg.is_me ? 'style="background:var(--teal-dark)"' : ''}>${msg.sender.initials}</div>
+                                    <div class="msg-avatar" ${msg.is_me ? 'style="background:var(--teal-dark)"' : ''}>${avatarContent}</div>
                                     <div class="msg-body">
                                         ${contentHtml}
                                     </div>

@@ -10,7 +10,7 @@ class Ticket extends Model
     use HasFactory;
 
     protected $fillable = [
-        'code', 'student_id', 'student_name', 'class_id', 'service_id', 'teacher_id',
+        'code', 'student_id', 'student_name', 'class_id', 'class_name', 'service_id', 'teacher_id',
         'status', 'is_favorite', 'is_pinned', 'priority', 'title', 'description',
         'prior_action', 'anonymous', 'scheduled_at', 'completed_at', 'cancelled_at', 'cancel_reason'
     ];
