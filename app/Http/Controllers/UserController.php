@@ -30,6 +30,78 @@ class UserController extends Controller
         }
     }
 
+    public function importGuru(Request $request)
+    {
+        ini_set('max_execution_time', 300);
+        set_time_limit(300);
+
+        $request->validate([
+            'file' => 'required|mimes:xlsx,xls,csv'
+        ]);
+
+        $forceUpdate = $request->boolean('force_update', false);
+
+        try {
+            \Maatwebsite\Excel\Facades\Excel::import(new \App\Imports\TeachersImport($forceUpdate), $request->file('file'));
+            return redirect()->route('users.index', ['role' => 'guru', 'import_success' => '1']);
+        } catch (\Exception $e) {
+            return redirect()->route('users.index', ['role' => 'guru', 'import_error' => $e->getMessage()]);
+        }
+    }
+
+    public function importGuruCheck(Request $request)
+    {
+        ini_set('max_execution_time', 300);
+        set_time_limit(300);
+
+        $request->validate([
+            'file' => 'required|mimes:xlsx,xls,csv'
+        ]);
+
+        try {
+            $rows = \Maatwebsite\Excel\Facades\Excel::toCollection(new \App\Imports\TeachersImport, $request->file('file'))->first();
+            
+            $nipList = [];
+            $emailList = [];
+            foreach ($rows as $row) {
+                if (empty($row['nama'])) {
+                    continue;
+                }
+                $nip = !empty($row['nip']) ? trim($row['nip']) : null;
+                $email = !empty($row['email']) ? trim($row['email']) : null;
+                if ($nip) {
+                    $nipList[] = $nip;
+                }
+                if ($email) {
+                    $emailList[] = $email;
+                }
+            }
+
+            $duplicateNipList = [];
+            if (!empty($nipList)) {
+                $duplicateNipList = \App\Models\Teacher::whereIn('nip', $nipList)->pluck('nip')->toArray();
+            }
+
+            $duplicateEmailList = [];
+            if (!empty($emailList)) {
+                $duplicateEmailList = \App\Models\User::whereIn('email', $emailList)->pluck('email')->toArray();
+            }
+
+            $hasDuplicates = count($duplicateNipList) > 0 || count($duplicateEmailList) > 0;
+
+            return response()->json([
+                'has_duplicates' => $hasDuplicates,
+                'duplicates_count' => count($duplicateNipList) + count($duplicateEmailList),
+                'duplicate_nips' => $duplicateNipList,
+                'duplicate_emails' => $duplicateEmailList
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'error' => $e->getMessage()
+            ], 400);
+        }
+    }
+
     public function importCheck(Request $request)
     {
         ini_set('max_execution_time', 300);
@@ -222,6 +294,7 @@ class UserController extends Controller
             'class_id'      => 'nullable|exists:classes,id',
             'no_hp'         => 'nullable|string|max:20',
             'jenis_kelamin' => 'nullable|in:L,P',
+            'spesialisasi'  => 'nullable|string|max:255',
         ]);
 
         if ($request->role === 'siswa' && $request->filled('nis_nip')) {
@@ -254,7 +327,8 @@ class UserController extends Controller
             Teacher::create([
                 'user_id'     => $user->id,
                 'nip'         => $validated['nis_nip'] ?? null,
-                'no_whatsapp' => $validated['no_hp'] ?? null
+                'no_whatsapp' => $validated['no_hp'] ?? null,
+                'spesialisasi'=> $validated['spesialisasi'] ?? null
             ]);
         }
 
@@ -272,6 +346,7 @@ class UserController extends Controller
             'nis_nip'       => 'nullable|string',
             'no_hp'         => 'nullable|string|max:20',
             'jenis_kelamin' => 'nullable|in:L,P',
+            'spesialisasi'  => 'nullable|string|max:255',
         ]);
 
         if ($request->role === 'siswa' && $request->filled('nis_nip')) {
@@ -321,12 +396,14 @@ class UserController extends Controller
                 $teacher = Teacher::create([
                     'user_id'     => $user->id,
                     'nip'         => $validated['nis_nip'] ?? null,
-                    'no_whatsapp' => $validated['no_hp'] ?? null
+                    'no_whatsapp' => $validated['no_hp'] ?? null,
+                    'spesialisasi'=> $validated['spesialisasi'] ?? null
                 ]);
             } else {
                 $teacher->update([
                     'nip'         => $validated['nis_nip'] ?? null,
-                    'no_whatsapp' => $validated['no_hp'] ?? null
+                    'no_whatsapp' => $validated['no_hp'] ?? null,
+                    'spesialisasi'=> $validated['spesialisasi'] ?? null
                 ]);
             }
         }

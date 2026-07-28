@@ -101,10 +101,14 @@
             <p>Kelola data {{ strtolower($activeLabel) }} sistem secara spesifik.</p>
         </div>
         <div style="display: flex; gap: 8px; align-items: center;">
-            @if(request('role') === 'siswa' || !request('role'))
+            @if(request('role') === 'siswa')
                 <button class="btn btn-secondary" onclick="openImportModal()"
                     style="background: #ffffff; color: var(--slate); border: 1px solid #cbd5e1; font-weight: 500;"><i
                         class="fas fa-file-excel" style="color: #10b981; margin-right: 4px;"></i> Import Siswa</button>
+            @elseif(request('role') === 'guru')
+                <button class="btn btn-secondary" onclick="openImportGuruModal()"
+                    style="background: #ffffff; color: var(--slate); border: 1px solid #cbd5e1; font-weight: 500; margin-right: 8px;"><i
+                        class="fas fa-file-excel" style="color: #10b981; margin-right: 4px;"></i> Import Guru BK</button>
             @endif
             <button class="btn btn-primary" onclick="openAddModal()"><i class="fas fa-plus"></i> Tambah
                 {{ $activeLabel }}</button>
@@ -233,6 +237,7 @@
                                 'email' => $u->email,
                                 'status' => $u->is_active ? 'Aktif' : 'Lulus',
                                 'guru_bk' => $u->student?->class?->teacher?->user?->name ?? '-',
+                                'spesialisasi' => '-',
                                 'classes_managed' => []
                             ]) }})"><i class="fas fa-eye"></i> Detail</button>
 
@@ -242,7 +247,7 @@
                                                     </button>
                                                     <div class="dropdown-menu">
                                                         <button type="button"
-                                                            onclick="editUser({{ $u->id }},'{{ addslashes($u->name) }}','{{ $u->email }}','{{ $u->role }}','{{ $u->student?->nis ?? $u->teacher?->nip ?? '' }}','{{ $u->student?->class_id ?? '' }}', [],'{{ $u->no_hp }}','{{ $u->jenis_kelamin }}')">
+                                                            onclick="editUser({{ $u->id }},'{{ addslashes($u->name) }}','{{ $u->email }}','{{ $u->role }}','{{ $u->student?->nis ?? $u->teacher?->nip ?? '' }}','{{ $u->student?->class_id ?? '' }}', [],'{{ $u->no_hp }}','{{ $u->jenis_kelamin }}', '')">
                                                             <i class="fas fa-edit" style="color: #f59e0b;"></i> Edit
                                                         </button>
                                                         <button type="button" class="delete-btn"
@@ -279,6 +284,7 @@
                                 'phone' => $u->no_hp ?? '-',
                                 'email' => $u->email,
                                 'status' => $u->is_active ? 'Aktif' : 'Nonaktif',
+                                'spesialisasi' => $u->teacher?->spesialisasi ?? '-',
                                 'classes_managed' => $u->teacher ? $u->teacher->classes->pluck('name')->toArray() : []
                             ]) }})"><i class="fas fa-eye"></i> Detail</button>
 
@@ -288,7 +294,7 @@
                                                     </button>
                                                     <div class="dropdown-menu">
                                                         <button type="button"
-                                                            onclick="editUser({{ $u->id }},'{{ addslashes($u->name) }}','{{ $u->email }}','{{ $u->role }}','{{ $u->student?->nis ?? $u->teacher?->nip ?? '' }}','{{ $u->student?->class_id ?? '' }}', [],'{{ $u->no_hp }}','{{ $u->jenis_kelamin }}')">
+                                                            onclick="editUser({{ $u->id }},'{{ addslashes($u->name) }}','{{ $u->email }}','{{ $u->role }}','{{ $u->student?->nis ?? $u->teacher?->nip ?? '' }}','{{ $u->student?->class_id ?? '' }}', [],'{{ $u->no_hp }}','{{ $u->jenis_kelamin }}', '{{ addslashes($u->teacher?->spesialisasi ?? '') }}')">
                                                             <i class="fas fa-edit" style="color: #f59e0b;"></i> Edit
                                                         </button>
                                                         <button type="button" class="delete-btn"
@@ -372,6 +378,16 @@
                     </div>
                 </div>
 
+                <div id="container-spesialisasi-row"
+                    style="margin-bottom: 15px; display: {{ old('role', request('role', 'siswa')) === 'guru' ? 'flex' : 'none' }};">
+                    <div class="field-group" id="container-spesialisasi" style="width: 100%; margin-bottom: 0;">
+                        <label>Spesialisasi</label>
+                        <input type="text" name="spesialisasi" id="user-spesialisasi" placeholder="Contoh: Spesialis Karir & Hubungan Sosial" value="{{ old('spesialisasi') }}">
+                        @error('spesialisasi')<span
+                        style="color:var(--danger);font-size:12px;margin-top:4px;display:block;">{{ $message }}</span>@enderror
+                    </div>
+                </div>
+
                 <div class="field-group">
                     <label>No. HP <span style="color:var(--muted);font-weight:normal;">(Opsional)</span></label>
                     <input type="text" name="no_hp" id="user-nohp" placeholder="Contoh: 08123456789"
@@ -443,6 +459,44 @@
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" onclick="closeModal('modal-import')">Batal</button>
+                    <button type="submit" class="btn btn-primary"><i class="fas fa-upload"></i> Import</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="modal-import-guru">
+        <div class="modal" style="max-width: 500px; width: 95%;">
+            <div class="modal-header">
+                <h3>Import Data Guru BK</h3>
+                <button class="modal-close" onclick="closeModal('modal-import-guru')">✕</button>
+            </div>
+            <form id="form-import-guru" method="POST" action="{{ route('users.import-guru') }}" enctype="multipart/form-data">
+                @csrf
+                <input type="hidden" name="force_update" id="import-guru-force-update" value="0">
+                <div class="form-row">
+                    <div class="field-group">
+                        <label>File Excel (.xlsx, .xls)</label>
+                        <input type="file" name="file" accept=".xlsx,.xls,.csv" required
+                            style="padding: 10px; border: 1px dashed #cbd5e1; border-radius: 8px; width: 100%; background: #f8f9fa;">
+                    </div>
+                </div>
+                <a href="/E-BK_Template_Import_Guru_BK.xlsx" download="E-BK_Template_Import_Guru_BK.xlsx" class="btn btn-primary" style="display: inline-flex; align-items: center; gap: 6px;"><i class="fas fa-download"></i>Unduh Template</a>
+                <div
+                    style="margin-top: 15px; font-size: 0.9rem; color: #475569; background: #eff6ff; padding: 12px; border-radius: 8px; border: 1px solid #bfdbfe;">
+                    <p style="margin-bottom: 8px; font-weight: 600; color: #1e3a8a;"><i class="fas fa-info-circle"></i>
+                        Panduan Proses Import Data Guru BK:</p>
+                    <ol style="margin-left: 20px; line-height: 1.5;">
+                        <li>Unduh template file Excel melalui tombol <strong>"Unduh Template"</strong> di atas.</li>
+                        <li>Buka file template tersebut dan isi data Guru BK baru sesuai kolom yang disediakan.</li>
+                        <li>Pastikan nama, nip, jenis_kelamin (L/P), spesialisasi, no_hp (opsional), email (wajib), dan password terisi dengan benar.</li>
+                        <li>Simpan file Excel tersebut setelah selesai diisi.</li>
+                        <li>Pilih file Excel yang telah disimpan menggunakan kolom input file di atas.</li>
+                        <li>Klik tombol <strong>"Import"</strong> di bawah untuk memulai proses unggah data Guru BK.</li>
+                    </ol>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" onclick="closeModal('modal-import-guru')">Batal</button>
                     <button type="submit" class="btn btn-primary"><i class="fas fa-upload"></i> Import</button>
                 </div>
             </form>
@@ -539,6 +593,11 @@
                             style="display: flex; flex-wrap: wrap; gap: 6px; margin-top: 4px;">
                             <!-- Will be populated dynamically -->
                         </div>
+                    </div>
+                    <div style="display: flex; flex-direction: column; gap: 4px;" id="detail-user-spesialisasi-row">
+                        <span
+                            style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; color: #94a3b8; font-weight: 600;">Spesialisasi</span>
+                        <span style="font-size: 0.95rem; color: #334155; font-weight: 500;" id="detail-user-spesialisasi">-</span>
                     </div>
                     <div style="display: flex; flex-direction: column; gap: 4px;">
                         <span
@@ -652,7 +711,7 @@
                 </div>
                 <h3 style="font-size: 1.25rem; font-weight: 700; color: var(--charcoal); margin: 0;">Berhasil</h3>
                 <p style="color: #64748b; font-size: 0.95rem; margin-top: 10px; line-height: 1.5;">
-                    {{ session('success_modal') ?? 'Seluruh data siswa berhasil diimport dengan sukses ke dalam database.' }}
+                    {{ session('success_modal') ?? (request('role') === 'guru' ? 'Seluruh data Guru BK berhasil diimport dengan sukses ke dalam database.' : 'Seluruh data siswa berhasil diimport dengan sukses ke dalam database.') }}
                 </p>
                 <div class="modal-footer"
                     style="justify-content: center; border-top: none; padding-top: 20px; margin-top: 10px;">
@@ -775,6 +834,29 @@
             </div>
         </div>
     </div>
+
+    {{-- Modal Konfirmasi Duplikasi Guru BK saat Import --}}
+    <div class="modal-overlay" id="modal-confirm-import-guru-duplicate" style="z-index: 1100;">
+        <div class="modal" style="max-width: 450px; text-align: center; padding: 24px;">
+            <div style="font-size: 3rem; color: #f59e0b; margin-bottom: 15px;">
+                <i class="fa-solid fa-circle-exclamation"></i>
+            </div>
+            <h3 style="font-size: 1.25rem; font-weight: 700; color: var(--charcoal); margin: 0;">Duplikasi Guru BK Terdeteksi</h3>
+            <p style="color: #64748b; font-size: 0.9rem; margin-top: 10px; line-height: 1.5;">
+                Terdapat <strong id="import-guru-duplicate-count">0</strong> data Guru BK yang sudah terdaftar di database (berdasarkan NIP atau Email).
+                <br><br>
+                Apakah Anda ingin melanjutkan dan <strong>memperbarui</strong> data Guru BK tersebut dengan data terbaru dari Excel, atau membatalkan proses import?
+            </p>
+            <div class="modal-footer"
+                style="justify-content: center; gap: 10px; border-top: none; padding-top: 20px; margin-top: 10px;">
+                <button type="button" class="btn btn-secondary" onclick="closeModal('modal-confirm-import-guru-duplicate')"
+                    style="margin: 0; min-width: 120px;">Batal</button>
+                <button type="button" class="btn btn-primary" onclick="proceedImportGuruWithUpdate()"
+                    style="margin: 0; background: var(--teal); border-color: var(--teal); min-width: 120px;">Lanjutkan</button>
+            </div>
+        </div>
+    </div>
+
     {{-- Loading Overlay for Import --}}
     <div class="modal-overlay" id="modal-import-loading" style="z-index: 1200; background: rgba(15, 23, 42, 0.7); backdrop-filter: blur(4px);">
         <div class="modal" style="max-width: 400px; text-align: center; padding: 32px; background: #ffffff; border-radius: 16px; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);">
@@ -866,6 +948,61 @@
                         });
                 });
             }
+
+            const importGuruForm = document.getElementById('form-import-guru');
+            if (importGuruForm) {
+                importGuruForm.addEventListener('submit', function (event) {
+                    const forceUpdateInput = document.getElementById('import-guru-force-update');
+                    if (forceUpdateInput.value === '1') {
+                        return;
+                    }
+
+                    event.preventDefault();
+
+                    const formData = new FormData(importGuruForm);
+                    const submitBtn = importGuruForm.querySelector('button[type="submit"]');
+                    const originalBtnHtml = submitBtn.innerHTML;
+
+                    submitBtn.disabled = true;
+                    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Memeriksa...';
+
+                    fetch("{{ route('users.import-guru-check') }}", {
+                        method: 'POST',
+                        body: formData,
+                        headers: {
+                            'X-CSRF-TOKEN': "{{ csrf_token() }}"
+                        }
+                    })
+                        .then(response => {
+                            if (!response.ok) {
+                                throw new Error('Gagal memeriksa data');
+                            }
+                            return response.json();
+                        })
+                        .then(data => {
+                            submitBtn.disabled = false;
+                            submitBtn.innerHTML = originalBtnHtml;
+
+                            if (data.has_duplicates) {
+                                document.getElementById('import-guru-duplicate-count').textContent = data.duplicates_count;
+                                openModal('modal-confirm-import-guru-duplicate');
+                            } else {
+                                forceUpdateInput.value = '0';
+                                closeModal('modal-import-guru');
+                                openModal('modal-import-loading');
+                                importGuruForm.submit();
+                            }
+                        })
+                        .catch(error => {
+                            console.error(error);
+                            submitBtn.disabled = false;
+                            submitBtn.innerHTML = originalBtnHtml;
+                            closeModal('modal-import-guru');
+                            openModal('modal-import-loading');
+                            importGuruForm.submit();
+                        });
+                });
+            }
         });
 
         window.submitUserForm = function () {
@@ -883,21 +1020,42 @@
             document.getElementById('form-import-siswa').submit();
         };
 
+        window.proceedImportGuruWithUpdate = function () {
+            document.getElementById('import-guru-force-update').value = '1';
+            closeModal('modal-confirm-import-guru-duplicate');
+            closeModal('modal-import-guru');
+            openModal('modal-import-loading');
+            document.getElementById('form-import-guru').submit();
+        };
+
+        window.openImportGuruModal = function () {
+            openModal('modal-import-guru');
+        };
+
         function toggleRoleUI() {
             const role = document.getElementById('user-role').value;
             const siswaUI = document.getElementById('container-class-siswa');
             const siswaRow = document.getElementById('container-class-siswa-row');
+            const spesialisasiRow = document.getElementById('container-spesialisasi-row');
             const emailInput = document.getElementById('user-email');
             const emailLabel = document.getElementById('user-email-label');
 
             if (role === 'siswa') {
                 siswaUI.style.display = 'block';
                 if (siswaRow) siswaRow.style.display = 'flex';
+                if (spesialisasiRow) spesialisasiRow.style.display = 'none';
                 if (emailInput) emailInput.removeAttribute('required');
                 if (emailLabel) emailLabel.innerHTML = 'Email <span style="color:var(--muted);font-weight:normal;">(Opsional)</span>';
+            } else if (role === 'guru') {
+                siswaUI.style.display = 'none';
+                if (siswaRow) siswaRow.style.display = 'none';
+                if (spesialisasiRow) spesialisasiRow.style.display = 'flex';
+                if (emailInput) emailInput.setAttribute('required', 'required');
+                if (emailLabel) emailLabel.innerHTML = 'Email';
             } else {
                 siswaUI.style.display = 'none';
                 if (siswaRow) siswaRow.style.display = 'none';
+                if (spesialisasiRow) spesialisasiRow.style.display = 'none';
                 if (emailInput) emailInput.setAttribute('required', 'required');
                 if (emailLabel) emailLabel.innerHTML = 'Email';
             }
@@ -905,6 +1063,10 @@
 
         function openImportModal() {
             openModal('modal-import');
+        }
+
+        function openImportGuruModal() {
+            openModal('modal-import-guru');
         }
 
         function openAddModal() {
@@ -923,7 +1085,7 @@
             openModal('modal-user');
         }
 
-        function editUser(id, name, email, role, nis, classId, teacherClasses, noHp, gender) {
+        function editUser(id, name, email, role, nis, classId, teacherClasses, noHp, gender, spesialisasi) {
             let roleLabel = role === 'admin' ? 'Admin' : (role === 'guru' ? 'Guru BK' : 'Siswa');
             document.getElementById('user-modal-title').textContent = 'Edit ' + roleLabel;
             document.getElementById('user-nis-label').textContent = role === 'siswa' ? 'NIS' : 'NIP';
@@ -938,6 +1100,7 @@
             document.getElementById('user-nohp').value = noHp || '';
             document.getElementById('user-gender').value = gender || '';
             document.getElementById('user-class-siswa').value = classId;
+            document.getElementById('user-spesialisasi').value = spesialisasi || '';
             document.getElementById('user-password').value = '';
             document.getElementById('user-password').removeAttribute('required');
 
@@ -1029,6 +1192,17 @@
                 }
             } else {
                 classesManagedRow.style.display = 'none';
+            }
+
+            // Spesialisasi Row (For Guru BK)
+            const spesialisasiRow = document.getElementById('detail-user-spesialisasi-row');
+            if (user.role === 'guru') {
+                if (spesialisasiRow) {
+                    spesialisasiRow.style.display = 'flex';
+                    document.getElementById('detail-user-spesialisasi').textContent = user.spesialisasi || '-';
+                }
+            } else {
+                if (spesialisasiRow) spesialisasiRow.style.display = 'none';
             }
 
             openModal('modal-detail-user');

@@ -6,6 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>E-BK — @yield('title', 'Sistem Bimbingan Konseling Online')</title>
+    <link rel="shortcut icon" href="{{ asset('favicon.ico') }}" type="image/x-icon">
     <link
         href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,300&display=swap"
         rel="stylesheet">
@@ -85,8 +86,8 @@
                         ['section' => 'Manajemen'],
                         ['route' => 'kelas.index', 'icon' => 'fas fa-school', 'label' => 'Data Kelas'],
                         ['label' => 'Manajemen User', 'icon' => 'fas fa-users-cog', 'submenu' => $userSubmenu],
-                        ['route' => 'kategori.index', 'icon' => 'fas fa-tags', 'label' => 'Kategori Layanan'],
                         ['section' => 'Sistem'],
+                        ['route' => 'kategori.index', 'icon' => 'fas fa-tags', 'label' => 'Kategori Layanan'],
                         ['route' => 'pengaturan.index', 'icon' => 'fas fa-cog', 'label' => 'Pengaturan Sistem'],
                     ],
                     'guru' => [
@@ -125,7 +126,7 @@
                         }
                     @endphp
                     <div class="nav-item has-dropdown {{ $is_open ? 'open' : '' }}" onclick="this.classList.toggle('open')">
-                        <div>
+                        <div style="display: flex; align-items: center; gap: 12px;">
                             <i class="{{ $item['icon'] }}"></i>
                             <span>{{ $item['label'] }}</span>
                         </div>

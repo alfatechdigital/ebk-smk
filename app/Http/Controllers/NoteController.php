@@ -260,14 +260,6 @@ class NoteController extends Controller
         $institute = \App\Models\Institute::first();
         $pdf = Pdf::loadView('pdf.catatan', compact('note', 'institute'));
         $filename = 'jurnal-' . $note->ticket->code . '-' . now()->format('Ymd') . '.pdf';
-        $path = 'journals/' . $filename;
-
-        Storage::disk('public')->put($path, $pdf->output());
-
-        Journal::updateOrCreate(
-            ['ticket_id' => $note->ticket_id, 'counseling_note_id' => $note->id],
-            ['pdf_path' => $path]
-        );
 
         return $pdf->download($filename);
     }

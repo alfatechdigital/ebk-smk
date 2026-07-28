@@ -17,14 +17,10 @@ class InstitutionController extends Controller
     {
         $validated = $request->validate([
             'name'          => 'required|string|max:255',
-            'npsn'          => 'nullable|string',
             'address'       => 'nullable|string',
             'phone'         => 'nullable|string',
-            'email'         => 'nullable|email',
             'kepala_sekolah'=> 'nullable|string',
             'kota_ttd'      => 'nullable|string',
-            'tahun_ajaran'  => 'nullable|string',
-            'semester'      => 'nullable|in:Ganjil,Genap',
             'media_expiry_days' => 'nullable|integer|min:1',
         ]);
 

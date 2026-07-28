@@ -5,6 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>E-BK — Login</title>
+    <link rel="shortcut icon" href="{{ asset('favicon.ico') }}" type="image/x-icon">
     <link
         href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,300&display=swap"
         rel="stylesheet">
@@ -113,8 +114,8 @@
         <div class="login-form-panel"
             style="display: flex; flex-direction: column; align-items: center; justify-content: center;">
             <div class="login-logo"
-                style="background: var(--cream); color: var(--teal); width: 64px; height: 64px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 26px; margin-bottom: 20px;">
-                <i class="fas fa-user-shield"></i>
+                style="background: rgba(0, 91, 183, 0.12); color: var(--teal); width: 64px; height: 64px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 26px; margin-bottom: 20px;">
+                <i class="fas fa-user-shield" style="color: var(--teal) !important;"></i>
             </div>
             <h2 style="margin-bottom: 4px; font-weight: 600;">Selamat Datang</h2>
             <p class="sub" style="margin-bottom: 24px; color: var(--muted); text-align: center;">Masuk untuk mengakses

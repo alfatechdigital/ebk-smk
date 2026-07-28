@@ -60,6 +60,8 @@ Route::middleware('auth')->group(function () {
     Route::middleware('role:admin')->group(function () {
         Route::post('/users/import', [UserController::class, 'import'])->name('users.import');
         Route::post('/users/import-check', [UserController::class, 'importCheck'])->name('users.import-check');
+        Route::post('/users/import-guru', [UserController::class, 'importGuru'])->name('users.import-guru');
+        Route::post('/users/import-guru-check', [UserController::class, 'importGuruCheck'])->name('users.import-guru-check');
         Route::post('/users/promote-classes', [UserController::class, 'promoteClasses'])->name('users.promote-classes');
         Route::post('/users/delete-graduated', [UserController::class, 'deleteGraduated'])->name('users.delete-graduated');
         Route::resource('users', UserController::class)->except(['show','create','edit']);
