@@ -489,7 +489,7 @@ SET @OLD_AUTOCOMMIT=@@AUTOCOMMIT, @@AUTOCOMMIT=0;
 LOCK TABLES `institutes` WRITE;
 /*!40000 ALTER TABLE `institutes` DISABLE KEYS */;
 INSERT INTO `institutes` VALUES
-(1,'SMK Negeri 2 Singosari','Jalan Perusahaan No. 20, Tunjungtirto, Singosari, Kab. Malang, Jawa Timur, 65153','(0341) 435127','Drs. Agus Suprianto, M.Pd','Malang','2026-07-19 05:50:44','2026-07-28 15:28:09',90);
+(1,'SMK Negeri 2 Singosari','Jalan Perusahaan No. 20, Tunjungtirto, Singosari, Kab. Malang, Jawa Timur, 65153','(0341) 435127','Budiono, S.Pd., M.M.','Malang','2026-07-19 05:50:44','2026-07-28 15:28:09',180);
 /*!40000 ALTER TABLE `institutes` ENABLE KEYS */;
 UNLOCK TABLES;
 COMMIT;
@@ -548,7 +548,7 @@ SET @OLD_AUTOCOMMIT=@@AUTOCOMMIT, @@AUTOCOMMIT=0;
 LOCK TABLES `users` WRITE;
 /*!40000 ALTER TABLE `users` DISABLE KEYS */;
 INSERT INTO `users` VALUES
-(1,'Administrator','admin@ebk.id','admin',1,NULL,'L',NULL,'$2y$12$EUJZLAz6H6pFUmHPr/HhsuAbw9AJG1gvqjT7K3G.Cn8bnWpBgYYtq',NULL,'2026-07-19 05:50:45','2026-07-28 12:07:39');
+(1,'Administrator','adminbk@gmail.com','admin',1,NULL,'L',NULL,'$2y$12$EUJZLAz6H6pFUmHPr/HhsuAbw9AJG1gvqjT7K3G.Cn8bnWpBgYYtq',NULL,'2026-07-19 05:50:45','2026-07-28 12:07:39');
 /*!40000 ALTER TABLE `users` ENABLE KEYS */;
 UNLOCK TABLES;
 COMMIT;
