@@ -120,9 +120,9 @@
             </form>
             @endif
             
-            @if(auth()->user()->isGuru() && $ticket->status !== 'selesai')
+            @if(auth()->user()->isGuru() && $ticket->status !== 'selesai' && $ticket->status !== 'dibatalkan')
             <div style="border-top: 1px solid #eee; padding-top: 16px; margin-top: 8px;">
-                <button type="button" class="btn" style="width: 100%; justify-content: center; padding: 10px; background-color: #059669; border: none; color: white;" onclick="openSelesaiModal('{{ $ticket->id }}', '{{ addslashes($ticket->title) }}', '{{ addslashes($ticket->description) }}')">
+                <button type="button" class="btn" style="width: 100%; justify-content: center; padding: 10px; background-color: var(--teal); border: none; color: white;" onclick="openSelesaiModal('{{ $ticket->id }}', '{{ addslashes($ticket->title) }}', '{{ addslashes($ticket->description) }}')">
                     <i class="fas fa-check-double"></i> Selesaikan Konsultasi
                 </button>
             </div>
@@ -146,6 +146,10 @@
             <label style="font-size: 11px; font-weight: 700; color: var(--muted); text-transform: uppercase;">Tindakan / Solusi yang Diberikan</label>
             <p style="font-size: 14px; color: var(--charcoal); line-height: 1.5; margin-top: 2px;">{{ $ticket->counselingNote->tindakan }}</p>
         </div>
+        <div>
+            <label style="font-size: 11px; font-weight: 700; color: var(--muted); text-transform: uppercase;">Kesimpulan</label>
+            <p style="font-size: 14px; color: var(--charcoal); line-height: 1.5; margin-top: 2px;">{{ $ticket->counselingNote->kesimpulan ?? '-' }}</p>
+        </div>
     </div>
 </div>
 @endif
@@ -156,7 +160,7 @@
         <div class="modal" style="max-width: 600px; max-height: 90vh; overflow-y: auto; padding: 24px;">
             <div class="modal-header" style="border-bottom: 1px solid #eee; padding-bottom: 15px; margin-bottom: 20px;">
                 <h3 style="font-size: 1.15rem; font-weight: 800; color: var(--charcoal); display: flex; align-items: center; gap: 8px; margin: 0;">
-                    <i class="fa-solid fa-circle-check" style="color: #059669;"></i> Selesaikan & Buat Catatan
+                    <i class="fa-solid fa-circle-check" style="color: var(--teal);"></i> Selesaikan & Buat Catatan
                 </h3>
                 <button class="modal-close" onclick="closeModal('modal-selesai')">✕</button>
             </div>
@@ -181,7 +185,7 @@
                 </div>
                 <div class="modal-footer" style="justify-content: flex-end; gap: 10px; border-top: none; padding-top: 20px;">
                     <button type="button" class="btn btn-secondary" onclick="closeModal('modal-selesai')">Batal</button>
-                    <button type="button" class="btn btn-primary" style="background: #059669; border: none; color: #fff;" onclick="openConfirmSelesai()"><i class="fa-solid fa-floppy-disk"></i> Simpan & Selesaikan</button>
+                    <button type="button" class="btn btn-primary" style="background: var(--teal); border: none; color: #fff;" onclick="openConfirmSelesai()"><i class="fa-solid fa-floppy-disk"></i> Simpan & Selesaikan</button>
                 </div>
             </form>
         </div>
@@ -189,7 +193,7 @@
 
     <div class="modal-overlay" id="modal-confirm-selesai" style="z-index: 1060;">
         <div class="modal" style="max-width: 450px; text-align: center; padding: 24px;">
-            <div style="font-size: 3rem; color: #059669; margin-bottom: 15px;">
+            <div style="font-size: 3rem; color: var(--teal); margin-bottom: 15px;">
                 <i class="fa-solid fa-circle-question"></i>
             </div>
             <h3 style="font-size: 1.25rem; font-weight: 800; color: var(--charcoal); margin: 0 0 10px 0;">Selesaikan Konsultasi?</h3>
@@ -198,7 +202,7 @@
             </p>
             <div style="display: flex; gap: 10px; justify-content: center; margin-top: 20px;">
                 <button type="button" class="btn btn-secondary" onclick="closeModal('modal-confirm-selesai')" style="margin: 0; padding: 10px 20px;">Batal</button>
-                <button type="button" class="btn btn-primary" onclick="submitSelesaiForm()" style="margin: 0; padding: 10px 20px; background: #059669; border: none; color: white;"><i class="fas fa-check-circle"></i> Ya, Selesaikan</button>
+                <button type="button" class="btn btn-primary" onclick="submitSelesaiForm()" style="margin: 0; padding: 10px 20px; background: var(--teal); border: none; color: white;"><i class="fas fa-check-circle"></i> Ya, Selesaikan</button>
             </div>
         </div>
     </div>

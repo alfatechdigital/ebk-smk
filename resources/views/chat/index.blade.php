@@ -49,6 +49,28 @@
                 flex-wrap: nowrap !important;
             }
         }
+
+        @media (max-width: 767px) {
+            .inline-actions-group {
+                width: 100% !important;
+                display: flex !important;
+                flex-direction: column !important;
+                align-items: stretch !important;
+                gap: 8px !important;
+            }
+            .inline-actions-buttons {
+                width: 100% !important;
+                display: flex !important;
+                flex-direction: column !important;
+                align-items: stretch !important;
+                gap: 8px !important;
+            }
+            .inline-actions-group .btn,
+            .inline-actions-buttons .btn {
+                width: 100% !important;
+                justify-content: center !important;
+            }
+        }
     </style>
 @endpush
 
@@ -1144,7 +1166,7 @@
     </div>
 
     <div class="modal-overlay" id="modal-chat-detail">
-        <div class="modal" style="max-width: 520px; padding: 24px; text-align: left;">
+        <div class="modal" style="max-width: 600px; padding: 24px; text-align: left;">
             <div class="modal-header" style="border-bottom: 1px solid #eee; padding-bottom: 12px; margin-bottom: 16px;">
                 <h3
                     style="font-size: 1.15rem; font-weight: 800; color: var(--charcoal); display: flex; align-items: center; gap: 8px; margin: 0;">
@@ -1154,7 +1176,7 @@
             </div>
             <div style="display: flex; flex-direction: column; gap: 16px;">
                 <div
-                    style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px;">
+                    style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px; text-align: left;">
                     @if(auth()->user()->isSiswa() && $active->anonymous)
                         <div>
                             <label
@@ -1241,40 +1263,39 @@
                     @endif
                 @endif
 
-                <div>
+                <div style="text-align: left;">
                     <label
                         style="font-size: 0.75rem; color: #64748b; text-transform: uppercase; font-weight: 700; display: block; margin-bottom: 4px;">Topik
                         Konsultasi</label>
                     <div style="font-size: 1rem; font-weight: 800; color: #0f172a;">{{ $active->title }}</div>
                 </div>
 
-                <div>
+                <div style="text-align: left;">
                     <label
                         style="font-size: 0.75rem; color: #64748b; text-transform: uppercase; font-weight: 700; display: block; margin-bottom: 4px;">Deskripsi
                         Masalah</label>
                     <div
-                        style="text-align: left; font-size: 0.9rem; color: #334155; background: #f8fafc; border-left: 4px solid var(--teal); padding: 12px; border-radius: 0 8px 8px 0; line-height: 1.5; white-space: pre-wrap; word-break: break-word;">
-                        {{ $active->description }}</div>
+                        style="text-align: left; font-size: 0.9rem; color: #334155; background: #f8fafc; border-left: 4px solid var(--teal); padding: 12px; border-radius: 0 8px 8px 0; line-height: 1.5; white-space: pre-wrap; word-break: break-word;">{{ $active->description }}</div>
                 </div>
             </div>
             <div class="modal-footer"
-                style="margin-top: 24px; padding-top: 12px; border-top: 1px solid #eee; display: flex; justify-content: flex-end; gap: 8px; position: relative;">
+                style="margin-top: 24px; padding-top: 12px; border-top: 1px solid #eee; display: flex; gap: 8px; flex-wrap: wrap; align-items: center; justify-content: flex-end; position: relative;">
                 @if(auth()->user()->isGuru() && $active->status !== 'selesai' && $active->status !== 'dibatalkan')
                     <div id="detail-actions-wrapper" class="inline-actions-group" style="display: inline-flex;">
                         <button type="button" id="btn-toggle-actions" class="btn btn-secondary"
-                            style="display: inline-flex; align-items: center; gap: 6px; margin: 0; padding: 6px 12px; font-size: 12px; white-space: nowrap;"
+                            style="display: inline-flex; align-items: center; gap: 6px; margin: 0; padding: 9px 18px; font-size: 13px; white-space: nowrap;"
                             onclick="toggleInlineActions()">
                             <i class="fas fa-cogs"></i> Tindakan <i class="fas fa-chevron-right" id="actions-chevron"
                                 style="font-size: 10px; transition: transform 0.2s;"></i>
                         </button>
                         <div id="inline-actions-container" class="inline-actions-buttons">
                             <button type="button" class="btn"
-                                style="display: inline-flex; align-items: center; gap: 4px; margin: 0; padding: 6px 12px; font-size: 12px; background-color: #059669; border: none; color: white; white-space: nowrap;"
+                                style="display: inline-flex; align-items: center; gap: 4px; margin: 0; padding: 9px 18px; font-size: 13px; background-color: var(--teal); border: none; color: white; white-space: nowrap;"
                                 onclick="closeModal('modal-chat-detail'); openSelesaiModal('{{ $active->id }}', '{{ addslashes($active->title) }}', '{{ addslashes($active->description) }}')">
                                 <i class="fas fa-check-circle"></i> Selesaikan Konsultasi
                             </button>
                             <button type="button" class="btn btn-danger"
-                                style="display: inline-flex; align-items: center; gap: 4px; margin: 0; padding: 6px 12px; font-size: 12px; background-color: #ef4444; border: none; color: white; white-space: nowrap;"
+                                style="display: inline-flex; align-items: center; gap: 4px; margin: 0; padding: 9px 18px; font-size: 13px; background-color: #ef4444; border: none; color: white; white-space: nowrap;"
                                 onclick="closeModal('modal-chat-detail'); openConfirmCancelModal('{{ $active->id }}')">
                                 <i class="fas fa-ban"></i> Batalkan Konsultasi
                             </button>
@@ -1294,7 +1315,7 @@
                 <div class="modal-header" style="border-bottom: 1px solid #eee; padding-bottom: 15px; margin-bottom: 20px;">
                     <h3
                         style="font-size: 1.15rem; font-weight: 800; color: var(--charcoal); display: flex; align-items: center; gap: 8px; margin: 0;">
-                        <i class="fa-solid fa-circle-check" style="color: #059669;"></i> Selesaikan & Buat Catatan
+                        <i class="fa-solid fa-circle-check" style="color: var(--teal);"></i> Selesaikan & Buat Catatan
                     </h3>
                     <button class="modal-close" onclick="closeModal('modal-selesai')">✕</button>
                 </div>
@@ -1320,7 +1341,7 @@
                     <div class="modal-footer"
                         style="justify-content: flex-end; gap: 10px; border-top: none; padding-top: 20px;">
                         <button type="button" class="btn btn-secondary" onclick="closeModal('modal-selesai')">Batal</button>
-                        <button type="button" class="btn btn-primary" style="background: #059669; border: none; color: #fff;"
+                        <button type="button" class="btn btn-primary" style="background: var(--teal); border: none; color: #fff;"
                             onclick="openConfirmSelesai()"><i class="fa-solid fa-floppy-disk"></i> Simpan & Selesaikan</button>
                     </div>
                 </form>
@@ -1329,7 +1350,7 @@
 
         <div class="modal-overlay" id="modal-confirm-selesai" style="z-index: 1060;">
             <div class="modal" style="max-width: 450px; text-align: center; padding: 24px;">
-                <div style="font-size: 3rem; color: #059669; margin-bottom: 15px;">
+                <div style="font-size: 3rem; color: var(--teal); margin-bottom: 15px;">
                     <i class="fa-solid fa-circle-question"></i>
                 </div>
                 <h3 style="font-size: 1.25rem; font-weight: 800; color: var(--charcoal); margin: 0 0 10px 0;">Selesaikan
@@ -1342,9 +1363,8 @@
                     <button type="button" class="btn btn-secondary" onclick="closeModal('modal-confirm-selesai')"
                         style="margin: 0; padding: 10px 20px;">Batal</button>
                     <button type="button" class="btn btn-primary" onclick="submitSelesaiForm()"
-                        style="margin: 0; padding: 10px 20px; background: #059669; border: none; color: white;"><i
+                        style="margin: 0; padding: 10px 20px; background: var(--teal); border: none; color: white;"><i
                             class="fas fa-check-circle"></i> Ya, Selesaikan</button>
-                </div>
             </div>
         </div>
     @endif

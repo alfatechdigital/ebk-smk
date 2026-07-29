@@ -171,6 +171,28 @@
                 flex-wrap: nowrap !important;
             }
         }
+
+        @media (max-width: 767px) {
+            .inline-actions-group {
+                width: 100% !important;
+                display: flex !important;
+                flex-direction: column !important;
+                align-items: stretch !important;
+                gap: 8px !important;
+            }
+            .inline-actions-buttons {
+                width: 100% !important;
+                display: flex !important;
+                flex-direction: column !important;
+                align-items: stretch !important;
+                gap: 8px !important;
+            }
+            .inline-actions-group .btn,
+            .inline-actions-buttons .btn {
+                width: 100% !important;
+                justify-content: center !important;
+            }
+        }
     </style>
 
     <!-- Ticket List -->
@@ -312,18 +334,18 @@
                 @if(auth()->user()->isGuru())
                     <div id="detail-actions-wrapper" class="inline-actions-group">
                         <button type="button" id="btn-toggle-actions" class="btn btn-secondary"
-                            style="display: inline-flex; align-items: center; gap: 6px; margin: 0; padding: 6px 12px; font-size: 12px; white-space: nowrap;"
+                            style="display: inline-flex; align-items: center; gap: 6px; margin: 0; padding: 9px 18px; font-size: 13px; white-space: nowrap;"
                             onclick="toggleInlineActions()">
                             <i class="fas fa-cogs"></i> Tindakan <i class="fas fa-chevron-right" id="actions-chevron"
                                 style="font-size: 10px; transition: transform 0.2s;"></i>
                         </button>
                         <div id="inline-actions-container" class="inline-actions-buttons">
                             <button type="button" id="detail-selesai-btn" class="btn"
-                                style="display: inline-flex; align-items: center; gap: 4px; margin: 0; padding: 6px 12px; font-size: 12px; background-color: #059669; border: none; color: white; white-space: nowrap;">
+                                style="display: inline-flex; align-items: center; gap: 4px; margin: 0; padding: 9px 18px; font-size: 13px; background-color: var(--teal); border: none; color: white; white-space: nowrap;">
                                 <i class="fas fa-check-circle"></i> Selesaikan Konsultasi
                             </button>
                             <button type="button" id="detail-cancel-btn" class="btn btn-danger"
-                                style="display: inline-flex; align-items: center; gap: 4px; margin: 0; padding: 6px 12px; font-size: 12px; background-color: #ef4444; border: none; color: white; white-space: nowrap;">
+                                style="display: inline-flex; align-items: center; gap: 4px; margin: 0; padding: 9px 18px; font-size: 13px; background-color: #ef4444; border: none; color: white; white-space: nowrap;">
                                 <i class="fas fa-ban"></i> Batalkan Konsultasi
                             </button>
                         </div>
@@ -345,7 +367,7 @@
                 <div class="modal-header" style="border-bottom: 1px solid #eee; padding-bottom: 15px; margin-bottom: 20px;">
                     <h3
                         style="font-size: 1.15rem; font-weight: 800; color: var(--charcoal); display: flex; align-items: center; gap: 8px; margin: 0;">
-                        <i class="fa-solid fa-circle-check" style="color: #059669;"></i> Selesaikan & Buat Catatan
+                        <i class="fa-solid fa-circle-check" style="color: var(--teal);"></i> Selesaikan & Buat Catatan
                     </h3>
                     <button class="modal-close" onclick="closeModal('modal-selesai')">✕</button>
                 </div>
@@ -371,7 +393,7 @@
                     <div class="modal-footer"
                         style="justify-content: flex-end; gap: 10px; border-top: none; padding-top: 20px;">
                         <button type="button" class="btn btn-secondary" onclick="closeModal('modal-selesai')">Batal</button>
-                        <button type="button" class="btn btn-primary" style="background: #059669; border: none; color: #fff;"
+                        <button type="button" class="btn btn-primary" style="background: var(--teal); border: none; color: #fff;"
                             onclick="openConfirmSelesai()"><i class="fa-solid fa-floppy-disk"></i> Simpan & Selesaikan</button>
                     </div>
                 </form>
@@ -380,7 +402,7 @@
 
         <div class="modal-overlay" id="modal-confirm-selesai" style="z-index: 1060;">
             <div class="modal" style="max-width: 450px; text-align: center; padding: 24px;">
-                <div style="font-size: 3rem; color: #059669; margin-bottom: 15px;">
+                <div style="font-size: 3rem; color: var(--teal); margin-bottom: 15px;">
                     <i class="fa-solid fa-circle-question"></i>
                 </div>
                 <h3 style="font-size: 1.25rem; font-weight: 800; color: var(--charcoal); margin: 0 0 10px 0;">Selesaikan
@@ -393,7 +415,7 @@
                     <button type="button" class="btn btn-secondary" onclick="closeModal('modal-confirm-selesai')"
                         style="margin: 0; padding: 10px 20px;">Batal</button>
                     <button type="button" class="btn btn-primary" onclick="submitSelesaiForm()"
-                        style="margin: 0; padding: 10px 20px; background: #059669; border: none; color: white;"><i
+                        style="margin: 0; padding: 10px 20px; background: var(--teal); border: none; color: white;"><i
                             class="fas fa-check-circle"></i> Ya, Selesaikan</button>
                 </div>
             </div>
