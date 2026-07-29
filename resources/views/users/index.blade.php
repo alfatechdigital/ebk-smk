@@ -444,8 +444,7 @@
                     <p style="margin-bottom: 8px; font-weight: 600; color: #1e3a8a;"><i class="fas fa-info-circle"></i>
                         Panduan Proses Import Data:</p>
                     <ol style="margin-left: 20px; line-height: 1.5;">
-                        <li>Pastikan seluruh <strong>Data Kelas</strong> sudah diatur/ditambahkan di menu Data Kelas sebelum
-                            melakukan import.</li>
+                        <li style="color: #c2410c; font-weight: 600;"><i class="fas fa-exclamation-triangle"></i> Sebelum mengimport siswa, pastikan Anda sudah menambahkan seluruh Data Kelas terlebih dahulu di menu Data Kelas.</li>
                         <li>Unduh template file Excel melalui tombol <strong>"Unduh Template"</strong> di atas.</li>
                         <li>Buka file template tersebut dan isi data siswa baru sesuai kolom yang disediakan.</li>
                         <li>Pastikan nama kelas di kolom <strong>kelas</strong> sesuai dengan nama kelas yang terdaftar di

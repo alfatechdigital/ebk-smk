@@ -224,6 +224,7 @@
                 <div style="margin-top: 15px; font-size: 0.9rem; color: #475569; background: #eff6ff; padding: 12px; border-radius: 8px; border: 1px solid #bfdbfe;">
                     <p style="margin-bottom: 8px; font-weight: 600; color: #1e3a8a;"><i class="fas fa-info-circle"></i> Panduan Proses Import Data Kelas:</p>
                     <ol style="margin-left: 20px; line-height: 1.5; display: flex; flex-direction: column; gap: 4px;">
+                        <li style="color: #c2410c; font-weight: 600;"><i class="fas fa-exclamation-triangle"></i> Sebelum mengimport kelas, pastikan Anda sudah menambahkan Guru BK terlebih dahulu di sistem.</li>
                         <li>Unduh template file Excel melalui tombol <strong>"Unduh Template"</strong> di atas.</li>
                         <li>Buka file template tersebut dan isi data kelas baru sesuai kolom yang disediakan (Kelas, Wali Kelas, Guru BK).</li>
                         <li>Pastikan nama Guru BK pada kolom <strong>Guru BK</strong> sesuai dengan nama Guru yang terdaftar di sistem.</li>
