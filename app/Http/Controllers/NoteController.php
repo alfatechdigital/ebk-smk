@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Models\CounselingNote;
-use App\Models\Journal;
 use App\Models\Ticket;
 use App\Models\Student;
 use Barryvdh\DomPDF\Facade\Pdf;
@@ -205,14 +204,7 @@ class NoteController extends Controller
             $note->updated_at = $ticketDate;
             $note->save();
 
-            // 3. Create Journal entry
-            $journal = new Journal([
-                'ticket_id'          => $ticket->id,
-                'counseling_note_id' => $note->id,
-            ]);
-            $journal->created_at = $ticketDate;
-            $journal->updated_at = $ticketDate;
-            $journal->save();
+
 
             return redirect()->route('catatan.index')->with('success', 'Catatan manual berhasil disimpan.');
         } else {
@@ -235,11 +227,7 @@ class NoteController extends Controller
                 'completed_at' => now()
             ]);
 
-            // Create Journal entry
-            Journal::create([
-                'ticket_id' => $ticket->id,
-                'counseling_note_id' => $note->id,
-            ]);
+
 
             return redirect()->route('tickets.show', $ticket)->with('success', 'Sesi konseling selesai dan Catatan berhasil disimpan.');
         }

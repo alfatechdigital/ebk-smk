@@ -44,8 +44,12 @@ Route::middleware('auth')->group(function () {
         Route::post('/tickets/{ticket}/toggle-pinned', [TicketController::class, 'togglePinned'])->name('tickets.pinned');
     });
 
-    // Catatan Konseling: only GURU BK can access
+    // Catatan Konseling & Data Siswa: only GURU BK can access
     Route::middleware('role:guru')->group(function () {
+
+        // Data Siswa (Guru)
+        Route::get('/data-siswa', [App\Http\Controllers\StudentDataController::class, 'index'])->name('data-siswa.index');
+
         Route::get('/catatan', [NoteController::class, 'index'])->name('catatan.index');
         Route::get('/catatan/rekap', [NoteController::class, 'exportRekapPdf'])->name('catatan.rekap');
         Route::post('/catatan', [NoteController::class, 'store'])->name('catatan.store');
@@ -75,9 +79,6 @@ Route::middleware('auth')->group(function () {
         Route::get('/pengaturan', [InstitutionController::class, 'index'])->name('pengaturan.index');
         Route::post('/pengaturan', [InstitutionController::class, 'update'])->name('pengaturan.update');
 
-        // Jurnal Kegiatan BK
-        Route::get('/jurnal', [JournalController::class, 'index'])->name('jurnal.index');
-        Route::get('/jurnal/rekap', [JournalController::class, 'exportPdf'])->name('jurnal.rekap');
     });
 
     // Kategori Layanan (Admin)
@@ -90,11 +91,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/profil', [ProfileController::class, 'index'])->name('profil.index');
     Route::put('/profil', [ProfileController::class, 'update'])->name('profil.update');
 
-    // Data Siswa (Guru)
-    Route::get('/data-siswa', [App\Http\Controllers\StudentDataController::class, 'index'])->name('data-siswa.index');
-    Route::post('/data-siswa', [App\Http\Controllers\StudentDataController::class, 'store'])->name('data-siswa.store');
-    Route::put('/data-siswa/{student}', [App\Http\Controllers\StudentDataController::class, 'update'])->name('data-siswa.update');
-    Route::delete('/data-siswa/{student}', [App\Http\Controllers\StudentDataController::class, 'destroy'])->name('data-siswa.destroy');
+
 });
 
 // Fallback route to serve storage files if symbolic link is not supported/missing

@@ -47,10 +47,6 @@ class DashboardController extends Controller
                 $q->where('name', 'like', 'XII %');
             })->count();
 
-            $stats['menunggu'] = Ticket::where('status', 'menunggu')->count();
-            $stats['diproses'] = Ticket::where('status', 'diproses')->count();
-            $stats['total_konsultasi'] = $stats['menunggu'] + $stats['diproses'];
-            $recentTickets = Ticket::with(['student.user', 'service'])->latest()->take(5)->get();
             $teachers = Teacher::with(['user', 'classes'])->get();
         } elseif ($user->isGuru()) {
             $teacherId = $user->teacher->id;
@@ -87,6 +83,10 @@ class DashboardController extends Controller
 
     private function getActivities(User $user): array
     {
+        if ($user->isAdmin()) {
+            return [];
+        }
+
         // Latest ticket messages as activity log
         $tickets = Ticket::with(['student.user', 'teacher.user', 'service'])
             ->latest()->limit(4)->get();

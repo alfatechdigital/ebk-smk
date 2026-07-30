@@ -131,7 +131,7 @@ class TicketController extends Controller
     public function show(Ticket $ticket)
     {
         $this->authorizeTicket($ticket);
-        $ticket->load(['student.user', 'teacher.user', 'service', 'messages.sender', 'counselingNote', 'journal']);
+        $ticket->load(['student.user', 'teacher.user', 'service', 'messages.sender', 'counselingNote']);
 
         // Mark messages as read
         $ticket->messages()->where('sender_id', '!=', Auth::id())->update(['is_read' => true]);
