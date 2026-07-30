@@ -49,6 +49,9 @@ Route::middleware('auth')->group(function () {
 
         // Data Siswa (Guru)
         Route::get('/data-siswa', [App\Http\Controllers\StudentDataController::class, 'index'])->name('data-siswa.index');
+        Route::post('/data-siswa', [App\Http\Controllers\StudentDataController::class, 'store'])->name('data-siswa.store');
+        Route::put('/data-siswa/{student}', [App\Http\Controllers\StudentDataController::class, 'update'])->name('data-siswa.update');
+        Route::delete('/data-siswa/{student}', [App\Http\Controllers\StudentDataController::class, 'destroy'])->name('data-siswa.destroy');
 
         Route::get('/catatan', [NoteController::class, 'index'])->name('catatan.index');
         Route::get('/catatan/rekap', [NoteController::class, 'exportRekapPdf'])->name('catatan.rekap');

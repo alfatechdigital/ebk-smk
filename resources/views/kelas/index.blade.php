@@ -96,7 +96,7 @@
                                     {{ $c->students->count() }} Siswa
                                 </span>
                             </td>
-                            <td class="action-btns" style="text-align: center;">
+                            <td class="action-btns" style="justify-content: center;">
                                 <button class="btn btn-secondary btn-sm"
                                     onclick="editClass({{ $c->id }}, '{{ addslashes($c->name) }}', '{{ addslashes($c->wali_kelas ?? '') }}', '{{ $c->teacher_id ?? '' }}')">
                                     <i class="fas fa-edit"></i>
